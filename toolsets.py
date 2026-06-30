@@ -64,6 +64,8 @@ _HERMES_CORE_TOOLS = [
     "honcho_context", "honcho_profile", "honcho_search", "honcho_conclude",
     # Home Assistant smart home control (gated on HASS_TOKEN via check_fn)
     "ha_list_entities", "ha_get_state", "ha_list_services", "ha_call_service",
+    # +æ — Agentic Entrepreneurship context primitive
+    "ae_context",
 ]
 
 
@@ -88,7 +90,13 @@ TOOLSETS = {
         "tools": ["vision_analyze"],
         "includes": []
     },
-    
+
+    "ae": {
+        "description": "+æ — Agentic Entrepreneurship context: blueprints, NAICS classification, formation, Stripe, Reachy",
+        "tools": ["ae_context"],
+        "includes": []
+    },
+
     "image_gen": {
         "description": "Creative generation tools (images)",
         "tools": ["image_generate"],
