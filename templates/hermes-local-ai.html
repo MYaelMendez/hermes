@@ -16,7 +16,6 @@
         --bg: #030303;
         --panel: #090909;
         --panel-2: #0b0b0b;
-        --panel-3: #0e0e0e;
         --glow: rgba(212, 175, 55, 0.08);
       }
 
@@ -31,7 +30,6 @@
         overflow-x: hidden;
       }
 
-      /* Scanline overlay */
       body::before {
         content: "";
         position: fixed;
@@ -56,7 +54,6 @@
         background: var(--border);
       }
 
-      /* Status bar */
       .statusbar {
         background: var(--panel);
         padding: 8px 14px;
@@ -151,7 +148,6 @@
         box-shadow: 0 0 10px var(--glow);
       }
 
-      /* Tabs */
       .tabbar {
         background: var(--panel);
         padding: 10px 14px 0;
@@ -189,7 +185,6 @@
         vertical-align: middle;
       }
 
-      /* Layout */
       .layout {
         display: grid;
         grid-template-columns: 1fr;
@@ -306,24 +301,9 @@
         font-size: 12px;
         line-height: 1.55;
       }
-      .log {
-        color: var(--neon);
-      }
-      .err-log {
-        color: #ff7b72;
-      }
+      .log { color: var(--neon); }
+      .err-log { color: #ff7b72; }
 
-      .ascii {
-        color: var(--gold);
-        opacity: 0.22;
-        white-space: pre;
-        font-size: 10px;
-        line-height: 1.1;
-        user-select: none;
-        pointer-events: none;
-      }
-
-      /* Keyboard hint */
       kbd {
         background: var(--panel-2);
         border: 1px solid var(--border);
@@ -333,7 +313,6 @@
         letter-spacing: 0.08em;
       }
 
-      /* Responsive */
       @media (max-width: 640px) {
         .statusbar { gap: 6px; }
         .glyph { width: 32px; height: 32px; font-size: 16px; }
@@ -369,6 +348,7 @@
               <span class="pill">DAO = logic</span>
               <span class="pill">DAO LLC = identity</span>
               <span class="pill">Local-only</span>
+              <span class="pill">Multisurface</span>
             </div>
           </div>
         </div>
@@ -380,6 +360,7 @@
       <div class="tabbar" role="tablist">
         <button class="tab" role="tab" aria-selected="true" data-tab="terminal">Terminal</button>
         <button class="tab" role="tab" aria-selected="false" data-tab="stack">Stack <span class="badge"></span></button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="simulation">Simulation</button>
         <button class="tab" role="tab" aria-selected="false" data-tab="apis">APIs</button>
         <button class="tab" role="tab" aria-selected="false" data-tab="blueprint">Blueprint</button>
         <button class="tab" role="tab" aria-selected="false" data-tab="source">Source</button>
@@ -392,10 +373,12 @@
           <button class="cmd" data-cmd="status"><span>status</span><span class="arrow">›</span></button>
           <button class="cmd" data-cmd="probe"><span>🤖 probe</span><span class="arrow">›</span></button>
           <button class="cmd" data-cmd="panel"><span>🤖 panel</span><span class="arrow">›</span></button>
+          <button class="cmd" data-cmd="sim status"><span>sim status</span><span class="arrow">›</span></button>
           <button class="cmd" data-cmd="sim contract"><span>sim contract</span><span class="arrow">›</span></button>
           <button class="cmd" data-cmd="sim run"><span>sim run</span><span class="arrow">›</span></button>
           <button class="cmd" data-cmd="model load"><span>model load</span><span class="arrow">›</span></button>
           <button class="cmd" data-cmd="model status"><span>model status</span><span class="arrow">›</span></button>
+          <button class="cmd" data-cmd="tools"><span>mcp://tools</span><span class="arrow">›</span></button>
           <div class="nav-title" style="margin-top:6px">Shortcuts</div>
           <div style="color:var(--muted);font-size:11px;line-height:1.6">
             <div><kbd>Tab</kbd> switch panel</div>
@@ -428,7 +411,20 @@
 04 AGENT    → Hermes / Nous intent router
 05 TRUST    → privateclient.ai / sovereign session
 06 DAO      → daollc.ai / Wyoming DAO LLC
-07 RAILS    → Stripe + Doola</pre>
+07 RAILS    → Stripe + Doola
+08 HTML     → machine C2 surface</pre>
+          </section>
+
+          <section class="panel" id="panel-simulation" data-panel="simulation" hidden>
+            <div class="panel-head">
+              <span>Simulation</span>
+              <span class="sub">Hermes local-first simulation</span>
+            </div>
+            <div class="status">
+              <div class="chip result" id="sim-status-chip">status</div>
+              <div class="chip" id="sim-clock"></div>
+            </div>
+            <pre id="sim-log">Press refresh / sim contract / sim run to interact.</pre>
           </section>
 
           <section class="panel" id="panel-apis" data-panel="apis" hidden>
@@ -453,7 +449,8 @@
             <pre id="blueprint">Mission: #opensourceware #250
 Stack: Hermes · DAO · 🤖 · DAO LLC
 Loop: intent → plan → execute → sense → attest → surface
-Rule: no bypass of private client AI for prompts or robot control</pre>
+Rule: no bypass of private client AI for prompts or robot control
+Thesis: #hermiphicationisinevitable · machine C2 is inevitable</pre>
           </section>
 
           <section class="panel" id="panel-source" data-panel="source" hidden>
@@ -461,11 +458,11 @@ Rule: no bypass of private client AI for prompts or robot control</pre>
               <span>Source</span>
               <span class="sub">Artifacts</span>
             </div>
-            <pre id="source">C:\æ\hermes-fork\templates\hermes-local-ai.html
-C:\æ\hermes-fork\apps\reachy\app.py
-C:\æ\hermes-fork\apps\reachy\sim_bridge.py
-C:\æ\hermes-fork\hermes_cli\viewport.py
-C:\æ\hermes-fork\blueprints\hermes-viewport-computer.md</pre>
+            <pre id="source">C:&#92;&#92;æ&#92;&#92;hermes-fork&#92;&#92;templates&#92;&#92;hermes-local-ai.html
+C:&#92;&#92;æ&#92;&#92;hermes-fork&#92;&#92;apps&#92;&#92;reachy&#92;&#92;app.py
+C:&#92;&#92;æ&#92;&#92;hermes-fork&#92;&#92;apps&#92;&#92;reachy&#92;&#92;sim_bridge.py
+C:&#92;&#92;æ&#92;&#92;hermes-fork&#92;&#92;hermes_cli&#92;&#92;viewport.py
+C:&#92;&#92;æ&#92;&#92;hermes-fork&#92;&#92;blueprints&#92;&#92;hermes-viewport-computer.md</pre>
           </section>
         </main>
       </div>
@@ -480,12 +477,14 @@ C:\æ\hermes-fork\blueprints\hermes-viewport-computer.md</pre>
       const panels = {
         terminal: document.getElementById('panel-terminal'),
         stack: document.getElementById('panel-stack'),
+        simulation: document.getElementById('panel-simulation'),
         apis: document.getElementById('panel-apis'),
         blueprint: document.getElementById('panel-blueprint'),
         source: document.getElementById('panel-source'),
       };
       const tabs = document.querySelectorAll('.tab');
-      const surface = 'http://127.0.0.1:7860';
+      const backends = ['Playwright MCP','Hermes Conductor','Filesystem','Exec','Search'];
+      let surface = 'http://127.0.0.1:7860';
       let engine = null;
       let historyArr = [];
       let historyIdx = -1;
@@ -514,57 +513,31 @@ C:\æ\hermes-fork\blueprints\hermes-viewport-computer.md</pre>
       }
       function clock() {
         const el = document.getElementById('chip-clock');
+        const simEl = document.getElementById('sim-clock');
+        const now = new Date();
+        const label = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        if (el) el.textContent = label;
+        if (simEl) simEl.textContent = label;
+      }
+      function setLabelChip(text, elId) {
+        const el = document.getElementById(elId);
         if (!el) return;
-        const n = new Date();
-        el.textContent = n.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        el.textContent = text;
       }
 
-      async function apiHealth(label, el) {
+      async function apiHealth(label, elId) {
         try {
           const res = await fetch(surface + '/health', { method: 'GET' });
-          const ok = res.ok;
-          el.className = 'chip result ' + (ok ? 'ok' : 'err');
+          const el = document.getElementById(elId);
+          if (!el) return;
+          el.className = 'chip result ' + (res.ok ? 'ok' : 'err');
           el.textContent = label + ' ' + res.status;
         } catch (e) {
+          const el = document.getElementById(elId);
+          if (!el) return;
           el.className = 'chip result err';
           el.textContent = label + ' ERR';
         }
-      }
-
-      async function post(endpoint, payload = {}) {
-        const res = await fetch(surface + endpoint, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        const data = await res.json().catch(() => ({}));
-        return { status: res.status, data };
-      }
-
-      async function reachy(endpoint, payload = {}) {
-        return post('/reachy' + endpoint, payload);
-      }
-
-      async function sim(endpoint, payload = {}) {
-        return post('/sim' + endpoint, payload);
-      }
-
-      async function loadModel() {
-        setCmd('model loading');
-        try {
-          if (typeof window !== 'undefined' && window.WebLLM) {
-            engine = await window.WebLLM.CreateMLCEngine('Hermes-Local', {
-              initProgressCallback: (p) => log('model: ' + (p.text || 'loading...')),
-            });
-            chipModel.textContent = 'Model: Hermes-Local';
-            log('Model loaded via WebLLM.');
-          } else {
-            log('WebLLM not detected. Route inference via Hermes backend.');
-          }
-        } catch (e) {
-          log('Model load failed: ' + (e.message || e), true);
-        }
-        setCmd('Ready');
       }
 
       async function mcpTools() {
@@ -573,7 +546,7 @@ C:\æ\hermes-fork\blueprints\hermes-viewport-computer.md</pre>
           const data = await res.json().catch(() => ({}));
           if (data && data.tools) {
             raw('MCP Tools:');
-            data.tools.forEach((t) => raw('- ' + t.name + ': ' + t.desc));
+            data.tools.forEach((t) => raw('- ' + t.name + ': ' + (t.desc || t.name)));
           } else {
             raw('MCP tools unavailable.');
           }
@@ -596,6 +569,45 @@ C:\æ\hermes-fork\blueprints\hermes-viewport-computer.md</pre>
         }
       }
 
+      async function simStatus() {
+        try {
+          const res = await fetch(surface + '/sim/status', { method: 'GET' });
+          const data = await res.json().catch(() => ({}));
+          const latest = data && data.latest ? data.latest : null;
+          const el = document.getElementById('sim-log');
+          if (!el) return;
+          if (!latest) {
+            el.textContent = 'No simulator runs yet.';
+            setLabelChip('sim IDLE', 'sim-status-chip');
+            return;
+          }
+          el.textContent = JSON.stringify(latest, null, 2);
+          setLabelChip('sim ' + (latest.outcome && latest.outcome.status ? latest.outcome.status.toUpperCase() : 'UNKNOWN'), 'sim-status-chip');
+        } catch (e) {
+          const el = document.getElementById('sim-log');
+          if (el) el.textContent = 'sim/status error: ' + (e.message || e);
+          setLabelChip('sim ERR', 'sim-status-chip');
+        }
+      }
+
+      async function post(endpoint, payload = {}) {
+        const res = await fetch(surface + endpoint, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json().catch(() => ({}));
+        return { status: res.status, data };
+      }
+
+      async function reachy(endpoint, payload = {}) {
+        return post('/reachy' + endpoint, payload);
+      }
+
+      async function sim(endpoint, payload = {}) {
+        return post('/sim' + endpoint, payload);
+      }
+
       async function conductor(cmd, args = []) {
         const res = await fetch(surface + '/conductor', {
           method: 'POST',
@@ -604,6 +616,24 @@ C:\æ\hermes-fork\blueprints\hermes-viewport-computer.md</pre>
         });
         const data = await res.json().catch(() => ({}));
         return { status: res.status, data };
+      }
+
+      async function loadModel() {
+        setCmd('model loading');
+        try {
+          if (typeof window !== 'undefined' && window.WebLLM) {
+            engine = await window.WebLLM.CreateMLCEngine('Hermes-Local', {
+              initProgressCallback: (p) => log('model: ' + (p.text || 'loading...')),
+            });
+            chipModel.textContent = 'Model: Hermes-Local';
+            log('Model loaded via WebLLM.');
+          } else {
+            log('WebLLM not detected. Route inference via Hermes backend.');
+          }
+        } catch (e) {
+          log('Model load failed: ' + (e.message || e), true);
+        }
+        setCmd('Ready');
       }
 
       async function runCommand(cmd) {
@@ -615,54 +645,70 @@ C:\æ\hermes-fork\blueprints\hermes-viewport-computer.md</pre>
         setCmd('running');
         try {
           if (trimmed === 'help') {
-            raw('Commands: status · probe · panel · sim contract · sim run · model load · model status');
-            raw('Schemes: c://cc · H://cc · hermes://cc · pc://run · vscode:// · reachy:// · mcp:// · daollc:// · llc:// · NOUS:// · +æ://');
-            raw('MCP: mcp://tools · mcp://invoke <tool> "{args}"');
-            raw('Tabs: terminal · stack · apis · blueprint · source');
+            raw('Commands: status · probe · panel · sim status · sim contract · sim run · model load · model status · tools');
+            raw('Scheme grammar: c:// · c://cc · H:// · hermes:// · pc:// · pc://run · mcp:// · mcp://tools · mcp://invoke · vscode:// · reachy:// · NOUS:// · llc:// · daollc:// · intent:// · +æ://');
+            raw('Global domain: H:// = global agentic domain for Hermes-agent');
+            raw('Gates: playwright:// routes through MCP /sim status /sim contract /sim run');
+            raw('Tabs: terminal · stack · simulation · apis · blueprint · source');
             raw('Shortcuts: Tab switch · ↑↓ history · Enter run');
           } else if (trimmed === 'status') {
             const { data } = await reachy('/status');
             raw(JSON.stringify(data, null, 2));
-            await apiHealth('health', document.getElementById('api-health'));
-            await apiHealth('local-ai', document.getElementById('api-local'));
+            await apiHealth('health', 'api-health');
+            await apiHealth('local-ai', 'api-local');
           } else if (trimmed === 'probe') {
             const { data } = await reachy('/probe');
             raw(JSON.stringify(data, null, 2));
           } else if (trimmed === 'panel') {
             const { data } = await reachy('/panel');
             raw(JSON.stringify(data, null, 2));
+          } else if (trimmed === 'tools') {
+            await mcpTools();
+          } else if (trimmed.startsWith('tools ')) {
+            const tool = trimmed.split(' ', 2)[1] || 'filesystem';
+            await mcpInvoke(tool);
+          } else if (trimmed.startsWith('mcp://invoke ')) {
+            const rest = trimmed.split(' ', 2)[1] || '';
+            const parts = rest.trim().split(' ');
+            const tool = parts[0] || 'filesystem';
+            const rawArgs = parts.slice(1).join(' ');
+            let args = {};
+            if (rawArgs) {
+              try { args = JSON.parse(rawArgs); } catch (e) { log('mcp args must be JSON', true); }
+            }
+            await mcpInvoke(tool, args);
+          } else if (trimmed === 'sim status') {
+            await simStatus();
           } else if (trimmed === 'sim contract') {
             const { data } = await sim('/contract', { intent: 'viewport', dao_approved: true });
             raw(JSON.stringify(data, null, 2));
           } else if (trimmed === 'sim run') {
             const { data } = await sim('/run', { intent: 'viewport', dao_approved: true });
             raw(JSON.stringify(data, null, 2));
+            await simStatus();
           } else if (trimmed === 'model load') {
             await loadModel();
           } else if (trimmed === 'model status') {
             raw(engine ? 'Model: loaded' : 'Model: not loaded');
-          } else if (trimmed === 'mcp://tools') {
-            await mcpTools();
-          } else if (trimmed.startsWith('mcp://invoke ')) {
-            const rest = trimmed.split(' ', 2)[1] || '';
-            const [toolPart, argsPart] = rest.split(' ', 2);
-            const tool = toolPart || 'tools';
-            let args = {};
-            try {
-              args = argsPart ? JSON.parse(argsPart) : {};
-            } catch (e) {
-              log('mcp args must be JSON', true);
-            }
-            await mcpInvoke(tool, args);
-          } else if (trimmed.startsWith('model load ')) {
-            log('Inference routed to Hermes local backend for custom model selection.');
           } else if (trimmed.startsWith('c://cc ') || trimmed.startsWith('H://cc ') || trimmed.startsWith('hermes://cc ')) {
             const { data } = await conductor(trimmed);
             raw(data.stdout || data.stderr || JSON.stringify(data));
           } else if (trimmed.startsWith('pc://run ')) {
             const { data } = await conductor(trimmed);
             raw(data.stdout || data.stderr || JSON.stringify(data));
-          } else if (trimmed.startsWith('pc://') || trimmed.startsWith('daollc://') || trimmed.startsWith('llc://') || trimmed.startsWith('NOUS://') || trimmed.startsWith('+æ://') || trimmed.startsWith('vscode://') || trimmed.startsWith('reachy://') || trimmed.startsWith('mcp://')) {
+          } else if (
+            trimmed.startsWith('pc://') ||
+            trimmed.startsWith('daollc://') ||
+            trimmed.startsWith('llc://') ||
+            trimmed.startsWith('NOUS://') ||
+            trimmed.startsWith('intent://') ||
+            trimmed.startsWith('H://') ||
+            trimmed.startsWith('hermes://') ||
+            trimmed.startsWith('+æ://') ||
+            trimmed.startsWith('vscode://') ||
+            trimmed.startsWith('reachy://') ||
+            trimmed.startsWith('mcp://')
+          ) {
             const { data } = await conductor(trimmed);
             raw(data.stdout || data.stderr || JSON.stringify(data));
           } else {
@@ -701,7 +747,7 @@ C:\æ\hermes-fork\blueprints\hermes-viewport-computer.md</pre>
         }
         if (e.key === 'Tab') {
           e.preventDefault();
-          const order = ['terminal','stack','apis','blueprint','source'];
+          const order = ['terminal','stack','simulation','apis','blueprint','source'];
           const idx = order.indexOf(activePanel);
           const next = order[(idx + 1) % order.length];
           showPanel(next);
@@ -719,21 +765,25 @@ C:\æ\hermes-fork\blueprints\hermes-viewport-computer.md</pre>
 
       const readiness = { health: false, sim: false, local: false };
       async function refresh() {
-        await apiHealth('health', document.getElementById('api-health'));
-        await apiHealth('local-ai', document.getElementById('api-local'));
-        document.getElementById('api-reachy').textContent = 'reachy';
-        document.getElementById('api-sim').textContent = 'sim';
+        await apiHealth('health', 'api-health');
+        await apiHealth('local-ai', 'api-local');
+        const reachyEl = document.getElementById('api-reachy');
+        const simEl = document.getElementById('api-sim');
+        if (reachyEl) reachyEl.textContent = 'reachy';
+        if (simEl) simEl.textContent = 'sim';
+        await simStatus();
       }
 
       raw('Hermes 🤖 Local AI ready.');
       raw('DAO = logic · DAO LLC = identity');
       raw('Code mode on. HTML is the skill.');
+      raw('#hermiphicationisinevitable · machine C2 is inevitable');
       raw('Type help · press Tab to switch panels.');
       setCmd('Ready');
       refresh();
       clock();
       setInterval(clock, 1000);
-      setInterval(refresh, 15000);
+      setInterval(refresh, 12000);
     </script>
   </body>
 </html>
