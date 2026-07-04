@@ -94,10 +94,10 @@ def _conductor_dispatch(raw: str) -> dict:
     return {
         "ok": True,
         "rc": 0,
-        "stdout": "+æ://conductor → AE Viewport Coding Conductor\n",
+        "stdout": "+æ://conductor → AE Engineering Hub\n",
         "stderr": "",
         "surface": {
-            "kind": "ae_coding_conductor",
+            "kind": "ae_engineering_hub",
             "address": f"+æ://conductor/{action or 'status'}",
             "action": action or "status",
             "runtime": "hermes-agent",

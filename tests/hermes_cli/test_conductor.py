@@ -80,7 +80,7 @@ def test_default_dispatcher_handles_builtin_schemes() -> None:
         assert "surface" in result
     action_result = _dispatch("+æ://conductor plan")
     assert action_result["ok"] is True
-    assert action_result["surface"]["kind"] == "ae_coding_conductor"
+    assert action_result["surface"]["kind"] == "ae_engineering_hub"
     assert action_result["surface"]["action"] == "plan"
 
 
