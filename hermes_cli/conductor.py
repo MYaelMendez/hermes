@@ -76,6 +76,27 @@ def _pc_run_dispatch(raw: str, run_pc_name: str | None) -> dict:
     }
 
 
+def _identity_dispatch(raw: str) -> dict:
+    return {
+        "ok": True,
+        "rc": 0,
+        "stdout": "+æ://identity bounded private client mesh^hermes-agent/conductor\n",
+        "stderr": "",
+        "surface": {
+            "kind": "bounded_private_client_mesh",
+            "address": "+æ://identity",
+            "conductor": "hermes-agent/conductor",
+            "runtime": "bounded_dispatch",
+            "contract": "PCSurfaceContract",
+            "governance": {
+                "required": "+æ member token",
+                "audit": True,
+                "tracer": "Wyoming DAO LLC audit trail",
+            },
+        },
+    }
+
+
 def _pc_dispatch(raw: str) -> dict:
     return {
         "ok": True,
@@ -287,6 +308,7 @@ _DISPATCHER.register("NOUS://", _nous_dispatch)
 _DISPATCHER.register("vscode://", _vscode_dispatch)
 _DISPATCHER.register("reachy://", _reachy_dispatch)
 _DISPATCHER.register("mcp://", _mcp_dispatch)
+_DISPATCHER.register("+æ://identity", _identity_dispatch)
 _DISPATCHER.register("+æ://media^ffmpeg", _media_dispatch)
 _DISPATCHER.register("+æ://conductor", _conductor_dispatch)
 

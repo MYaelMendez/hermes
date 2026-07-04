@@ -78,6 +78,10 @@ def test_default_dispatcher_handles_builtin_schemes() -> None:
         assert result["ok"] is True, command
         assert result["stdout"]
         assert "surface" in result
+    identity_result = _dispatch("+æ://identity")
+    assert identity_result["ok"] is True
+    assert identity_result["surface"]["kind"] == "bounded_private_client_mesh"
+    assert identity_result["surface"]["conductor"] == "hermes-agent/conductor"
     action_result = _dispatch("+æ://conductor plan")
     assert action_result["ok"] is True
     assert action_result["surface"]["kind"] == "ae_engineering_hub"
