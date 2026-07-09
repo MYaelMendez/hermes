@@ -77,6 +77,13 @@
         "title": "Remote Use: Open Local HTML Surface"
       }
     ],
+    "themes": [
+      {
+        "label": "æ:// Gold-on-Void",
+        "uiTheme": "vs-dark",
+        "path": "./themes/ae-gold-on-void-color-theme.json"
+      }
+    ],
     "configuration": {
       "title": "Remote Use",
       "properties": {
