@@ -1240,11 +1240,20 @@ export function activate(context: vscode.ExtensionContext) {
         const out = await run('nvidia-smi --query-gpu=name,driver_version,memory.used,memory.total,utilization.gpu,temperature.gpu --format=csv,noheader,nounits');
         const parts = out.split(',').map((s: string) => s.trim());
         if (parts.length >= 6) {
+          const usedMib = parseFloat(parts[2]); const totalMib = parseFloat(parts[3]);
           panel.webview.postMessage({ command: 'remoteUse.nvidia', action: 'smi', data: {
-            name: parts[0], driver: parts[1], memory_used: parseFloat(parts[2]) * 1024 * 1024, memory_total: parseFloat(parts[3]) * 1024 * 1024,
+            name: parts[0], driver: parts[1], memory_used: usedMib * 1024 * 1024, memory_total: totalMib * 1024 * 1024,
+            memory_used_mib: usedMib, memory_total_mib: totalMib,
             utilization_gpu: parseFloat(parts[4]), temperature_gpu: parseFloat(parts[5])
           }});
         }
+      } else if (action === 'compile') {
+        const kernel = (message?.kernel || 'matmul');
+        const src = `extern "C" __global__ void ${kernel}(float* a, float* b, float* c, int n){ int i=blockIdx.x*blockDim.x+threadIdx.x; if(i<n*n){ float s=0; for(int k=0;k<n;k++) s+=a[i/n*n+k]*b[k*n+i%n]; c[i]=s; } }`;
+        const tmp = require('path').join(require('os').tmpdir(), `${kernel}.cu`);
+        require('fs').writeFileSync(tmp, src);
+        const compileOut = await run(`nvcc "${tmp}" -o "${require('path').join(require('os').tmpdir(), kernel)}" 2>&1`);
+        panel.webview.postMessage({ command: 'remoteUse.nvidia', action: 'compile', data: { kernel, ok: compileOut.trim().length === 0, output: compileOut.slice(0, 400) } });
       } else if (action === 'procs') {
         const out = await run('nvidia-smi --query-compute-apps=pid,process_name,used_memory --format=csv,noheader,nounits');
         const procs = out.split('\n').filter(Boolean).map((l: string) => { const p = l.split(',').map((s: string) => s.trim()); return { pid: p[0], name: p[1], used_memory: parseFloat(p[2]) * 1024 * 1024 }; });
