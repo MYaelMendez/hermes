@@ -72,6 +72,11 @@ def test_default_dispatcher_handles_builtin_schemes() -> None:
         "NOUS://",
         "llc://",
         "daollc://",
+        "commandprompt://",
+        "home://",
+        "fs://",
+        "fs://stat C:/æ/hermes-fork",
+        "fs://tree C:/æ/hermes-fork",
     }
     for command in builtin:
         result = _dispatch(command)
@@ -127,10 +132,39 @@ def test_policy_surface_keys_present_for_builtins() -> None:
         "mcp://tools": ("mcp",),
         "daollc://": ("dao",),
         "+æ://ops": ("dao",),
+        "commandprompt://": ("commandprompt",),
+        "home://": ("os_home",),
+        "fs://": ("fs",),
+        "fs://stat C:/æ/hermes-fork": ("fs",),
+        "fs://read C:/æ/hermes-fork/AGENTS.md": ("fs",),
+        "fs://tree C:/æ/hermes-fork": ("fs",),
     }
     for command, expected_kinds in cases.items():
         result = _dispatch(command)
-        assert result["ok"] is True
+        assert result["ok"] is True, command
         assert result["surface"]["kind"] in expected_kinds
         if len(expected_kinds) == 2:
             assert result["surface"].get("client") == expected_kinds[1]
+    home = _dispatch("home://")
+    assert set(home["surface"]["entrypoints"]) == {
+        "terminal", "editor", "files", "victus", "nvidia", "vlc", "ffmpeg", "qr", "mesh"
+    }
+    assert home["surface"]["entrypoints"]["files"] == "fs://"
+
+
+def test_cc_dispatch_routes_to_gpu_mcp() -> None:
+    """+æ://cc is the command & control surface -> local GPU-MCP (CUDA + Rust/WASM)."""
+    result = _dispatch("+æ://cc home://")
+    assert result["ok"] is True
+    assert result["scheme_detail"] == "+æ://cc"
+    assert result["surface"]["kind"] == "mcp"
+    assert result["surface"]["address"] == "mcp://gpu-mcp"
+    assert result["surface"]["launch"] == "python environments/gpu_mcp.py"
+
+
+def test_cc_longer_prefix_outranks_bare_ae() -> None:
+    """+æ://cc must win over the +æ:// (dao) prefix for cc subcommands."""
+    cc = _dispatch("+æ://cc home://")
+    bare = _dispatch("+æ://ops")
+    assert cc["scheme_detail"] == "+æ://cc"
+    assert bare["surface"]["kind"] == "dao"

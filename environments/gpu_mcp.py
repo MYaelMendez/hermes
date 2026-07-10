@@ -1,6 +1,10 @@
 """
 gpu_mcp.py — GPU-MCP: expose the Victus local GPU + Rust/WASM hands over MCP.
 
+Canonical scheme: +æ://cc home://
+  (+æ = the sovereign agent protocol; cc = command & control; home = the local
+   Victus node — the protocol-native control surface for x86_64-pc-windows)
+
 A zero-dependency (stdlib-only) Model Context Protocol server over stdio.
 Exposes the LocalHostLoop hands as MCP tools so any MCP client (Claude Desktop,
 Cursor, gemini-cli, etc.) can drive the local RTX 3050 / wasm toolchain:
