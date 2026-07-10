@@ -1,6 +1,6 @@
 ---
 name: cuda
-description: "Use when building NVIDIA/CUDA compute surfaces for Hermes — the >_n: NemoClaw operator grammar, nvidia-smi host bridges, GPU telemetry tiles, and local CUDA toolchain (nvcc) workflows. Covers the VS Code webview file:// pitfall, WebGPU fallback, and PyTorch/CuPy probe patterns. Pioneer skill: Hermes ships no CUDA skill; this defines the surface."
+description: "Use when building NVIDIA/CUDA compute surfaces for Hermes — the >_n: NemoClaw operator grammar, nvidia-smi host bridges, GPU telemetry tiles, and local CUDA compiler workflows (nvcc kernels + NVIDIA CUDA Tile IR). Covers the VS Code webview file:// pitfall, WebGPU fallback, and PyTorch/CuPy probe patterns. Pioneer skill: Hermes ships no CUDA skill; this defines the surface and its compiler layer."
 version: 1.0.0
 author: Yæl Méndez
 license: MIT
@@ -127,6 +127,31 @@ This is how Hermes Native (WebLLM/WebGPU, Qwen3-0.6B) runs without CUDA — dist
 `nvidia-smi` host bridge. Keep both: WebGPU for in-browser inference, CUDA host bridge for
 telemetry/bench on the real GPU.
 
+## Workflow 4: Compile & run a local CUDA kernel (the compiler layer)
+
+The surface's Bench tile stub should ultimately call a **real** nvcc-built kernel, not a JS
+CPU matmul. Pattern:
+
+```bash
+# 1. write a kernel
+cat > matmul.cu <<'EOF'
+#include <cstdio>
+__global__ void matmul(float* a, float* b, float* c, int n) {
+  int i = blockIdx.x*blockDim.x + threadIdx.x;
+  if (i < n*n) { float s=0; for(int k=0;k<n;k++) s+=a[i/n*n+k]*b[k*n+i%n]; c[i]=s; }
+}
+EOF
+# 2. compile (MSVC linker must be on PATH on Windows — see Pitfall 5)
+nvcc matmul.cu -o matmul 2>&1
+# 3. run; stream the GPU time back via the same host bridge as `smi`
+./matmul
+```
+
+**CUDA Tile IR** (NVIDIA/cuda-tile, ~1k★, MLIR-based): the kernel-optimization compiler infra
+that sits *under* this surface. Not a skill, not agent-facing — it's the tile-based IR + tensor-core
+optimization backend. Reference it when a task needs kernel-level fusion/tiling rather than just
+telemetry. The skill drives the surface; CUDA Tile IR optimizes the kernels the surface launches.
+
 ## Common Pitfalls
 
 1. **VS Code webviews block `file://` iframes.** A surface that mounts another local HTML via
@@ -168,5 +193,6 @@ telemetry/bench on the real GPU.
 
 - NVIDIA `nvidia-smi` docs: https://nvidia.github.io/nvidia-settings/
 - CUDA toolkit (nvcc): https://developer.nvidia.com/cuda-toolkit
+- **CUDA Tile IR** (NVIDIA/cuda-tile): https://github.com/NVIDIA/cuda-tile — MLIR-based kernel compiler infra (tensor-core tiling); the backend under this surface
 - WebGPU: https://developer.mozilla.org/docs/Web/API/WebGPU_API
 - Hermes operator grammar: `hermes-operator-grammar` skill
