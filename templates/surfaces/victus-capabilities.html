@@ -96,17 +96,18 @@
         <span class="pill ok">ffmpeg 8.1</span>
         <span class="pill ok">nvcc 13.3</span>
         <span class="pill ok">code 1.128</span>
+        <span class="pill ok">wasm-pack 0.15</span>
+        <span class="pill ok">cl/link (BuildTools)</span>
       </div>
     </div>
 
     <div class="card">
       <h2>Toolchain <span class="tag">gaps</span></h2>
       <div class="pills">
-        <span class="pill no">MSVC cl/link</span>
-        <span class="pill no">wasm-pack</span>
         <span class="pill no">docker</span>
       </div>
-      <div class="row" style="margin-top:10px"><span class="k">unlock</span><span class="v warn">VS C++ workload</span></div>
+      <div class="row" style="margin-top:10px"><span class="k">cl.exe/link.exe</span><span class="v warn">installed · not on PATH</span></div>
+      <div class="row"><span class="k">enable</span><span class="v">vsvars64 / add bin</span></div>
       <div class="row"><span class="k">→ enables</span><span class="v">native .exe · Tauri</span></div>
     </div>
 
@@ -115,7 +116,7 @@
       <div class="row"><span class="k">wasm32-unknown-unknown</span><span class="v ok">✓</span></div>
       <div class="row"><span class="k">x86_64-pc-windows-msvc</span><span class="v ok">✓</span></div>
       <div class="row"><span class="k">cargo build --target wasm</span><span class="v ok">available</span></div>
-      <div class="row"><span class="k">wasm-pack wrap</span><span class="v no">missing</span></div>
+      <div class="row"><span class="k">wasm-pack wrap</span><span class="v ok">0.15.0 ✓</span></div>
     </div>
 
     <div class="card">
@@ -146,7 +147,6 @@
   const set = (id, txt, cls) => { const e = document.getElementById(id); e.textContent = txt; if (cls) e.className = 'v ' + cls; };
   set('p-cores', (navigator.hardwareConcurrency || '?') + ' threads', 'ok');
   set('p-mem', (navigator.deviceMemory ? navigator.deviceMemory + ' GB' : 'n/a'));
-  // WebGPU
   if (navigator.gpu) {
     try {
       const adapter = await navigator.gpu.requestAdapter();
@@ -157,7 +157,6 @@
       } else { set('p-webgpu', 'no adapter', 'warn'); set('p-adapter', '—'); }
     } catch (e) { set('p-webgpu', 'error', 'no'); set('p-adapter', '—'); }
   } else { set('p-webgpu', 'unsupported', 'no'); set('p-adapter', '—'); }
-  // WebGL
   try {
     const gl = document.createElement('canvas').getContext('webgl2') || document.createElement('canvas').getContext('webgl');
     if (gl) {
