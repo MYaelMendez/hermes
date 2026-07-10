@@ -97,6 +97,7 @@
 
   <div class="tabbar" id="tabbar">
     <div class="tab active" data-tab="surfaces">Surfaces<span class="badge"></span></div>
+    <div class="tab" data-tab="machine">Machine</div>
     <div class="tab" data-tab="inference">Inference</div>
     <div class="tab" data-tab="factory">Factory</div>
     <div class="tab" data-tab="computer">Computer</div>
@@ -124,6 +125,7 @@
 
 <script>
 const SURFACES = [
+  { id: 'machine',  name: 'Victus Capability',meta: 'live machine capability map',    file: 'C:/æ/hermes-fork/templates/surfaces/victus-capabilities.html', cmd: '', tab: 'machine' },
   { id: 'agentic',  name: 'Agentic Hub',      meta: 'Omniverse-ready engineering shell', file: 'C:/æ/hermes-fork/templates/agentic.html', cmd: 'remoteUse.agenticHtmlViewport', tab: 'surfaces' },
   { id: 'victus',   name: 'Victus Operator',  meta: 'sovereign mesh node · 6 surfaces',  file: 'C:/æ/hermes-fork/templates/victus-operator-surface.html', cmd: 'remoteUse.operatorSurface', tab: 'surfaces' },
   { id: 'webllm',   name: 'Hermes Native',    meta: 'WebLLM/WebGPU · Qwen3-0.6B',        file: 'C:/æ/hermes-fork/vscode-remote-use/templates/web-llm.html', cmd: 'remoteUse.hermesNative', tab: 'inference' },
@@ -134,7 +136,7 @@ const SURFACES = [
   { id: 'boot',     name: 'StartABusiness',   meta: 'æ://#startabusiness boot sequence', file: 'C:/Users/yaelm/OneDrive/BEFORE 2023/Desktop/Y-L.com/startabusiness.html', cmd: '', tab: 'boot' },
 ];
 
-const TAB_TITLES = { surfaces: '◈ Local Surfaces', inference: '◈ Inference', factory: '◈ Factory', computer: '◈ Computer Use', media: '◈ Media', secret: '◈ Secret Bridge', boot: '◈ Boot Sequence' };
+const TAB_TITLES = { surfaces: '◈ Local Surfaces', machine: '◈ Machine', inference: '◈ Inference', factory: '◈ Factory', computer: '◈ Computer Use', media: '◈ Media', secret: '◈ Secret Bridge', boot: '◈ Boot Sequence' };
 let dockCount = 0;
 
 function log(msg, cls) {
@@ -153,10 +155,20 @@ function hasVsCode() {
   try { return !!(window.acquireVsCodeApi && window.acquireVsCodeApi()); } catch (e) { return false; }
 }
 
+const vscode = (function () { try { return window.acquireVsCodeApi ? window.acquireVsCodeApi() : null; } catch (e) { return null; } })();
+
+// in VS Code: ask host to convert local path -> webview uri (file:// is blocked in webviews)
+function uriFor(s) {
+  if (vscode) { vscode.postMessage({ command: 'remoteUse.surfaces.uri', id: s.id, path: s.file }); return null; }
+  return 'file:///' + s.file.replace(/\\/g, '/');
+}
+
+const pendingUri = {};
+
 function openCommand(id) {
   log('command=' + id, 'gold');
-  if (hasVsCode()) {
-    try { window.acquireVsCodeApi().postMessage({ command: id }); log('posted to host', 'ok'); return; }
+  if (vscode) {
+    try { vscode.postMessage({ command: id }); log('posted to host', 'ok'); return; }
     catch (e) { log('post failed=' + e, 'err'); }
   }
   log('no host context (browser) — open manually: ' + id);
@@ -165,6 +177,7 @@ function openCommand(id) {
 function openFile(path) {
   if (!path) return;
   log('open file=' + path, 'gold');
+  if (vscode) { vscode.postMessage({ command: 'remoteUse.surfaces.openExternal', path: path }); return; }
   window.open('file:///' + path.replace(/\\/g, '/'), '_blank', 'noopener');
 }
 
@@ -172,13 +185,33 @@ function mountSurface(s) {
   const stage = document.getElementById('stage');
   document.querySelectorAll('.surface-card').forEach(c => c.classList.toggle('active', c.dataset.id === s.id));
   if (s.file) {
-    stage.innerHTML = '<iframe src="file:///' + s.file.replace(/\\/g, '/') + '" sandbox="allow-scripts allow-same-origin"></iframe>';
-    log('mounted ' + s.name + ' → ' + s.file, 'ok');
+    const u = uriFor(s);
+    if (u) {
+      stage.innerHTML = '<iframe src="' + u + '" sandbox="allow-scripts allow-same-origin"></iframe>';
+      log('mounted ' + s.name + ' → ' + s.file, 'ok');
+    } else {
+      stage.innerHTML = '<div class="empty">resolving ' + s.name + '…</div>';
+      pendingUri[s.id] = s;
+    }
   } else {
     stage.innerHTML = '<div class="empty">no local html — dispatch via command<br><br><button class="surface-btn primary" onclick="openCommand(\'' + s.cmd + '\')">' + s.cmd + '</button></div>';
     log('no file for ' + s.name + ' — use command', 'gold');
   }
 }
+
+// host -> webview: resolved uri for a pending surface
+window.addEventListener('message', (e) => {
+  const m = e.data || {};
+  if (m.command === 'remoteUse.surfaces.uri') {
+    const s = pendingUri[m.id];
+    if (s) {
+      const stage = document.getElementById('stage');
+      stage.innerHTML = '<iframe src="' + m.uri + '" sandbox="allow-scripts allow-same-origin"></iframe>';
+      log('mounted ' + s.name + ' → ' + m.uri, 'ok');
+      delete pendingUri[m.id];
+    }
+  }
+});
 
 function renderTab(tab) {
   document.getElementById('side-title').textContent = TAB_TITLES[tab] || TAB_TITLES.surfaces;

@@ -1197,7 +1197,25 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.ViewColumn.One,
       { enableScripts: true, retainContextWhenHidden: true, localResourceRoots: [vscode.Uri.file(`${repo}/templates/surfaces`), vscode.Uri.file(`${repo}/templates`), vscode.Uri.file('C:/æ/site'), vscode.Uri.file('C:/Users/yaelm/OneDrive/BEFORE 2023/Desktop/Y-L.com')] }
     );
-    panel.webview.html = require('fs').readFileSync(hub, 'utf8');
+    // strip file:// scheme from embedded surface paths so the webview can convert them via asWebviewUri
+    const fs = require('fs');
+    let html = fs.readFileSync(hub, 'utf8').replace(/file:\/\/\//g, '').replace(/file:\/\//g, '');
+    panel.webview.html = html;
+    panel.webview.onDidReceiveMessage(async (message: any) => {
+      const cmd: string = message?.command || '';
+      if (cmd === 'remoteUse.surfaces.uri') {
+        const p = String(message.path || '').replace(/^file:\/\/\/?/, '').replace(/\\/g, '/');
+        try {
+          const uri = panel.webview.asWebviewUri(vscode.Uri.file(p));
+          panel.webview.postMessage({ command: 'remoteUse.surfaces.uri', id: message.id, uri: uri.toString() });
+        } catch (e) {
+          panel.webview.postMessage({ command: 'remoteUse.surfaces.uri', id: message.id, uri: '', error: String(e) });
+        }
+      } else if (cmd === 'remoteUse.surfaces.openExternal') {
+        const p = String(message.path || '').replace(/^file:\/\/\/?/, '').replace(/\\/g, '/');
+        try { await vscode.env.openExternal(vscode.Uri.file(p)); } catch (e) { /* ignore */ }
+      }
+    });
   });
 
   const htmlSurfaceCmd = vscode.commands.registerCommand('remoteUse.htmlSurface', async () => {

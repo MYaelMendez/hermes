@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Victus · Capability Map</title>
+<style>
+  :root {
+    --void:#050505; --gold:#d4af37; --neon:#00ff9d; --ink:#f0ece4;
+    --muted:rgba(240,236,228,0.4); --border:rgba(212,175,55,0.16);
+    --border-hot:rgba(212,175,55,0.5); --panel:#090909; --panel2:#0b0b0b;
+    --glow:rgba(212,175,55,0.08); --err:#ff5555; --amber:#ffaa00;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:var(--void);color:var(--ink);font-family:ui-monospace,'JetBrains Mono',Menlo,monospace;min-height:100vh;}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:999;opacity:.03;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(212,175,55,.12) 2px,rgba(212,175,55,.12) 4px);}
+  .wrap{max-width:1100px;margin:0 auto;padding:28px 22px 60px;}
+  header{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;border-bottom:1px solid var(--border-hot);padding-bottom:16px;margin-bottom:22px;flex-wrap:wrap;}
+  .brand{display:flex;gap:14px;align-items:center;}
+  .glyph{width:46px;height:46px;border:1px solid var(--border-hot);display:grid;place-items:center;color:var(--gold);font-weight:800;font-size:22px;background:var(--panel2);box-shadow:0 0 20px var(--glow);}
+  h1{margin:0;font-size:19px;letter-spacing:.14em;color:var(--gold);text-transform:uppercase;}
+  .sub{margin:4px 0 0;font-size:11px;color:var(--muted);letter-spacing:.18em;text-transform:uppercase;}
+  .addr{font-size:11px;color:var(--neon);letter-spacing:.1em;text-align:right;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
+  .card{border:1px solid var(--border);background:var(--panel);padding:16px;transition:.2s;}
+  .card:hover{border-color:var(--border-hot);box-shadow:0 0 16px var(--glow);}
+  .card h2{margin:0 0 12px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;align-items:center;}
+  .card h2 .tag{color:var(--gold);}
+  .row{display:flex;justify-content:space-between;gap:10px;padding:5px 0;font-size:12px;border-bottom:1px solid rgba(212,175,55,.06);}
+  .row:last-child{border-bottom:0;}
+  .k{color:var(--muted);} .v{color:var(--ink);text-align:right;font-weight:600;}
+  .ok{color:var(--neon);} .no{color:var(--err);} .warn{color:var(--amber);}
+  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:middle;}
+  .dot.g{background:var(--neon);} .dot.r{background:var(--err);} .dot.a{background:var(--amber);}
+  .pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}
+  .pill{font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:4px 8px;border:1px solid var(--border);color:var(--ink);}
+  .pill.ok{border-color:var(--neon);color:var(--neon);} .pill.no{border-color:var(--err);color:var(--err);}
+  .bar{height:6px;background:var(--panel2);border:1px solid var(--border);margin-top:6px;position:relative;overflow:hidden;}
+  .bar>i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--gold),var(--neon));}
+  .foot{margin-top:26px;font-size:10px;color:var(--muted);letter-spacing:.14em;text-align:center;text-transform:uppercase;}
+  .live{color:var(--neon);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="glyph">æ</div>
+      <div>
+        <h1>Victus · Capability Map</h1>
+        <p class="sub">HP Victus 15-fa2xxx · sovereign operator node</p>
+      </div>
+    </div>
+    <div class="addr">pc://mesh/victus/local<br/><span class="live" id="probe-time">probing…</span></div>
+  </header>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Compute <span class="tag">core</span></h2>
+      <div class="row"><span class="k">CPU</span><span class="v">i5-13420H</span></div>
+      <div class="row"><span class="k">cores / threads</span><span class="v">8 / 12</span></div>
+      <div class="row"><span class="k">base clock</span><span class="v">2.1 GHz</span></div>
+      <div class="row"><span class="k">RAM</span><span class="v">32 GB</span></div>
+      <div class="bar"><i style="width:47%"></i></div>
+      <div class="row"><span class="k">free now</span><span class="v ok">17 GB</span></div>
+    </div>
+
+    <div class="card">
+      <h2>GPU <span class="tag">cuda</span></h2>
+      <div class="row"><span class="k">device</span><span class="v">RTX 3050 6GB</span></div>
+      <div class="row"><span class="k">driver</span><span class="v">592.27</span></div>
+      <div class="row"><span class="k">VRAM</span><span class="v">6144 MiB</span></div>
+      <div class="bar"><i style="width:15%"></i></div>
+      <div class="row"><span class="k">free / temp</span><span class="v ok">5.2 GB · 40°C</span></div>
+      <div class="row"><span class="k">CUDA toolkit</span><span class="v ok">nvcc 13.3 ✓</span></div>
+    </div>
+
+    <div class="card">
+      <h2>Storage <span class="tag">disk</span></h2>
+      <div class="row"><span class="k">volume C:</span><span class="v">476 GB</span></div>
+      <div class="bar"><i style="width:72%"></i></div>
+      <div class="row"><span class="k">free</span><span class="v ok">131 GB</span></div>
+      <div class="row"><span class="k">OS</span><span class="v">Win 11 · 26200</span></div>
+    </div>
+
+    <div class="card">
+      <h2>Toolchain <span class="tag">present</span></h2>
+      <div class="pills">
+        <span class="pill ok">python 3.11/3.13</span>
+        <span class="pill ok">node 22.17</span>
+        <span class="pill ok">uv 0.11</span>
+        <span class="pill ok">cargo 1.96</span>
+        <span class="pill ok">rustc 1.96</span>
+        <span class="pill ok">git 2.50</span>
+        <span class="pill ok">gh 2.95</span>
+        <span class="pill ok">ffmpeg 8.1</span>
+        <span class="pill ok">nvcc 13.3</span>
+        <span class="pill ok">code 1.128</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Toolchain <span class="tag">gaps</span></h2>
+      <div class="pills">
+        <span class="pill no">MSVC cl/link</span>
+        <span class="pill no">wasm-pack</span>
+        <span class="pill no">docker</span>
+      </div>
+      <div class="row" style="margin-top:10px"><span class="k">unlock</span><span class="v warn">VS C++ workload</span></div>
+      <div class="row"><span class="k">→ enables</span><span class="v">native .exe · Tauri</span></div>
+    </div>
+
+    <div class="card">
+      <h2>Rust targets <span class="tag">wasm</span></h2>
+      <div class="row"><span class="k">wasm32-unknown-unknown</span><span class="v ok">✓</span></div>
+      <div class="row"><span class="k">x86_64-pc-windows-msvc</span><span class="v ok">✓</span></div>
+      <div class="row"><span class="k">cargo build --target wasm</span><span class="v ok">available</span></div>
+      <div class="row"><span class="k">wasm-pack wrap</span><span class="v no">missing</span></div>
+    </div>
+
+    <div class="card">
+      <h2>Surfaces <span class="tag">runtime</span></h2>
+      <div class="row"><span class="k"><span class="dot g"></span>Surface Hub</span><span class="v ok">live</span></div>
+      <div class="row"><span class="k"><span class="dot g"></span>Hermes Native (WebLLM)</span><span class="v ok">ready</span></div>
+      <div class="row"><span class="k"><span class="dot g"></span>Factory · Computer · Media</span><span class="v ok">wired</span></div>
+      <div class="row"><span class="k"><span class="dot g"></span>viewport :5173</span><span class="v ok">200</span></div>
+      <div class="row"><span class="k"><span class="dot a"></span>secret bridge :7890</span><span class="v warn">idle</span></div>
+    </div>
+
+    <div class="card">
+      <h2>Client probe <span class="tag">webgpu</span></h2>
+      <div class="row"><span class="k">WebGPU</span><span class="v" id="p-webgpu">…</span></div>
+      <div class="row"><span class="k">GPU adapter</span><span class="v" id="p-adapter">…</span></div>
+      <div class="row"><span class="k">WebGL</span><span class="v" id="p-webgl">…</span></div>
+      <div class="row"><span class="k">cores (JS)</span><span class="v" id="p-cores">…</span></div>
+      <div class="row"><span class="k">deviceMemory</span><span class="v" id="p-mem">…</span></div>
+    </div>
+  </div>
+
+  <div class="foot">>_æ| probed live · <span class="live">truth over marketing</span> · #hermiphicationisinevitable</div>
+</div>
+
+<script>
+(async function () {
+  document.getElementById('probe-time').textContent = new Date().toISOString().slice(11, 19) + ' probed';
+  const set = (id, txt, cls) => { const e = document.getElementById(id); e.textContent = txt; if (cls) e.className = 'v ' + cls; };
+  set('p-cores', (navigator.hardwareConcurrency || '?') + ' threads', 'ok');
+  set('p-mem', (navigator.deviceMemory ? navigator.deviceMemory + ' GB' : 'n/a'));
+  // WebGPU
+  if (navigator.gpu) {
+    try {
+      const adapter = await navigator.gpu.requestAdapter();
+      if (adapter) {
+        set('p-webgpu', 'available', 'ok');
+        const info = adapter.info || (adapter.requestAdapterInfo ? await adapter.requestAdapterInfo() : {});
+        set('p-adapter', (info.vendor || info.description || 'adapter ok'), 'ok');
+      } else { set('p-webgpu', 'no adapter', 'warn'); set('p-adapter', '—'); }
+    } catch (e) { set('p-webgpu', 'error', 'no'); set('p-adapter', '—'); }
+  } else { set('p-webgpu', 'unsupported', 'no'); set('p-adapter', '—'); }
+  // WebGL
+  try {
+    const gl = document.createElement('canvas').getContext('webgl2') || document.createElement('canvas').getContext('webgl');
+    if (gl) {
+      const dbg = gl.getExtension('WEBGL_debug_renderer_info');
+      set('p-webgl', dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL).slice(0, 22) : 'available', 'ok');
+    } else { set('p-webgl', 'unsupported', 'no'); }
+  } catch (e) { set('p-webgl', 'error', 'no'); }
+})();
+</script>
+</body>
+</html>
