@@ -644,14 +644,14 @@ def _glocal_agent_dispatch(raw: str) -> dict:
             "kind": "mcp",
             "address": "mcp://gpu-mcp",
             "node": node,
-            "launch": "python environments/gpu_mcp.py",
+            "launch": "python -m gpu_mcp",
         },
     }
 
 
 def _cc_dispatch(raw: str) -> dict:
     """+æ://cc — command & control surface. Routes to the local GPU-MCP server
-    (environments/gpu_mcp.py), the protocol-native control surface for the
+    (gpu-mcp, the protocol-native control surface for the
     Victus node: +æ://cc home:// -> local CUDA + Rust/WASM hands over MCP."""
     target = raw.split("+æ://cc", 1)[1].strip() or "home://"
     return {
@@ -665,7 +665,56 @@ def _cc_dispatch(raw: str) -> dict:
             "kind": "mcp",
             "address": "mcp://gpu-mcp",
             "node": target,  # e.g. home:// (Victus) — the local sovereign node
-            "launch": "python environments/gpu_mcp.py",
+            "launch": "python -m gpu_mcp",
+        },
+    }
+
+
+def _glocal_cloud_computer_dispatch(raw: str) -> dict:
+    """+æ://glocal cloud computer — the hybrid sovereign compute surface.
+
+    glocal  = local sovereign agent (local brain + local CUDA/Rust-WASM hands)
+    cloud   = an *opt-in* Nous Portal brain (hermes model --provider portal)
+
+    The hybrid contract (per the +æ://glocal cloud computer thesis):
+      - HANDS are ALWAYS local  -> gpu-mcp (sovereign, offline, no lock-in)
+      - BRAIN  is configurable  -> local (ollama/WebLLM) by default,
+                                   cloud (Nous Portal) only when explicitly
+                                   requested via the `cloud` token.
+    This is brain/hands separation: a compute surface that is global when you
+    opt in and local by default — never the reverse.
+    """
+    rest = raw.split("cloud computer", 1)[1].strip() if "cloud computer" in raw else ""
+    tokens = rest.split()
+    # "cloud computer" is part of the scheme name itself; opt-in is signalled by
+    # an EXTRA token (portal/nous) or an explicit second "cloud" beyond the phrase.
+    extra_cloud = "cloud" in tokens  # a 2nd "cloud" token => explicit opt-in
+    cloud_requested = bool({"portal", "nous"} & set(tokens)) or extra_cloud
+    brain = "nous-portal" if cloud_requested else "local"
+    return {
+        "ok": True,
+        "rc": 0,
+        "stdout": (
+            f"+æ://glocal cloud computer -> hybrid surface\n"
+            f"  hands : local  (gpu-mcp, sovereign CUDA/Rust-WASM)\n"
+            f"  brain : {brain}{' (opt-in Nous Portal)' if cloud_requested else ' (default local)'}\n"
+        ),
+        "stderr": "",
+        "scheme": "+æ",
+        "scheme_detail": "+æ://glocal cloud computer",
+        "surface": {
+            "kind": "hybrid",
+            "address": "pc://mesh/victus/local",
+            "hands": {
+                "kind": "mcp",
+                "address": "mcp://gpu-mcp",
+                "launch": "python -m gpu_mcp",
+            },
+            "brain": {
+                "provider": "nous-portal" if cloud_requested else "local",
+                "opt_in": cloud_requested,
+                "policy": "local-default; cloud-explicit-only",
+            },
         },
     }
 
@@ -917,6 +966,7 @@ _DISPATCHER.register("reachy://", _reachy_dispatch)
 _DISPATCHER.register("robot://", _robot_dispatch)
 _DISPATCHER.register("mcp://", _mcp_dispatch)
 _DISPATCHER.register("+æ://cc", _cc_dispatch)
+_DISPATCHER.register("+æ://glocal cloud computer", _glocal_cloud_computer_dispatch)
 _DISPATCHER.register("desktop://", _desktop_dispatch)
 _DISPATCHER.register("+bæsic://", _bæsic_dispatch)
 _DISPATCHER.register("Hæbbian://", _hæbbian_dispatch)
@@ -988,12 +1038,12 @@ def _computer_dispatch(raw: str) -> dict:
     parts = rest.split()
     action = parts[0] if parts else "status"
     node = "pc://mesh/victus/local"
-    launch = "python environments/gpu_mcp.py"
+    launch = "python -m gpu_mcp"
 
     def _mcp_call(method: str, params: dict | None = None) -> dict:
         """Invoke the real GPU-MCP over stdio JSON-RPC (proves Victus is live)."""
         proc = _sp.Popen(
-            ["python", "environments/gpu_mcp.py"],
+            ["python", "-m", "gpu_mcp"],
             stdin=_sp.PIPE, stdout=_sp.PIPE, stderr=_sp.PIPE,
             cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
             text=True,

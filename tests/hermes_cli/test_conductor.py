@@ -159,7 +159,7 @@ def test_cc_dispatch_routes_to_gpu_mcp() -> None:
     assert result["scheme_detail"] == "+æ://cc"
     assert result["surface"]["kind"] == "mcp"
     assert result["surface"]["address"] == "mcp://gpu-mcp"
-    assert result["surface"]["launch"] == "python environments/gpu_mcp.py"
+    assert result["surface"]["launch"] == "python -m gpu_mcp"
 
 
 def test_cc_longer_prefix_outranks_bare_aectx() -> None:
@@ -178,7 +178,7 @@ def test_glocal_agent_dispatch_routes_to_gpu_mcp() -> None:
     assert result["scheme_detail"] == "æ://glocal-agent"
     assert result["surface"]["kind"] == "mcp"
     assert result["surface"]["address"] == "mcp://gpu-mcp"
-    assert result["surface"]["launch"] == "python environments/gpu_mcp.py"
+    assert result["surface"]["launch"] == "python -m gpu_mcp"
 
 
 def test_glocal_agent_short_form_defaults_to_home() -> None:
@@ -186,6 +186,30 @@ def test_glocal_agent_short_form_defaults_to_home() -> None:
     assert result["ok"] is True
     assert result["scheme_detail"] == "æ://glocal-agent"
     assert result["surface"]["node"] == "home://"
+
+
+def test_glocal_cloud_computer_is_hybrid_local_default() -> None:
+    """+æ://glocal cloud computer resolves to a hybrid surface: local hands
+    always, and a LOCAL brain by default (cloud is opt-in only)."""
+    result = _dispatch("+æ://glocal cloud computer")
+    assert result["ok"] is True
+    assert result["scheme_detail"] == "+æ://glocal cloud computer"
+    surf = result["surface"]
+    assert surf["kind"] == "hybrid"
+    # hands are ALWAYS the sovereign local gpu-mcp
+    assert surf["hands"]["address"] == "mcp://gpu-mcp"
+    assert surf["hands"]["launch"] == "python -m gpu_mcp"
+    # brain defaults local — never silently cloud
+    assert surf["brain"]["provider"] == "local"
+    assert surf["brain"]["opt_in"] is False
+    assert surf["brain"]["policy"] == "local-default; cloud-explicit-only"
+
+
+def test_glocal_cloud_computer_opt_in_portal() -> None:
+    """Explicit `portal` token flips the brain to Nous Portal (opt-in only)."""
+    result = _dispatch("+æ://glocal cloud computer portal")
+    assert result["surface"]["brain"]["provider"] == "nous-portal"
+    assert result["surface"]["brain"]["opt_in"] is True
 
 
 def test_viewport_scheme_is_the_mandate() -> None:

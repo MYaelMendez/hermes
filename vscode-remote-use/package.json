@@ -104,9 +104,7 @@
       "servers": {
         "gpu-mcp": {
           "command": "python",
-          "args": [
-            "${extensionPath}/gpu_mcp/gpu_mcp.py"
-          ]
+          "args": ["-m", "gpu_mcp"]
         }
       }
     },
