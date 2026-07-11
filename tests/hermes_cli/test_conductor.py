@@ -345,3 +345,25 @@ def test_desktop_surface_under_cc() -> None:
 
     bare = _dispatch("desktop://")
     assert bare["surface"]["action"] == "enumerate"
+
+
+def test_cuda_vlc_surface_routing() -> None:
+    """+æ://cuda-vlc routes to the CUDA→NVENC→VLC streaming surface.
+
+    Hermetic: only exercises status/stop (no ffmpeg/VLC spawn) so the suite
+    stays fast and headless. Live encode path is covered by ad-hoc verification.
+    """
+    assert _is_scheme_cmd("+æ://cuda-vlc play test") is True
+
+    idle = _dispatch("+æ://cuda-vlc status")
+    assert idle["surface"]["kind"] == "cuda_vlc_surface"
+    assert idle["surface"]["runtime"] == "hermes-code"
+    assert idle["live"] is False
+
+    stopped = _dispatch("+æ://cuda-vlc stop")
+    assert stopped["ok"] is True
+    assert stopped["surface"]["command"] == "stop"
+
+    unknown = _dispatch("+æ://cuda-vlc frobnicate")
+    assert unknown["ok"] is False
+    assert "unknown action" in unknown["stderr"]

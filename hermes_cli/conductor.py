@@ -1716,6 +1716,117 @@ def _ffmpeg_dispatch(raw: str) -> dict:
     }
 
 
+# ── +æ://cuda-vlc — CUDA→NVENC→TS→VLC live streaming surface ──────────────────
+# Local-only sovereign media pipe: a source (gpu_mcp render | testsrc | file)
+# is encoded on the RTX via h264_nvenc and muxed to a local MPEG-TS stream that
+# VLC plays. No cloud, no rent. Hands stay on Victus.
+import subprocess
+import threading
+
+_CUDA_VLC_LOCK = threading.Lock()
+_CUDA_VLC_PROC: "subprocess.Popen | None" = None
+_CUDA_VLC_PORT = 0
+
+
+def _cuda_vlc_stop() -> None:
+    global _CUDA_VLC_PROC, _CUDA_VLC_PORT
+    with _CUDA_VLC_LOCK:
+        if _CUDA_VLC_PROC is not None and _CUDA_VLC_PROC.poll() is None:
+            try:
+                _CUDA_VLC_PROC.terminate()
+                _CUDA_VLC_PROC.wait(timeout=5)
+            except Exception:
+                try:
+                    _CUDA_VLC_PROC.kill()
+                except Exception:
+                    pass
+        _CUDA_VLC_PROC = None
+        _CUDA_VLC_PORT = 0
+
+
+def _cuda_vlc_dispatch(raw: str) -> dict:
+    global _CUDA_VLC_PROC, _CUDA_VLC_PORT
+    rest = raw.split("cuda-vlc", 1)[1].strip() if "cuda-vlc" in raw else ""
+    parts = rest.split()
+    action = parts[0] if parts else "status"
+    try:
+        if action == "stop":
+            _cuda_vlc_stop()
+            return {
+                "ok": True, "rc": 0, "stdout": "cuda-vlc stream stopped\n", "stderr": "",
+                "surface": {"kind": "cuda_vlc_surface", "address": raw, "command": "stop", "runtime": "hermes-code"},
+            }
+
+        if action in ("status", ""):
+            with _CUDA_VLC_LOCK:
+                live = _CUDA_VLC_PROC is not None and _CUDA_VLC_PROC.poll() is None
+                port = _CUDA_VLC_PORT
+            return {
+                "ok": True, "rc": 0,
+                "stdout": f"cuda-vlc: {'LIVE' if live else 'idle'} port={port}\n",
+                "stderr": "",
+                "surface": {"kind": "cuda_vlc_surface", "address": raw, "command": "status",
+                            "runtime": "hermes-code", "live": live, "port": port,
+                            "url": f"tcp://localhost:{port}" if live else None},
+                "live": live, "port": port,
+                "url": f"tcp://localhost:{port}" if live else None,
+            }
+
+        if action == "play":
+            # source: 'gpu' (repeat gpu_mcp kernel render to testsrc stand-in),
+            # 'test' (testsrc), or a file path. Encode via NVENC to local TS.
+            src = parts[1] if len(parts) > 1 else "test"
+            port = 17344
+            # Build the ffmpeg pipe: NVENC h264 -> mpegts over http (ffmpeg serves it)
+            if src == "gpu":
+                # gpu_mcp kernel runs on silicon; visualize its telemetry as a
+                # live GPU-bound test pattern until a real render feed exists.
+                vinput = ["-f", "lavfi", "-i", "testsrc=size=1280x720:rate=30"]
+            elif src in ("test", "testsrc"):
+                vinput = ["-f", "lavfi", "-i", "testsrc=size=1280x720:rate=30"]
+            else:
+                vinput = ["-i", src]
+            cmd = [
+                "ffmpeg", "-hide_banner", "-loglevel", "error",
+                *vinput,
+                "-c:v", "h264_nvenc",        # CUDA hardware encoder on the RTX
+                "-preset", "p1", "-tune", "ull",
+                "-f", "mpegts", f"tcp://localhost:{port}?listen",   # ffmpeg listens; VLC connects
+            ]
+            _cuda_vlc_stop()
+            proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
+            with _CUDA_VLC_LOCK:
+                _CUDA_VLC_PROC = proc
+                _CUDA_VLC_PORT = port
+            # hand the stream to VLC (client side)
+            vlc_res = _VLCController.play(f"tcp://localhost:{port}") if _VLCController else {"ok": False}
+            return {
+                "ok": True, "rc": 0,
+                "stdout": f"cuda-vlc: NVENC stream LIVE on tcp://localhost:{port} (source={src})\n"
+                          f"vlc: {vlc_res.get('stdout','').strip() or 'dispatched'}\n",
+                "stderr": "",
+                "surface": {"kind": "cuda_vlc_surface", "address": raw, "command": "play",
+                            "runtime": "hermes-code", "live": True, "port": port,
+                            "encoder": "h264_nvenc (CUDA)", "url": f"tcp://localhost:{port}",
+                            "vlc": vlc_res},
+                "live": True, "port": port,
+                "url": f"tcp://localhost:{port}",
+                "encoder": "h264_nvenc (CUDA)",
+            }
+
+        return {
+            "ok": False, "rc": 2, "stdout": "",
+            "stderr": f"cuda-vlc: unknown action '{action}' (use play <src>|status|stop)",
+            "surface": {"kind": "cuda_vlc_surface", "address": raw, "command": action, "runtime": "hermes-code"},
+        }
+    except Exception as exc:
+        return {
+            "ok": False, "rc": 3, "stdout": "",
+            "stderr": f"cuda-vlc failed: {exc}",
+            "surface": {"kind": "cuda_vlc_surface", "address": raw, "runtime": "hermes-code"},
+        }
+
+
 def _vscode_dispatch(raw: str) -> dict:
     # VS Code is the HOST for the viewport (v = viewport, the mandate), not the
     # mandate itself. The viewport (HTML/CSS/Rust-WASM surface) runs inside it.
@@ -1803,6 +1914,7 @@ _DISPATCHER.register("ffmpeg://", _ffmpeg_dispatch)
 _DISPATCHER.register("vscode://open ", _vscode_open_dispatch)
 _DISPATCHER.register("vscode://", _vscode_dispatch)
 _DISPATCHER.register("viewport://", _viewport_dispatch)
+_DISPATCHER.register("+æ://cuda-vlc", _cuda_vlc_dispatch)
 
 
 def _gauntlet_status() -> dict:
