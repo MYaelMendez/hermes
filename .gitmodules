@@ -4,3 +4,6 @@
 [submodule "tinker-atropos"]
 	path = tinker-atropos
 	url = https://github.com/nousresearch/tinker-atropos
+[submodule "gpu-mcp"]
+	path = gpu-mcp
+	url = https://github.com/MYaelMendez/gpu-mcp.git
