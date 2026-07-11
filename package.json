@@ -4,6 +4,14 @@
   "description": "An AI agent with advanced tool-calling capabilities, featuring a flexible toolsets system for organizing and managing tools.",
   "private": true,
   "scripts": {
+    "glocal:git": "python scripts/glocal_git_status.py",
+    "glocal:context": "python scripts/glocal_context_map.py",
+    "glocal:verify": "python scripts/verify_submission_integrity.py",
+    "coremode": "python scripts/coremode.py",
+    "vitals:check": "python scripts/computer_vitals.py --format markdown",
+    "vitals:cron-install": "python scripts/install_vitals_cron.py",
+    "ml:quick-eval": "python scripts/ml_quick_eval.py --help",
+    "ml:register-run": "python scripts/ml_register_run.py --help",
     "postinstall": "echo '✅ Browser tools ready. Run: python run_agent.py --help'"
   },
   "repository": {

@@ -710,6 +710,78 @@ function renderHermesNativeHtml(repo: string | undefined): string {
   return fallbackHermesNativeHtml();
 }
 
+function renderWebLLMHtml(repo: string | undefined): string {
+  // Hermes Native · WebLLM WebGPU surface, framed as the æ:// agentic-language-chassis
+  // local runtime. Distinct from the generic Hermes Native surface so the chassis
+  // (and its dialects) is legible inside VS Code.
+  const local = findLocalTemplate(repo, [`${repo}/templates/surfaces/webllm.html`]);
+  if (local) return local;
+  return fallbackWebLLMHtml();
+}
+
+function fallbackWebLLMHtml(): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<meta name="theme-color" content="#050505"/>
+<title>æ:// · Hermes Native WebLLM WebGPU</title>
+<style>
+  :root { --bg:#050505; --panel:#0a0a0f; --gold:#D4AF37; --gold-60:rgba(212,175,55,0.65); --text:#e6e6e6; --muted:#9a9a9a; --border:#1f1f1f; --neon:#00ffa3; --error:#ff7b72; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; min-height: 100%; background: var(--bg); color: var(--text); font-family: 'JetBrains Mono','Cascadia Mono',ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace; }
+  body { padding: 18px; }
+  .header { display: flex; align-items: baseline; gap: 14px; margin-bottom: 8px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+  .title { font-size: 18px; font-weight: 700; color: var(--gold); letter-spacing: 0.06em; }
+  .subtitle { font-size: 12px; color: var(--muted); letter-spacing: 0.12em; }
+  .chassis { margin: 14px 0; padding: 12px 14px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; }
+  .chassis .k { color: var(--gold); font-weight: 700; letter-spacing: 0.08em; font-size: 12px; }
+  .chassis .d { color: var(--muted); font-size: 11px; margin-top: 4px; }
+  .dialects { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 12px; }
+  .dialect { background: #060609; border: 1px solid var(--border); border-radius: 10px; padding: 10px; }
+  .dialect .name { color: var(--gold); font-size: 12px; font-weight: 700; }
+  .dialect .meta { color: var(--muted); font-size: 11px; margin-top: 4px; }
+  .status { font-size: 11px; color: var(--neon); display: flex; align-items: center; gap: 6px; margin-top: 14px; }
+  .status::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--neon); box-shadow: 0 0 8px var(--neon); }
+  .prompt { width: 100%; min-height: 96px; background: #060609; color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 10px; font: inherit; font-size: 12px; margin-top: 14px; }
+  .row { display: flex; gap: 10px; margin-top: 12px; }
+  button.primary { background: linear-gradient(135deg, rgba(212,175,55,0.15), rgba(0,255,163,0.08)); border: 1px solid var(--gold-60); color: var(--gold); padding: 10px 12px; border-radius: 10px; font: inherit; font-size: 12px; cursor: pointer; }
+  .log { margin-top: 14px; background: #050508; border: 1px solid var(--border); border-radius: 10px; padding: 10px; min-height: 64px; font-size: 11px; color: var(--muted); white-space: pre-wrap; }
+  .err { color: var(--error); }
+</style>
+</head>
+<body>
+<div class="header"><div class="title">æ:// · Hermes Native</div><div class="subtitle">Agentic Language Chassis · WebLLM WebGPU</div></div>
+<div class="chassis">
+  <div class="k">æ:// — AGENTIC-LANGUAGE-CHASSIS</div>
+  <div class="d">Sovereign namespace/runtime for agentic languages. Bare æ:// is the context router (aectx).</div>
+  <div class="dialects">
+    <div class="dialect"><div class="name">æ://basic</div><div class="meta">+bæsic:// · qc64 BASIC chassis (verified runtime)</div></div>
+    <div class="dialect"><div class="name">æ://mech</div><div class="meta">mech-lang · reactive dataflow (spec grammar)</div></div>
+    <div class="dialect"><div class="name">æ://glocal-agent</div><div class="meta">sovereign local agent · GPU-MCP</div></div>
+    <div class="dialect"><div class="name">+æ://cc</div><div class="meta">command &amp; control surface</div></div>
+  </div>
+</div>
+<div class="status" id="status">INITIALIZING WEBGPU</div>
+<textarea class="prompt" id="prompt" placeholder="Prompt the local WebLLM runtime..."></textarea>
+<div class="row"><button class="primary" id="run">RUN INFERENCE</button></div>
+<div class="log" id="log">Awaiting user action...</div>
+<script>
+const vscode = acquireVsCodeApi();
+const statusEl = document.getElementById('status');
+const logEl = document.getElementById('log');
+if (navigator.gpu) { statusEl.textContent = 'WEBGPU READY'; } else { statusEl.textContent = 'WEBGPU UNAVAILABLE'; statusEl.style.color = 'var(--error)'; }
+document.getElementById('run')?.addEventListener('click', () => {
+  const prompt = document.getElementById('prompt').value;
+  logEl.textContent = 'dispatch ▸ ' + prompt;
+  vscode.postMessage({ type: 'run', prompt });
+});
+</script>
+</body>
+</html>`;
+}
+
 function fallbackHermesNativeHtml(): string {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -1173,7 +1245,14 @@ export function activate(context: vscode.ExtensionContext) {
   });
 
   const webLLMCmd = vscode.commands.registerCommand('remoteUse.webLLM', async () => {
-    await vscode.commands.executeCommand('remoteUse.hermesNative');
+    const repo = getHermesRepoPath();
+    const panel = vscode.window.createWebviewPanel(
+      'remoteUseWebLLM',
+      'Remote Use: Hermes Native · WebLLM WebGPU',
+      vscode.ViewColumn.One,
+      { enableScripts: true, retainContextWhenHidden: true }
+    );
+    panel.webview.html = renderWebLLMHtml(repo);
   });
 
   const factoryCmd = vscode.commands.registerCommand('remoteUse.factory', async () => {

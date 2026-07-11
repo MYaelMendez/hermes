@@ -1,0 +1,57 @@
+{
+  "monorepo": "C:/æ",
+  "policy": "C:/æ/AGENTS.md",
+  "surfaces": [
+    {
+      "id": "æ://HERMES-AGENT^media",
+      "paths": [
+        "C:/æ/hermes-fork/hermes_cli/media.py",
+        "C:/æ/hermes-fork/tests/hermes_cli/test_media.py"
+      ]
+    },
+    {
+      "id": "æ://private client^glocal",
+      "paths": [
+        "C:/æ/templates/agentic.html",
+        "C:/æ/store",
+        "C:/æ/daollc",
+        "C:/æ/skills",
+        "C:/æ/agents",
+        "C:/æ/logs"
+      ],
+      "skills": [
+        "C:/æ/hermes-fork/vscode-remote-use",
+        "C:/æ/hermes-fork/blueprints/plus-æ-glocal-omniverse-surface.md"
+      ]
+    }
+  ],
+  "control_plane": {
+    "cli": "C:/æ/hermes-fork/hermes_cli/main.py",
+    "media": "C:/æ/hermes-fork/hermes_cli/media.py",
+    "extension": "C:/æ/hermes-fork/vscode-remote-use/package.json",
+    "webview": "C:/æ/hermes-fork/vscode-remote-use/src/extension.ts"
+  },
+  "artifacts": {
+    "vsix": "C:/æ/hermes-fork/vscode-remote-use/vscode-remote-use-0.1.0.vsix",
+    "release_manifest": "C:/æ/hermes-fork/contest-submission/vscode-remote-use/release-manifest-vscode-vlc-ffmpeg.json",
+    "attestation": "C:/æ/hermes-fork/contest-submission/ATTESTATION.md",
+    "bundle_root": "C:/æ/hermes-fork/contest-submission"
+  },
+  "runtime": {
+    "ollama": "ae://local^ollama",
+    "nvenc": [
+      "h264_nvenc",
+      "hevc_nvenc",
+      "av1_nvenc"
+    ],
+    "os": "Windows",
+    "local_only": true
+  },
+  "viewports": [
+    {
+      "path": "C:/æ/templates/agentic.html",
+      "surface": "æ://private client^glocal/skills/agentic.html",
+      "command": "remoteUse.agenticHtmlViewport"
+    }
+  ]
+}

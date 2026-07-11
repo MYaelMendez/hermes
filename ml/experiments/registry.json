@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "runs": [
+    {
+      "run_id": "run-0001",
+      "created_at_utc": "2026-07-01T19:51:56Z",
+      "name": "baseline-local-sample",
+      "config": {
+        "path": "ml/experiments/config-sample.json",
+        "sha256": "187b713bd2ebe15f3ebd8b01a9262710223d049b23de937b03a18f6ea28ff52e",
+        "payload": {
+          "model": "local-baseline",
+          "task": "line-exact-match",
+          "dataset": "sample",
+          "seed": 42
+        }
+      },
+      "metrics": {
+        "path": "ml/experiments/metrics-sample.json",
+        "sha256": "d9e6f7b2c2a43b654af6e7036ff2f27d59b048221044c57b4fe4547ceecea33d",
+        "payload": {
+          "total": 3,
+          "correct": 2,
+          "accuracy": 0.6666666666666666
+        }
+      },
+      "notes": "phase-1 scaffold smoke"
+    },
+    {
+      "run_id": "run-0002",
+      "created_at_utc": "2026-07-01T19:55:46Z",
+      "name": "baseline-local-sample",
+      "config": {
+        "path": "ml/experiments/config-sample.json",
+        "sha256": "187b713bd2ebe15f3ebd8b01a9262710223d049b23de937b03a18f6ea28ff52e",
+        "payload": {
+          "model": "local-baseline",
+          "task": "line-exact-match",
+          "dataset": "sample",
+          "seed": 42
+        }
+      },
+      "metrics": {
+        "path": "ml/experiments/metrics-sample.json",
+        "sha256": "d9e6f7b2c2a43b654af6e7036ff2f27d59b048221044c57b4fe4547ceecea33d",
+        "payload": {
+          "total": 3,
+          "correct": 2,
+          "accuracy": 0.6666666666666666
+        }
+      },
+      "notes": "phase-1 scaffold smoke"
+    }
+  ]
+}

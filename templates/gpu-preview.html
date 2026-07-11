@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<meta name="theme-color" content="#050505"/>
+<title>æ://g — GPU-Driven Agent</title>
+<style>
+  :root { --bg:#050505; --panel:#0a0a0f; --gold:#D4AF37; --gold-60:rgba(212,175,55,0.65); --text:#e6e6e6; --muted:#9a9a9a; --border:#1f1f1f; --neon:#00ffa3; --cyan:#00e5ff; --error:#ff7b72; --nv:#76b900; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; background: var(--bg); color: var(--text); font-family: 'JetBrains Mono','Cascadia Mono',ui-monospace,SFMono-Regular,Menlo,monaco,Consolas,monospace; }
+  body { padding: 16px; display: flex; flex-direction: column; gap: 12px; height: 100vh; }
+  .header { display:flex; align-items:baseline; gap:12px; border-bottom:1px solid var(--border); padding-bottom:10px; }
+  .title { font-size:17px; font-weight:700; color:var(--gold); letter-spacing:0.08em; }
+  .subtitle { font-size:11px; color:var(--muted); text-transform:lowercase; letter-spacing:0.12em; }
+  .bar { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+  .chip { background:var(--panel); border:1px solid var(--border); border-radius:9px; padding:8px 10px; }
+  .chip .k { font-size:9px; color:var(--muted); letter-spacing:0.1em; }
+  .chip .v { font-size:12px; color:var(--gold); margin-top:2px; }
+  .chip .v.nv { color:var(--nv); }
+  .chip .v.neon { color:var(--neon); }
+  .stage { flex:1; display:grid; grid-template-columns:1fr 280px; gap:12px; min-height:0; }
+  .panel { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:12px; display:flex; flex-direction:column; min-height:0; }
+  .panel h3 { margin:0 0 8px; font-size:11px; color:var(--gold); letter-spacing:0.1em; font-weight:700; }
+  #prompt { width:100%; min-height:80px; background:#060609; color:var(--text); border:1px solid var(--border); border-radius:8px; padding:9px; font:inherit; font-size:12px; resize:none; }
+  .row { display:flex; gap:8px; margin-top:8px; }
+  button { background:linear-gradient(135deg, rgba(212,175,55,0.15), rgba(0,255,163,0.08)); border:1px solid var(--gold-60); color:var(--gold); padding:9px 12px; border-radius:9px; font:inherit; font-size:12px; cursor:pointer; }
+  button.nv { border-color:var(--nv); color:var(--nv); background:linear-gradient(135deg, rgba(118,185,0,0.15), rgba(0,229,255,0.06)); }
+  button:disabled { opacity:0.4; cursor:not-allowed; }
+  #thread { flex:1; overflow-y:auto; font-size:11px; white-space:pre-wrap; color:var(--muted); line-height:1.5; }
+  #thread .sys { color:var(--gold); }
+  #thread .think { color:var(--muted); font-style:italic; }
+  #thread .tool { color:var(--nv); }
+  #thread .gpu { color:var(--cyan); }
+  #thread .err { color:var(--error); }
+  .side { display:flex; flex-direction:column; gap:10px; min-height:0; }
+  #gpu-readout { flex:1; overflow-y:auto; font-size:10px; color:var(--nv); white-space:pre-wrap; }
+  .meter { height:6px; background:#0d0d12; border-radius:3px; overflow:hidden; margin-top:4px; }
+  .meter > i { display:block; height:100%; background:linear-gradient(90deg,var(--nv),var(--cyan)); width:0%; transition:width .4s; }
+</style>
+</head>
+<body>
+<div class="header"><div class="title">æ://g — GPU-Driven Agent</div><div class="subtitle">sovereign loop · WebGPU brain + CUDA hands · pc://mesh/victus/local</div></div>
+
+<div class="bar">
+  <div class="chip"><div class="k">BRAIN</div><div class="v neon" id="brain">INIT</div></div>
+  <div class="chip"><div class="k">MODEL</div><div class="v" id="model">Qwen3-0.6B</div></div>
+  <div class="chip"><div class="k">GPU</div><div class="v nv" id="gpu">—</div></div>
+  <div class="chip"><div class="k">VRAM</div><div class="v nv" id="vram">—</div></div>
+</div>
+
+<div class="stage">
+  <div class="panel">
+    <h3>◈ AGENT THREAD</h3>
+    <textarea id="prompt" placeholder="Task for the GPU-driven agent, e.g.: analyze current GPU load and write a CUDA matmul kernel to stress it, then report timings."></textarea>
+    <div class="row">
+      <button id="run">▶ RUN AGENT LOOP</button>
+      <button class="nv" id="probe">⟳ PROBE GPU</button>
+    </div>
+    <div id="thread"></div>
+  </div>
+  <div class="side">
+    <div class="panel" style="flex:0 0 auto">
+      <h3>◈ GPU TELEMETRY</h3>
+      <div id="gpu-readout">idle</div>
+      <div class="meter"><i id="util-bar"></i></div>
+    </div>
+    <div class="panel" style="flex:1; min-height:0">
+      <h3>◈ TOOL CALLS</h3>
+      <div id="tools" style="font-size:10px; color:var(--nv); white-space:pre-wrap; overflow-y:auto"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const thread = $('thread'), gpuOut = $('gpu-readout'), toolsOut = $('tools');
+const log = (text, cls='') => { const el = document.createElement('div'); if (cls) el.className = cls; el.textContent = text; thread.appendChild(el); thread.scrollTop = thread.scrollHeight; };
+const vscode = (typeof acquireVsCodeApi !== 'undefined') ? acquireVsCodeApi() : null;
+
+/* ---- WebGPU brain (WebLLM) ---- */
+let engine = null, loading = false;
+const modelId = 'Qwen/Qwen3-0.6B';
+async function initBrain() {
+  if (engine) return engine;
+  if (loading) return null;
+  loading = true; $('brain').textContent = 'LOADING';
+  log('brain: initializing WebLLM ('+modelId+') on WebGPU…', 'sys');
+  try {
+    const webllm = await import('https://esm.run/@mlc-ai/web-llm');
+    engine = await webllm.CreateMLCEngine(modelId, { initProgressCallback: (p) => { const t = p.progress!=null ? Math.round(p.progress*100)+'%' : (p.text||''); if (t) log('brain: '+t); } });
+    $('brain').textContent = 'READY'; log('brain: ready.', 'sys'); loading = false; return engine;
+  } catch (e) { $('brain').textContent = 'FAIL'; log('brain failed: '+(e.message||e), 'err'); loading = false; return null; }
+}
+
+/* ---- CUDA hands (host bridge) ---- */
+function postHost(cmd, payload={}) { if (vscode) vscode.postMessage(Object.assign({command:cmd}, payload)); }
+async function probeGPU() {
+  return new Promise((resolve) => {
+    if (!vscode) { log('hands: no VS Code host — cannot reach CUDA bridge', 'err'); resolve(null); return; }
+    const handler = (ev) => { const m = ev.data; if (m && m.command === 'remoteUse.nvidia' && (m.action==='smi'||m.action==='torch')) { window.removeEventListener('message', handler); resolve(m); } };
+    window.addEventListener('message', handler);
+    postHost('remoteUse.nvidia', {action:'smi'});
+    postHost('remoteUse.nvidia', {action:'torch'});
+    setTimeout(()=>resolve(null), 2500);
+  });
+}
+
+/* ---- tool dispatch ---- */
+const TOOLS = {
+  probe_gpu: { desc: 'Read live RTX 3050 telemetry via CUDA bridge', run: async () => { const r = await probeGPU(); if (r && r.data) { const g = r.data; $('gpu').textContent = (g.name||'').replace('NVIDIA ','').slice(0,18); $('vram').textContent = (g.memory_used_mib!=null&&g.memory_total_mib!=null)? Math.round(g.memory_used_mib/g.memory_total_mib*100)+'%' : '—'; if (g.utilization_gpu!=null){ $('util-bar').style.width = g.utilization_gpu+'%'; } gpuOut.textContent = JSON.stringify(g, null, 1); log('hands: GPU '+JSON.stringify(g).slice(0,120), 'gpu'); } return r; } },
+  compile_kernel: { desc: 'Compile a CUDA matmul kernel via nvcc (host)', run: async () => { log('hands: dispatching nvcc compile to host…', 'tool'); postHost('remoteUse.nvidia', {action:'compile', kernel:'matmul'}); return {dispatched:true}; } },
+};
+function renderTools() { toolsOut.textContent = Object.keys(TOOLS).map(t=>'• '+t+'\n  '+TOOLS[t].desc).join('\n'); }
+
+/* ---- agent loop: think → maybe tool → observe → answer ---- */
+const SYS = 'You are a GPU-driven sovereign agent on Victus (RTX 3050 6GB, CUDA 13.3). You can call tools by writing exactly one line: TOOL: <name>. Available: probe_gpu, compile_kernel. After a tool result, continue reasoning. When done, write FINAL: <answer>. Be terse.';
+async function agentLoop(task) {
+  const eng = await initBrain(); if (!eng) return;
+  log('agent: task → '+task, 'sys');
+  let messages = [{role:'system',content:SYS},{role:'user',content:task}];
+  for (let step = 0; step < 4; step++) {
+    const chat = await eng.chat.completions.create({ messages, max_tokens: 200, temperature: 0.2 });
+    const out = chat.choices[0].message.content || '';
+    messages.push({role:'assistant', content:out});
+    log('think: '+out.replace(/\n/g,' ').slice(0,160), 'think');
+    const toolMatch = out.match(/TOOL:\s*(\w+)/);
+    if (toolMatch && TOOLS[toolMatch[1]]) {
+      const res = await TOOLS[toolMatch[1]].run();
+      messages.push({role:'user', content:'TOOL_RESULT: '+JSON.stringify(res).slice(0,300)});
+      continue;
+    }
+    const finalMatch = out.match(/FINAL:\s*([\s\S]+)/);
+    if (finalMatch) { log('agent ▶ '+finalMatch[1].trim(), 'sys'); return; }
+  }
+  log('agent: step budget reached.', 'think');
+}
+
+$('run').addEventListener('click', async () => { const t = $('prompt').value.trim(); if (!t) return; $('run').disabled = true; await agentLoop(t); $('run').disabled = false; });
+$('probe').addEventListener('click', async () => { await probeGPU(); });
+renderTools();
+if (vscode) { window.addEventListener('message', (ev) => { const m = ev.data; if (m && m.command==='remoteUse.hermesNative') initBrain(); }); }
+log('GPU-driven agent armed. Brain=WebGPU, Hands=CUDA bridge. ▶ RUN to start the loop.', 'sys');
+</script>
+</body>
+</html>

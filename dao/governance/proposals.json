@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "proposals": [
+    {
+      "proposal_id": "P-0001",
+      "title": "DAO Test Proposal",
+      "description": "Validate governance command surface",
+      "proposer": "+æ://private client^glocal",
+      "status": "accepted",
+      "votes": [
+        {
+          "member_id": "+æ://private client^glocal",
+          "vote": "yes",
+          "reason": "Founding vote",
+          "voted_at_utc": "2026-07-01T20:04:09Z"
+        }
+      ],
+      "created_at_utc": "2026-07-01T20:04:08Z",
+      "closed_at_utc": "2026-07-01T20:04:11Z",
+      "close_reason": "Close after single founding vote",
+      "vote_summary": {
+        "yes": 1,
+        "no": 0,
+        "abstain": 0
+      }
+    }
+  ]
+}

@@ -290,6 +290,80 @@ def _resolve_openrouter_runtime(
     }
 
 
+def _resolve_local_ollama_runtime(
+    *,
+    requested_provider: str,
+    explicit_base_url: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+    if requested_provider not in {
+        "ae://local^ollama",
+        "local^ollama",
+        "ae://ollama",
+        "ollama",
+    }:
+        return None
+
+    base_url = (
+        (explicit_base_url or os.getenv("OLLAMA_HOST", "") or "http://127.0.0.1:11434").strip().rstrip("/")
+        or "http://127.0.0.1:11434"
+    )
+    api_key = os.getenv("OLLAMA_API_KEY", "ollama")
+
+    detected_model = _auto_detect_local_model(f"{base_url}/v1") if base_url.startswith("http://") else ""
+    return {
+        "provider": "ae://local^ollama",
+        "api_mode": "chat_completions",
+        "base_url": base_url,
+        "api_key": api_key,
+        "source": "ae://local^ollama",
+        "requested_provider": requested_provider,
+        "detected_model": detected_model,
+        "health_probe": "AE_LOCAL_OLLAMA_RUN_OK",
+    }
+
+
+def _resolve_unsloth_runtime(
+    *,
+    requested_provider: str,
+    explicit_api_key: Optional[str] = None,
+    explicit_base_url: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+    if requested_provider not in {
+        "ae://unsloth",
+        "ae://unsloth^ai",
+        "unsloth",
+        "unsloth-ai",
+    }:
+        return None
+
+    base_url = (
+        (explicit_base_url or os.getenv("UNSLOTH_BASE_URL", "")).strip().rstrip("/")
+    )
+    if not base_url:
+        # Deliberately require explicit config to avoid silently routing to an
+        # incorrect endpoint.
+        return None
+
+    api_key = (
+        (explicit_api_key or "").strip()
+        or os.getenv("UNSLOTH_API_KEY", "").strip()
+        or os.getenv("OPENAI_API_KEY", "").strip()
+        or "unsloth"
+    )
+
+    detected_model = _auto_detect_local_model(base_url) if base_url.startswith("http://") else ""
+    return {
+        "provider": "ae://unsloth",
+        "api_mode": "chat_completions",
+        "base_url": base_url,
+        "api_key": api_key,
+        "source": "ae://unsloth",
+        "requested_provider": requested_provider,
+        "detected_model": detected_model,
+        "health_probe": "AE_UNSLOTH_READY",
+    }
+
+
 def resolve_runtime_provider(
     *,
     requested: Optional[str] = None,
@@ -298,6 +372,21 @@ def resolve_runtime_provider(
 ) -> Dict[str, Any]:
     """Resolve runtime provider credentials for agent execution."""
     requested_provider = resolve_requested_provider(requested)
+
+    unsloth_runtime = _resolve_unsloth_runtime(
+        requested_provider=requested_provider,
+        explicit_api_key=explicit_api_key,
+        explicit_base_url=explicit_base_url,
+    )
+    if unsloth_runtime:
+        return unsloth_runtime
+
+    local_ollama_runtime = _resolve_local_ollama_runtime(
+        requested_provider=requested_provider,
+        explicit_base_url=explicit_base_url,
+    )
+    if local_ollama_runtime:
+        return local_ollama_runtime
 
     custom_runtime = _resolve_named_custom_runtime(
         requested_provider=requested_provider,

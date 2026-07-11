@@ -1,0 +1,61 @@
+{
+  "opensourceware": true,
+  "stack": [
+    {
+      "domain": "cli.llc",
+      "role": "prompt interface",
+      "layer": "L2",
+      "note": "private client command prompt surface"
+    },
+    {
+      "domain": "daollc.ai",
+      "role": "formation / membership",
+      "layer": "L1",
+      "note": "Wyoming DAO LLC proof of concept"
+    },
+    {
+      "domain": "soværeign.com",
+      "role": "sovereign brand",
+      "layer": "brand",
+      "note": "jurisdiction + nation-state framing"
+    },
+    {
+      "domain": "commandprompt.ai",
+      "role": "operator command interface",
+      "layer": "L2",
+      "note": "prompt compiler / intent shell surface"
+    },
+    {
+      "domain": "privateclient.ai",
+      "role": "private client AI entity",
+      "layer": "L2",
+      "note": "closed-loop command interpreter"
+    },
+    {
+      "domain": "moltcontextprotocol.com",
+      "role": "context protocol",
+      "layer": "protocol",
+      "note": "MCP/1517 handshake + runtime context"
+    },
+    {
+      "domain": "mobility.foundation",
+      "role": "physical agent mobility",
+      "layer": "L0+",
+      "note": "Reachy / robot runtime layer"
+    },
+    {
+      "domain": "æææ.com",
+      "role": "agentic context identity",
+      "layer": "identity",
+      "note": "home of the #opensourceware identity and distributed cognition namespace"
+    }
+  ],
+  "execution": [
+    "mech-lang.org",
+    "wyoming dao llc",
+    "hermes",
+    "nvidia omniverse",
+    "stripe",
+    "doola"
+  ]
+}

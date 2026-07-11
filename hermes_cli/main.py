@@ -44,7 +44,10 @@ Usage:
 """
 
 import argparse
+import hashlib
+import json
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -2334,6 +2337,24 @@ def cmd_config(args):
     config_command(args)
 
 
+def cmd_media(args):
+    """Media planning, execution, and audit."""
+    from hermes_cli.media import media_command
+    media_command(args)
+
+
+def cmd_dao(args):
+    """DAO workspace status and governance commands."""
+    from hermes_cli.dao import dao_command
+    dao_command(args)
+
+
+def cmd_coremode(args):
+    """Operator snapshot: glocal + DAO + integrity + vitals."""
+    from scripts.coremode import main as _coremode_main
+    _coremode_main()
+
+
 def cmd_version(args):
     """Show version."""
     print(f"Hermes Agent v{__version__} ({__release_date__})")
@@ -2360,6 +2381,428 @@ def cmd_version(args):
             print("Up to date")
     except Exception:
         pass
+
+
+def _canonical_json(payload: object) -> str:
+    return json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+
+
+def _breakout_001_input_rows(input_file: Optional[str], units: int) -> list[dict]:
+    if not input_file:
+        return [{} for _ in range(units)]
+
+    path = Path(input_file).expanduser().resolve()
+    if not path.exists():
+        raise ValueError(f"Input file not found: {path}")
+
+    rows: list[dict] = []
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        parsed = json.loads(line)
+        if isinstance(parsed, dict):
+            rows.append(parsed)
+        else:
+            rows.append({"value": parsed})
+
+    if len(rows) != units:
+        raise ValueError(
+            f"Breakout 001 requires exactly {units} input rows; got {len(rows)} in {path}"
+        )
+
+    return rows
+
+
+def _build_breakout_001_manifest(input_rows: list[dict], blueprint_path: Path) -> dict:
+    baseline = {
+        "breakout_id": "001",
+        "layer_2": "cli.llc",
+        "layer_1": "mech-lang + +æ governance",
+        "layer_0": "wyoming_dao_llc filing + audit trail",
+        "membership_issuance_logic": "wyoming_dao_llc_baseline_v1",
+        "mandatory_minimums_only": True,
+        "extras_enabled": False,
+    }
+    baseline_hash = hashlib.sha256(_canonical_json(baseline).encode("utf-8")).hexdigest()
+
+    units: list[dict] = []
+    for idx, item in enumerate(input_rows, start=1):
+        input_hash = hashlib.sha256(_canonical_json(item).encode("utf-8")).hexdigest()
+        units.append(
+            {
+                "unit_id": f"001-{idx:03d}",
+                "baseline_hash": baseline_hash,
+                "membership_issuance_logic": "wyoming_dao_llc_baseline_v1",
+                "referral_tree_depth": 0,
+                "input": item,
+                "input_sha256": input_hash,
+            }
+        )
+
+    manifest = {
+        "schema_version": 1,
+        "breakout_id": "001",
+        "generated_at": datetime.utcnow().isoformat() + "Z",
+        "blueprint_path": str(blueprint_path),
+        "unit_count": len(units),
+        "baseline": baseline,
+        "units": units,
+    }
+    manifest["manifest_sha256"] = hashlib.sha256(
+        _canonical_json({k: v for k, v in manifest.items() if k != "manifest_sha256"}).encode("utf-8")
+    ).hexdigest()
+    return manifest
+
+
+def _build_breakout_002_manifest(input_rows: list[dict], blueprint_path: Path, surface: str = "vscode") -> dict:
+    token_policy = {
+        "max_input_tokens": 12000,
+        "max_output_tokens": 3000,
+        "context_reserve_ratio": 0.2,
+        "compression_mode": "diff-first",
+        "read_strategy": "parallel-read-then-write",
+    }
+    mode = "codemode" if surface == "vscode" else "deterministic"
+    baseline = {
+        "breakout_id": "002",
+        "runtime_surface": surface,
+        "mode": mode,
+        "mandatory_minimums_only": True,
+        "extras_enabled": False,
+        "token_policy": token_policy,
+    }
+    if surface == "omniverse":
+        baseline.update(
+            {
+                "surface": "+æ^glocal",
+                "cloud": False,
+                "runtime": "ae://local^ollama",
+                "media": "ae://ffmpeg^omniverse+live",
+                "hardware": "Victus i5 / RTX",
+                "formations": 250,
+                "runner_contract": "OMNIVERSE_250_BASELINE_001",
+                "seed": "0xDA01C",
+            }
+        )
+    baseline_hash = hashlib.sha256(_canonical_json(baseline).encode("utf-8")).hexdigest()
+
+    units: list[dict] = []
+    for idx, item in enumerate(input_rows, start=1):
+        input_hash = hashlib.sha256(_canonical_json(item).encode("utf-8")).hexdigest()
+        units.append(
+            {
+                "unit_id": f"002-{idx:03d}",
+                "baseline_hash": baseline_hash,
+                "runtime_surface": surface,
+                "mode": mode,
+                "token_policy": token_policy,
+                "input": item,
+                "input_sha256": input_hash,
+            }
+        )
+
+    manifest = {
+        "schema_version": 1,
+        "breakout_id": "002",
+        "generated_at": datetime.utcnow().isoformat() + "Z",
+        "blueprint_path": str(blueprint_path),
+        "unit_count": len(units),
+        "baseline": baseline,
+        "units": units,
+    }
+    manifest["manifest_sha256"] = hashlib.sha256(
+        _canonical_json({k: v for k, v in manifest.items() if k != "manifest_sha256"}).encode("utf-8")
+    ).hexdigest()
+    return manifest
+
+
+def _verify_breakout_001_manifest(manifest: dict) -> list[str]:
+    issues: list[str] = []
+    required_unit_keys = {
+        "unit_id",
+        "baseline_hash",
+        "membership_issuance_logic",
+        "referral_tree_depth",
+        "input",
+        "input_sha256",
+    }
+
+    units = manifest.get("units") or []
+    if manifest.get("breakout_id") != "001":
+        issues.append("manifest.breakout_id must be '001'")
+    if manifest.get("unit_count") != 250:
+        issues.append("manifest.unit_count must be 250 for Breakout 001 baseline")
+    if len(units) != 250:
+        issues.append("manifest.units must contain exactly 250 units")
+
+    baseline_hashes = {u.get("baseline_hash") for u in units if isinstance(u, dict)}
+    if len(baseline_hashes) != 1:
+        issues.append("all units must share one baseline_hash (bit-exact baseline)")
+
+    for idx, unit in enumerate(units, start=1):
+        if not isinstance(unit, dict):
+            issues.append(f"unit[{idx}] is not an object")
+            continue
+        if set(unit.keys()) != required_unit_keys:
+            issues.append(f"unit[{idx}] contains non-minimum or missing keys")
+        if unit.get("membership_issuance_logic") != "wyoming_dao_llc_baseline_v1":
+            issues.append(f"unit[{idx}] membership_issuance_logic mismatch")
+        if not isinstance(unit.get("referral_tree_depth"), int) or unit.get("referral_tree_depth") < 0:
+            issues.append(f"unit[{idx}] referral_tree_depth must be a non-negative int")
+
+    return issues
+
+
+def _verify_breakout_002_manifest(manifest: dict, expected_surface: Optional[str] = None) -> list[str]:
+    issues: list[str] = []
+    required_unit_keys = {
+        "unit_id",
+        "baseline_hash",
+        "runtime_surface",
+        "mode",
+        "token_policy",
+        "input",
+        "input_sha256",
+    }
+
+    units = manifest.get("units") or []
+    if manifest.get("breakout_id") != "002":
+        issues.append("manifest.breakout_id must be '002'")
+    if manifest.get("unit_count") != 250:
+        issues.append("manifest.unit_count must be 250 for Breakout 002 baseline")
+    if len(units) != 250:
+        issues.append("manifest.units must contain exactly 250 units")
+
+    baseline_hashes = {u.get("baseline_hash") for u in units if isinstance(u, dict)}
+    if len(baseline_hashes) != 1:
+        issues.append("all units must share one baseline_hash (bit-exact baseline)")
+
+    for idx, unit in enumerate(units, start=1):
+        if not isinstance(unit, dict):
+            issues.append(f"unit[{idx}] is not an object")
+            continue
+        if set(unit.keys()) != required_unit_keys:
+            issues.append(f"unit[{idx}] contains non-minimum or missing keys")
+        runtime_surface = unit.get("runtime_surface")
+        if runtime_surface not in {"vscode", "omniverse"}:
+            issues.append(f"unit[{idx}] runtime_surface must be 'vscode' or 'omniverse'")
+        if expected_surface and runtime_surface != expected_surface:
+            issues.append(f"unit[{idx}] runtime_surface must be '{expected_surface}'")
+        expected_mode = "codemode" if runtime_surface == "vscode" else "deterministic"
+        if unit.get("mode") != expected_mode:
+            issues.append(f"unit[{idx}] mode must be '{expected_mode}'")
+        policy = unit.get("token_policy")
+        if not isinstance(policy, dict):
+            issues.append(f"unit[{idx}] token_policy must be an object")
+            continue
+        for required in ("max_input_tokens", "max_output_tokens", "context_reserve_ratio", "compression_mode", "read_strategy"):
+            if required not in policy:
+                issues.append(f"unit[{idx}] token_policy missing {required}")
+
+    baseline = manifest.get("baseline") or {}
+    runtime_surface = baseline.get("runtime_surface")
+    if runtime_surface not in {"vscode", "omniverse"}:
+        issues.append("manifest.baseline.runtime_surface must be 'vscode' or 'omniverse'")
+    if expected_surface and runtime_surface != expected_surface:
+        issues.append(f"manifest.baseline.runtime_surface must be '{expected_surface}'")
+
+    if runtime_surface == "omniverse":
+        if baseline.get("surface") != "+æ^glocal":
+            issues.append("manifest.baseline.surface must be '+æ^glocal' for omniverse")
+        if baseline.get("runtime") != "ae://local^ollama":
+            issues.append("manifest.baseline.runtime must be 'ae://local^ollama' for omniverse")
+        if baseline.get("media") != "ae://ffmpeg^omniverse+live":
+            issues.append("manifest.baseline.media must be 'ae://ffmpeg^omniverse+live' for omniverse")
+        if baseline.get("cloud") is not False:
+            issues.append("manifest.baseline.cloud must be false for omniverse")
+        if baseline.get("formations") != 250:
+            issues.append("manifest.baseline.formations must be 250 for omniverse")
+
+    return issues
+
+
+def _sync_breakout_to_learn_sequence(breakout_id: str, latest_manifest_path: Path, manifest: dict) -> Path:
+    """Record breakout linkage into a local /learn sequencing state file."""
+    learn_dir = get_hermes_home() / "learn"
+    learn_dir.mkdir(parents=True, exist_ok=True)
+    sequence_path = learn_dir / "learn-sequence.json"
+
+    payload: dict
+    if sequence_path.exists():
+        try:
+            payload = json.loads(sequence_path.read_text(encoding="utf-8"))
+        except Exception:
+            payload = {}
+    else:
+        payload = {}
+
+    payload.setdefault("schema_version", 1)
+    payload.setdefault("updated_at", datetime.utcnow().isoformat() + "Z")
+    payload.setdefault("breakouts", {})
+
+    entry = {
+        "manifest_path": str(latest_manifest_path),
+        "manifest_sha256": manifest.get("manifest_sha256"),
+        "unit_count": manifest.get("unit_count"),
+        "synced_at": datetime.utcnow().isoformat() + "Z",
+    }
+    if breakout_id == "002":
+        baseline = manifest.get("baseline") or {}
+        token_policy = baseline.get("token_policy") or {}
+        runtime_surface = str(baseline.get("runtime_surface") or "vscode")
+        mode = str(baseline.get("mode") or ("codemode" if runtime_surface == "vscode" else "deterministic"))
+        entry["token_policy"] = token_policy
+        entry["runtime_surface"] = runtime_surface
+        entry["mode"] = mode
+        if runtime_surface == "omniverse":
+            entry["surface"] = "+æ^glocal"
+            entry["local_only"] = True
+            entry["cloud"] = False
+            entry["runtime"] = "ae://local^ollama"
+            entry["media"] = "ae://ffmpeg^omniverse+live"
+            entry["runner_contract"] = str(baseline.get("runner_contract") or "OMNIVERSE_250_BASELINE_001")
+
+    payload["breakouts"][breakout_id] = entry
+    payload["updated_at"] = datetime.utcnow().isoformat() + "Z"
+
+    sequence_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    return sequence_path
+
+
+def _launch_vscode_media_workflow() -> tuple[bool, str]:
+    """Best-effort launch of the integrated VS Code VLC+FFmpeg workflow."""
+    code_bin = shutil.which("code")
+    if not code_bin:
+        return False, "'code' CLI not found on PATH"
+
+    try:
+        result = subprocess.run(
+            [code_bin, "--command", "remoteUse.mediaWindow"],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except Exception as exc:
+        return False, str(exc)
+
+    if result.returncode != 0:
+        stderr = (result.stderr or "").strip()
+        stdout = (result.stdout or "").strip()
+        detail = stderr or stdout or f"exit={result.returncode}"
+        return False, detail
+
+    return True, "remoteUse.mediaWindow requested"
+
+
+def cmd_breakout(args):
+    """Execute and verify breakout formation units."""
+    breakout_id = args.breakout_id
+    surface = getattr(args, "surface", "vscode")
+    if breakout_id == "001":
+        if surface != "vscode":
+            print("Breakout 001 supports only --surface vscode")
+            return
+        blueprint_path = (PROJECT_ROOT / "blueprints" / "breakout-001-250-baseline.md").resolve()
+    elif breakout_id == "002":
+        if surface == "omniverse":
+            blueprint_path = (PROJECT_ROOT / "blueprints" / "plus-æ-glocal-omniverse-surface.md").resolve()
+        else:
+            blueprint_path = (PROJECT_ROOT / "blueprints" / "breakout-002-vscode-codemode.md").resolve()
+    else:
+        print(f"Unsupported breakout id: {breakout_id}")
+        print("Currently supported: 001, 002")
+        return
+
+    if args.units != 250:
+        print(f"Breakout {breakout_id} enforces exactly 250 units (mandatory baseline).")
+        return
+
+    if not blueprint_path.exists():
+        print(f"Breakout blueprint is missing: {blueprint_path}")
+        return
+
+    manifest_path: Optional[Path] = None
+    if args.output:
+        manifest_path = Path(args.output).expanduser().resolve()
+
+    if args.verify_only:
+        if not manifest_path or not manifest_path.exists():
+            print("--verify-only requires --output pointing to an existing manifest file")
+            return
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            print(f"Failed to read manifest: {exc}")
+            return
+
+        if breakout_id == "001":
+            issues = _verify_breakout_001_manifest(manifest)
+        else:
+            issues = _verify_breakout_002_manifest(manifest, expected_surface=surface)
+        if issues:
+            print(f"Breakout {breakout_id} verification failed:")
+            for issue in issues:
+                print(f"  - {issue}")
+            return
+        print(f"Breakout {breakout_id} verification passed.")
+        print(f"Manifest: {manifest_path}")
+        return
+
+    try:
+        input_rows = _breakout_001_input_rows(args.input_file, args.units)
+    except Exception as exc:
+        print(f"Failed to load breakout inputs: {exc}")
+        return
+
+    if breakout_id == "001":
+        manifest = _build_breakout_001_manifest(input_rows, blueprint_path)
+        issues = _verify_breakout_001_manifest(manifest)
+    else:
+        manifest = _build_breakout_002_manifest(input_rows, blueprint_path, surface=surface)
+        issues = _verify_breakout_002_manifest(manifest, expected_surface=surface)
+    if issues:
+        print(f"Breakout {breakout_id} generation failed baseline verification:")
+        for issue in issues:
+            print(f"  - {issue}")
+        return
+
+    if not manifest_path:
+        out_dir = get_hermes_home() / "breakouts" / f"breakout-{breakout_id}"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        stamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
+        manifest_path = out_dir / f"breakout-{breakout_id}-manifest-{stamp}.json"
+
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    latest_path = manifest_path.parent / f"breakout-{breakout_id}.latest.json"
+    latest_path.write_text(manifest_path.read_text(encoding="utf-8"), encoding="utf-8")
+
+    learn_sequence_path: Optional[Path] = None
+    if breakout_id == "002" or getattr(args, "learn_sync", False):
+        learn_sequence_path = _sync_breakout_to_learn_sequence(breakout_id, latest_path, manifest)
+
+    vscode_launch_note: Optional[str] = None
+    if (
+        breakout_id == "002"
+        and surface == "omniverse"
+        and getattr(args, "vscode_media_launch", True)
+    ):
+        launched, detail = _launch_vscode_media_workflow()
+        if launched:
+            vscode_launch_note = "VS Code media workflow launch requested (remoteUse.mediaWindow)."
+        else:
+            vscode_launch_note = f"VS Code media workflow launch skipped: {detail}"
+
+    print(f"Breakout {breakout_id} generated and verified.")
+    print(f"Blueprint: {blueprint_path}")
+    print(f"Manifest: {manifest_path}")
+    print(f"Units: {manifest['unit_count']}")
+    if learn_sequence_path is not None:
+        print(f"Learn sequence: {learn_sequence_path}")
+    if vscode_launch_note is not None:
+        print(vscode_launch_note)
 
 
 def cmd_uninstall(args):
@@ -2982,6 +3425,7 @@ def _coalesce_session_name_args(argv: list) -> list:
     _SUBCOMMANDS = {
         "chat", "model", "gateway", "setup", "whatsapp", "login", "logout",
         "status", "cron", "doctor", "config", "pairing", "skills", "tools",
+        "dao",
         "mcp", "sessions", "insights", "version", "update", "uninstall",
     }
     _SESSION_FLAGS = {"-c", "--continue", "-r", "--resume"}
@@ -3766,6 +4210,130 @@ For more help on a command:
             tools_command(args)
 
     tools_parser.set_defaults(func=cmd_tools)
+
+    # =========================================================================
+    # dao command
+    # =========================================================================
+    dao_parser = subparsers.add_parser(
+        "dao",
+        help="Show DAO charter, membership, and treasury/governance status",
+        description="DAO control surface backed by repo-local dao/ manifests",
+    )
+    dao_sub = dao_parser.add_subparsers(dest="dao_action")
+
+    dao_sub.add_parser("status", help="Show DAO status from dao/ manifests")
+
+    dao_propose = dao_sub.add_parser("propose", help="Create a DAO proposal")
+    dao_propose.add_argument("--title", required=True, help="Proposal title")
+    dao_propose.add_argument("--description", required=True, help="Proposal description")
+    dao_propose.add_argument(
+        "--proposer",
+        default="+æ://private client^glocal",
+        help="Member token or id of proposer",
+    )
+
+    dao_vote = dao_sub.add_parser("vote", help="Cast or update a vote on a DAO proposal")
+    dao_vote.add_argument("--proposal-id", required=True, help="Proposal id, for example P-0001")
+    dao_vote.add_argument("--member-id", required=True, help="Voting member id")
+    dao_vote.add_argument("--vote", required=True, choices=["yes", "no", "abstain"], help="Vote choice")
+    dao_vote.add_argument("--reason", default="", help="Optional vote rationale")
+
+    dao_close = dao_sub.add_parser("close", help="Close a DAO proposal")
+    dao_close.add_argument("--proposal-id", required=True, help="Proposal id, for example P-0001")
+    dao_close.add_argument(
+        "--result",
+        default="auto",
+        choices=["auto", "accepted", "rejected"],
+        help="Close result, or auto from vote tally",
+    )
+    dao_close.add_argument("--reason", default="", help="Optional close rationale")
+
+    dao_treasury = dao_sub.add_parser("treasury", help="DAO treasury operations")
+    dao_treasury_sub = dao_treasury.add_subparsers(dest="dao_treasury_action")
+    dao_treasury_sub.add_parser("balance", help="Show treasury balance")
+    dao_treasury_entry = dao_treasury_sub.add_parser("entry", help="Add a treasury ledger entry")
+    dao_treasury_entry.add_argument("--type", required=True, choices=["credit", "debit"], dest="entry_type", help="Entry direction")
+    dao_treasury_entry.add_argument("--amount", required=True, type=float, help="Entry amount")
+    dao_treasury_entry.add_argument("--note", required=True, help="Entry note")
+    dao_treasury_entry.add_argument("--reference", default="", help="Optional external reference")
+
+    dao_member = dao_sub.add_parser("member", help="DAO member operations")
+    dao_member_sub = dao_member.add_subparsers(dest="dao_member_action")
+    dao_member_add = dao_member_sub.add_parser("add", help="Add or update a DAO member")
+    dao_member_add.add_argument("--member-id", required=True, help="Member id token")
+    dao_member_add.add_argument("--role", default="member", help="Member role")
+    dao_member_add.add_argument("--permissions", default="propose,review", help="Comma-separated permissions")
+    dao_member_add.add_argument("--status", default="active", help="Member status")
+    dao_member_sub.add_parser("list", help="List DAO members")
+
+    dao_parser.set_defaults(func=cmd_dao)
+
+    # =========================================================================
+    # coremode command
+    # =========================================================================
+    codemode_parser = subparsers.add_parser(
+        "coremode",
+        help="Show operator snapshot: glocal + DAO + integrity + vitals",
+        description="One-stop local-first control-plane snapshot for Hermes",
+    )
+    codemode_parser.set_defaults(func=cmd_coremode)
+
+    # =========================================================================
+    # media command
+    # =========================================================================
+    media_parser = subparsers.add_parser(
+        "media",
+        help="Plan, run, and audit deterministic media actions",
+        description="Media execution surface for Hermes (ffmpeg/vlc) with manifest-based auditability",
+    )
+    media_sub = media_parser.add_subparsers(dest="media_action")
+
+    media_plan = media_sub.add_parser("plan", help="Create a media execution manifest")
+    media_plan.add_argument("--engine", choices=["ffmpeg", "vlc"], default="ffmpeg", help="Media engine target")
+    media_plan.add_argument("--action", required=True, help="Human-readable action label")
+    media_plan.add_argument("--input", required=True, dest="input_path", help="Input media file path")
+    media_plan.add_argument("--output", dest="output_path", help="Output media path (optional for vlc play)")
+    media_plan.add_argument("--member-token", default="+æ", help="Member permission token")
+    media_plan.add_argument("--governance", default="none", help="Governance requirement label")
+    media_plan.add_argument(
+        "--surface",
+        default="æ://HERMES-AGENT^media",
+        choices=["æ://HERMES-AGENT^media", "æ://private client^glocal"],
+        help="Media surface contract",
+    )
+    media_plan.add_argument("--manifest", help="Explicit output manifest path")
+
+    media_run = media_sub.add_parser("run", help="Execute a media manifest")
+    media_run.add_argument("--manifest", required=True, help="Path to media manifest JSON")
+    media_run.add_argument("--dry-run", action="store_true", help="Print command without executing")
+
+    media_audit = media_sub.add_parser("audit", help="Verify media manifest integrity")
+    media_audit.add_argument("--manifest", required=True, help="Path to media manifest JSON")
+
+    media_viewport = media_sub.add_parser("viewport", help="Show media desktop entrepreneurship viewport")
+    media_viewport.add_argument("--limit", type=int, default=10, help="How many recent manifests to inspect")
+
+    media_coevolve = media_sub.add_parser("coevolve", help="Run Ollama-planned FFmpeg execution with bounded local retries")
+    media_coevolve.add_argument("--goal", required=True, help="Plain-language media optimization goal")
+    media_coevolve.add_argument("--input", required=True, dest="input_path", help="Input media file path")
+    media_coevolve.add_argument("--output", required=True, dest="output_path", help="Output media file path")
+    media_coevolve.add_argument("--codec", default="h264_nvenc", help="Target codec preset")
+    media_coevolve.add_argument("--fps", type=int, default=None, help="Target frames per second")
+    media_coevolve.add_argument("--bitrate", default=None, help="Target bitrate, e.g. 2M")
+    media_coevolve.add_argument("--model", default=None, help="Ollama model id, default to detected local model")
+    media_coevolve.add_argument("--retries", type=int, default=3, help="Max correction/retry passes")
+    media_coevolve.add_argument("--member-token", default="+æ", help="Member permission token")
+    media_coevolve.add_argument("--governance", default="none", help="Governance requirement label")
+    media_coevolve.add_argument(
+        "--surface",
+        default="æ://HERMES-AGENT^media",
+        choices=["æ://HERMES-AGENT^media", "æ://private client^glocal"],
+        help="Media surface contract",
+    )
+    media_coevolve.add_argument("--manifest", help="Explicit output manifest path")
+
+    media_parser.set_defaults(func=cmd_media)
+
     # =========================================================================
     # mcp command — manage MCP server connections
     # =========================================================================
@@ -4077,6 +4645,83 @@ For more help on a command:
         claw_command(args)
 
     claw_parser.set_defaults(func=cmd_claw)
+
+    # =========================================================================
+    # breakout command
+    # =========================================================================
+    breakout_parser = subparsers.add_parser(
+        "breakout",
+        aliases=["breakouts"],
+        help="Execute deterministic breakout formation units",
+        description="Run breakout formation bundles with baseline verification",
+    )
+    breakout_parser.add_argument(
+        "breakout_id",
+        nargs="?",
+        default="001",
+        choices=["001", "002"],
+        help="Breakout unit id (default: 001; supported: 001, 002)",
+    )
+    breakout_parser.add_argument(
+        "--units",
+        type=int,
+        default=250,
+        help="Number of units to generate (Breakout 001/002 require 250)",
+    )
+    breakout_parser.add_argument(
+        "--surface",
+        choices=["vscode", "omniverse"],
+        default="vscode",
+        help="Execution surface (breakout 002 supports vscode or omniverse)",
+    )
+    breakout_parser.add_argument(
+        "--input-file",
+        help="Optional JSONL file with exactly one input row per unit",
+    )
+    breakout_parser.add_argument(
+        "--output",
+        help="Output manifest path (JSON)",
+    )
+    breakout_parser.add_argument(
+        "--verify-only",
+        action="store_true",
+        help="Verify an existing manifest specified by --output",
+    )
+    breakout_parser.add_argument(
+        "--learn-sync",
+        action="store_true",
+        help="Sync generated breakout state into local /learn sequencing metadata",
+    )
+    breakout_parser.add_argument(
+        "--vscode-media-launch",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="For breakout 002 omniverse, request VS Code media workflow launch (default: enabled)",
+    )
+    breakout_parser.set_defaults(func=cmd_breakout)
+
+    # =========================================================================
+    # viewport command — global Hermes viewport computer primitive
+    # =========================================================================
+    viewport_parser = subparsers.add_parser(
+        "viewport",
+        help="Launch or inspect the Hermes viewport computer",
+        description="Agent-addressable local-first HTML control surface.",
+    )
+    viewport_sub = viewport_parser.add_subparsers(dest="viewport_action")
+
+    viewport_open = viewport_sub.add_parser("open", help="Open local AI viewport shell")
+    viewport_open.add_argument("--port", type=int, default=7860, help="Viewport host port")
+    viewport_open.add_argument("--surface", default="http://127.0.0.1:7860", help="Viewport API surface")
+    viewport_open.add_argument("--template", default="templates/hermes-local-ai.html", help="Viewport HTML template path")
+
+    viewport_sub.add_parser("status", help="Show viewport runtime status")
+
+    def cmd_viewport(args):
+        from hermes_cli.viewport import viewport_command
+        viewport_command(args)
+
+    viewport_parser.set_defaults(func=cmd_viewport)
 
     # =========================================================================
     # version command

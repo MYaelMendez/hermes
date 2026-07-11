@@ -1,0 +1,15 @@
+# Hermes config example — secret_source_bridge milestone
+
+secrets:
+  redact_secrets: true
+  sources:
+    - name: local_bridge
+      enabled: true
+      override_existing: true
+      timeout_seconds: 120
+      path: ~/.hermes/secrets/local_bridge.json
+
+Notes:
+- Put raw secrets only in the local_bridge store file with mode 0600.
+- Do not paste tokens into docs, chat, or HTML surfaces.
+- Prefer Export .json/.env on Hermes desktop for ad-hoc handoff.

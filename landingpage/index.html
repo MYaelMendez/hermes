@@ -25,7 +25,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Orbitron:wght@500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
 
@@ -54,8 +54,11 @@
           >
         </a>
         <div class="nav-links">
+          <a href="#bridge">Bridge</a>
           <a href="#install">Install</a>
-          <a href="#features">Features</a>
+          <a href="#glocal">Glocal</a>
+          <a href="#capabilities">Capabilities</a>
+          <a href="æ://prototype">Features</a>
           <a href="/docs/">Docs</a>
           <a
             href="https://github.com/NousResearch/hermes-agent"
@@ -81,8 +84,11 @@
           <span class="hamburger-bar"></span>
         </button>
         <div class="nav-mobile" id="nav-mobile">
+          <a href="#bridge" onclick="toggleMobileNav()">Bridge</a>
           <a href="#install" onclick="toggleMobileNav()">Install</a>
-          <a href="#features" onclick="toggleMobileNav()">Features</a>
+          <a href="#glocal" onclick="toggleMobileNav()">Glocal</a>
+          <a href="#capabilities" onclick="toggleMobileNav()">Capabilities</a>
+          <a href="æ://prototype" onclick="toggleMobileNav()">Features</a>
           <a href="/docs/">Docs</a>
           <a
             href="https://github.com/NousResearch/hermes-agent"
@@ -100,11 +106,116 @@
       </div>
     </nav>
 
+    <aside class="side-rail" id="side-rail" aria-label="Remote control navigation">
+      <button
+        class="side-rail-toggle"
+        id="side-rail-toggle"
+        type="button"
+        aria-label="Collapse sidebar"
+        title="Toggle sidebar"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="4" y1="6" x2="20" y2="6" />
+          <line x1="4" y1="12" x2="20" y2="12" />
+          <line x1="4" y1="18" x2="20" y2="18" />
+        </svg>
+        <span>Collapse</span>
+      </button>
+
+      <nav class="side-rail-nav" aria-label="Section quick links">
+        <a class="side-rail-link" href="#bridge" data-target="bridge" title="Bridge">
+          <span class="side-rail-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 7h5" />
+              <path d="M15 7h5" />
+              <path d="M9 7a3 3 0 0 1 6 0" />
+              <path d="M4 17h5" />
+              <path d="M15 17h5" />
+              <path d="M9 17a3 3 0 0 0 6 0" />
+            </svg>
+          </span>
+          <span class="side-rail-label">Bridge</span>
+        </a>
+
+        <a class="side-rail-link" href="#install" data-target="install" title="Install">
+          <span class="side-rail-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+          </span>
+          <span class="side-rail-label">Install</span>
+        </a>
+
+        <a class="side-rail-link" href="#glocal" data-target="glocal" title="Glocal">
+          <span class="side-rail-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="2" y1="12" x2="22" y2="12" />
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+            </svg>
+          </span>
+          <span class="side-rail-label">Glocal</span>
+        </a>
+
+        <a class="side-rail-link" href="#capabilities" data-target="capabilities" title="Capabilities">
+          <span class="side-rail-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
+            </svg>
+          </span>
+          <span class="side-rail-label">Capabilities</span>
+        </a>
+
+        <a class="side-rail-link" href="#demo" data-target="demo" title="Demo">
+          <span class="side-rail-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="5 3 19 12 5 21 5 3" />
+            </svg>
+          </span>
+          <span class="side-rail-label">Demo</span>
+        </a>
+
+        <a class="side-rail-link" href="æ://prototype" data-target="features" title="Prototype">
+          <span class="side-rail-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 15.1 8.3 22 9.2 17 14 18.2 21 12 17.7 5.8 21 7 14 2 9.2 8.9 8.3 12 2" />
+            </svg>
+          </span>
+          <span class="side-rail-label">Prototype</span>
+        </a>
+      </nav>
+
+      <div class="side-rail-footer">
+        <a class="side-rail-link" href="/docs/" title="Docs">
+          <span class="side-rail-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+            </svg>
+          </span>
+          <span class="side-rail-label">Docs</span>
+        </a>
+      </div>
+    </aside>
+
     <section class="hero">
       <div class="hero-content">
         <div class="hero-badge">
           <span class="badge-dot"></span>
           Open Source &bull; MIT License
+        </div>
+
+        <div class="hero-status" id="hero-status">
+          <span class="hero-status-item"><span class="hero-label">Mode</span><span class="hero-value" id="status-mode">local-first</span></span>
+          <span class="hero-status-divider" aria-hidden="true"></span>
+          <span class="hero-status-item"><span class="hero-label">Surface</span><span class="hero-value hero-value--live" id="status-surface">glocal</span></span>
+          <span class="hero-status-divider" aria-hidden="true"></span>
+          <span class="hero-status-item"><span class="hero-label">Integrity</span><span class="hero-value hero-value--live" id="status-integrity">--</span></span>
         </div>
 
         <!-- prettier-ignore -->
@@ -118,15 +229,14 @@
 </pre>
 
         <h1 class="hero-title">
-          An agent that<br />
-          <span class="hero-gradient">grows with you.</span>
+          VS Code Hermes meets<br />
+          <span class="hero-gradient">Hermes Desktop Agent.</span>
         </h1>
 
         <p class="hero-subtitle">
-          It's not a coding copilot tethered to an IDE or a chatbot wrapper
-          around a single API. It's an <strong>autonomous agent</strong> that
-          lives on your server, remembers what it learns, and gets more capable
-          the longer it runs.
+          A glocal co-production bridge where one deterministic runtime spans
+          both interfaces. Start in VS Code, continue in Desktop, and keep the
+          same local truth, governance state, and integrity evidence.
         </p>
 
         <div class="hero-install">
@@ -207,6 +317,58 @@
             </svg>
             Sign Up on Nous Portal
           </a>
+          <a
+            href="https://github.com/NousResearch/hermes-agent/blob/main/blueprints/laptop-as-dao.md"
+            class="btn btn-secondary"
+            target="_blank"
+            rel="noopener"
+          >
+            Open DAO Blueprint
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-bridge" id="bridge">
+      <div class="container">
+        <div class="section-header">
+          <h2>Bridge Surface</h2>
+        </div>
+        <p class="section-desc">
+          Connect development-time orchestration in VS Code with operational
+          control in Hermes Desktop Agent, without forking execution state.
+        </p>
+
+        <div class="bridge-grid">
+          <article class="feature-card">
+            <div class="feature-header">
+              <h3>Author in VS Code Hermes</h3>
+            </div>
+            <p>
+              Launch media, DAO, and 🤖 executor workflows from command surfaces
+              tied directly to your repository context.
+            </p>
+          </article>
+
+          <article class="feature-card">
+            <div class="feature-header">
+              <h3>Persist in Local Runtime</h3>
+            </div>
+            <p>
+              Keep local truth as the canonical state, including memory,
+              proposals, treasury, and artifact hashes.
+            </p>
+          </article>
+
+          <article class="feature-card">
+            <div class="feature-header">
+              <h3>Operate in Desktop Agent</h3>
+            </div>
+            <p>
+              Continue and supervise the same workflows through desktop controls
+              with no translation layer and no drift.
+            </p>
+          </article>
         </div>
       </div>
     </section>
@@ -372,6 +534,143 @@ hermes gateway install</code></pre>
             >
             and run Hermes Agent from there.
           </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="glocal">
+      <div class="container">
+        <div class="section-header">
+          <h2>Glocal Co-Production Surface</h2>
+        </div>
+        <p class="section-desc">
+          One runtime, three enforceable surfaces: local truth runs execution,
+          memory, governance, and vitals; global surface projects the same state
+          to CLI, VS Code, web, and attestation; shared governance makes DAO
+          actions and integrity checks first-class.
+        </p>
+
+        <div class="glocal-grid">
+          <div class="feature-card">
+            <div class="feature-header">
+              <h3>Local Truth</h3>
+            </div>
+            <p>
+              Deterministic execution, memory, governance, and machine vitals on
+              your machine — no cloud dependency.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-header">
+              <h3>Global Surface</h3>
+            </div>
+            <p>
+              The same state projects to CLI, VS Code commands, web viewports,
+              and attestable artifacts.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-header">
+              <h3>Shared Governance</h3>
+            </div>
+            <p>
+              DAO charter, membership, treasury, and proposal workflows are
+              executable and inspectable from the same runtime.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-header">
+              <h3>Integrity</h3>
+            </div>
+            <p>
+              Fail-closed release-manifest, attestation, and artifact hash checks.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-capabilities" id="capabilities">
+      <div class="container">
+        <div class="section-header">
+          <h2>Capability Matrix</h2>
+        </div>
+        <p class="section-desc">
+          The same stack can be consumed by builders, operators, governance participants,
+          and external reviewers with deterministic artifacts.
+        </p>
+
+        <div class="capability-matrix">
+          <article class="capability-card">
+            <header class="capability-head">
+              <span class="capability-role">Developer</span>
+              <span class="capability-tier">Build Surface</span>
+            </header>
+            <h3>Deterministic Runtime + Tool Surfaces</h3>
+            <p>
+              Drive media plan/run/audit/coevolve with local-first execution,
+              then project outputs into CLI, VS Code, and web surfaces.
+            </p>
+            <div class="capability-tags">
+              <span>hermes media</span>
+              <span>private surface</span>
+              <span>vscode command surface</span>
+            </div>
+          </article>
+
+          <article class="capability-card">
+            <header class="capability-head">
+              <span class="capability-role">Operator</span>
+              <span class="capability-tier">Run Surface</span>
+            </header>
+            <h3>Machine Vitals + Scheduled Automation</h3>
+            <p>
+              Collect local computer vitals on a schedule and keep long-running
+              workflows observable with repeatable operational checks.
+            </p>
+            <div class="capability-tags">
+              <span>computer_vitals.py</span>
+              <span>install_vitals_cron.py</span>
+              <span>actionable snapshots</span>
+            </div>
+          </article>
+
+          <article class="capability-card">
+            <header class="capability-head">
+              <span class="capability-role">DAO</span>
+              <span class="capability-tier">Governance Surface</span>
+            </header>
+            <h3>Interactive Governance on Laptop Infrastructure</h3>
+            <p>
+              Charter, membership, treasury, and proposal workflows are
+              executable and inspectable from the same runtime.
+            </p>
+            <div class="capability-tags">
+              <span>dao status</span>
+              <span>dao treasury</span>
+              <span>laptop-as-dao</span>
+            </div>
+          </article>
+
+          <article class="capability-card">
+            <header class="capability-head">
+              <span class="capability-role">Reviewer</span>
+              <span class="capability-tier">Trust Surface</span>
+            </header>
+            <h3>Integrity Gates + Attestation</h3>
+            <p>
+              Verify submission artifacts with fail-closed hash checks and
+              reproducible release-manifest validation.
+            </p>
+            <div class="capability-tags">
+              <span>verify_submission_integrity.py</span>
+              <span>release-manifest</span>
+              <span>attestation</span>
+            </div>
+          </article>
         </div>
       </div>
     </section>

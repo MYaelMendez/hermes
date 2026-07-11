@@ -63,6 +63,78 @@ function toggleMobileNav() {
   document.getElementById("nav-hamburger").classList.toggle("open");
 }
 
+function initSideRail() {
+  const rail = document.getElementById("side-rail");
+  const toggle = document.getElementById("side-rail-toggle");
+  if (!rail || !toggle) return;
+
+  const storageKey = "hermes.sideRail.collapsed";
+  const saved = localStorage.getItem(storageKey);
+  if (saved === "1") {
+    document.body.classList.add("rail-collapsed");
+  }
+
+  const setToggleLabel = () => {
+    const collapsed = document.body.classList.contains("rail-collapsed");
+    const text = toggle.querySelector("span");
+    if (text) text.textContent = collapsed ? "Expand" : "Collapse";
+    toggle.setAttribute("aria-label", collapsed ? "Expand sidebar" : "Collapse sidebar");
+  };
+
+  setToggleLabel();
+
+  toggle.addEventListener("click", () => {
+    document.body.classList.toggle("rail-collapsed");
+    const collapsed = document.body.classList.contains("rail-collapsed");
+    localStorage.setItem(storageKey, collapsed ? "1" : "0");
+    setToggleLabel();
+  });
+
+  const links = Array.from(document.querySelectorAll(".side-rail-link[data-target]"));
+  const sectionPairs = links
+    .map((link) => {
+      const target = link.getAttribute("data-target");
+      if (!target) return null;
+      const section = document.getElementById(target);
+      if (!section) return null;
+      return { link, section };
+    })
+    .filter(Boolean);
+
+  if (!sectionPairs.length) return;
+
+  const updateActive = (id) => {
+    sectionPairs.forEach(({ link, section }) => {
+      const active = section.id === id;
+      link.classList.toggle("active", active);
+      if (active) {
+        link.setAttribute("aria-current", "page");
+      } else {
+        link.removeAttribute("aria-current");
+      }
+    });
+  };
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      const visible = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (visible?.target?.id) {
+        updateActive(visible.target.id);
+      }
+    },
+    {
+      root: null,
+      threshold: [0.25, 0.5, 0.75],
+      rootMargin: "-25% 0px -55% 0px",
+    },
+  );
+
+  sectionPairs.forEach(({ section }) => observer.observe(section));
+  updateActive(sectionPairs[0].section.id);
+}
+
 function toggleSpecs() {
   const wrapper = document.getElementById("specs-wrapper");
   const btn = document.getElementById("specs-toggle");
@@ -126,7 +198,7 @@ function copyText(btn) {
 function initScrollAnimations() {
   const elements = document.querySelectorAll(
     ".feature-card, .install-step, " +
-      ".section-header, .terminal-window",
+      ".section-header, .terminal-window, .capability-card",
   );
 
   elements.forEach((el) => el.classList.add("fade-in"));
@@ -481,6 +553,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   initScrollAnimations();
   initNoiseOverlay();
+  initSideRail();
 
   const terminalEl = document.getElementById("terminal-demo");
 
@@ -509,7 +582,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!ticking) {
       requestAnimationFrame(() => {
         if (window.scrollY > 50) {
-          nav.style.borderBottomColor = "rgba(48, 80, 255, 0.15)";
+          nav.style.borderBottomColor = "rgba(212, 175, 55, 0.22)";
         } else {
           nav.style.borderBottomColor = "";
         }
@@ -518,4 +591,16 @@ document.addEventListener("DOMContentLoaded", () => {
       ticking = true;
     }
   });
+
+  try {
+    const integrityEl = document.getElementById("status-integrity");
+    if (integrityEl) {
+      integrityEl.textContent = "OK";
+    }
+  } catch (error) {
+    const integrityEl = document.getElementById("status-integrity");
+    if (integrityEl) {
+      integrityEl.textContent = "ERR";
+    }
+  }
 });

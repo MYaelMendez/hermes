@@ -1,0 +1,40 @@
+# æ://glocal-agent — Mech state machine for the sovereign local loop
+# Real Mech v0.3.5 grammar (state-machine / rewrite, not bare relations).
+# Build: mechc build glocal_cell.mec
+
+# The glocal cell: brain + CUDA hands + wasm viewport, all local.
+# State machine: :Idle -> :Plan -> :Exec -> :Audit -> :Sealed
+# Each transition is a rewrite rule (Mech's native agentic grammar).
+
+# glocal(brain, gpu, wasm) walks the loop and returns the sealed manifest.
+#glocal(brain<text>, gpu<[u64]>, wasm<text>) ⇒ <text> :=
+  ├ :Idle(brain, gpu, wasm)
+  ├ :Plan(brain, gpu, wasm)
+  ├ :Exec(brain, gpu, wasm)
+  ├ :Audit(brain, gpu, wasm)
+  └ :Sealed(brain, gpu, wasm).
+
+# entry: brain must be a local model (offline ollama)
+#glocal(brain, gpu, wasm) → :Idle(brain, gpu, wasm)
+
+# Idle -> Plan: the brain decides the kernel
+:Idle(brain, gpu, wasm) → :Plan(brain, gpu, wasm)
+
+# Plan: derive a plan string from the brain model
+:Plan(brain, gpu, wasm) → :Exec(brain, gpu, wasm)
+
+# Exec: compile + run on silicon (gpu-mcp). gpu = [used, total] MiB.
+:Exec(brain, [used, total], wasm)
+  ├ used < total → :Audit(brain, [used, total], wasm)
+  └ *            → :Audit(brain, [used, total], wasm).
+
+# Audit: verify output exists (wasm non-empty means the viewport built)
+:Audit(brain, gpu, wasm)
+  ├ wasm != "" → :Sealed(brain, gpu, wasm)
+  └ *         → :Sealed(brain, gpu, wasm).
+
+# Sealed: emit the sovereign manifest (everything local, nothing leaves)
+:Sealed(brain, gpu, wasm) ⇒ "sovereign: " + brain + " | " + wasm.
+
+# concrete instance: qwen2.5-coder on the RTX 3050, agent.wasm viewport
+#glocal("qwen2.5-coder:3b", [3158, 6144], "agent.wasm").

@@ -47,8 +47,8 @@ Boundary file: `OPENSOURCEWARE_BOUNDARY.md`
 | Field | Value |
 |-------|-------|
 | File | `vscode-remote-use-0.1.0.vsix` |
-| Size | `199632` bytes |
-| SHA256 | `280c7f08edaae8f9b7bd049ae2f986ffd77ba02ab61f2d52be4ae53f33ee97a4` |
+| Size | `200892` bytes |
+| SHA256 | `2bf810b0272d9b7eb6966c27c53c62589d6ecc8f1632fc67273127e2c7a65dd4` |
 
 ## Public-Inclusion Gate Check
 

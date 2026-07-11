@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>æ:// agentic-grid · Omniverse tiles · spreadsheet</title>
+<style>
+  :root {
+    --void:#050505; --gold:#D4AF37; --neon:#00ff9d; --ink:#f0ece4;
+    --muted:rgba(240,236,228,0.4); --border:rgba(212,175,55,0.16);
+    --border-hot:rgba(212,175,55,0.5); --panel:#090909; --panel-2:#0b0b0b;
+    --glow:rgba(212,175,55,0.08);
+  }
+  * { box-sizing:border-box; }
+  html,body { margin:0; background:var(--void); color:var(--ink);
+    font-family:'JetBrains Mono',ui-monospace,Menlo,monospace; }
+  body::before { content:""; position:fixed; inset:0; pointer-events:none; z-index:9999;
+    opacity:0.035; background:repeating-linear-gradient(0deg,transparent,transparent 2px,
+    rgba(212,175,55,0.12) 2px,rgba(212,175,55,0.12) 4px); }
+  .wrap { max-width:1100px; margin:0 auto; padding:26px 20px 60px; }
+  .brand { display:flex; gap:14px; align-items:center; margin-bottom:18px; }
+  .glyph { width:46px; height:46px; border:1px solid var(--border-hot); display:grid;
+    place-items:center; color:var(--gold); font-weight:800; font-size:24px;
+    box-shadow:0 0 18px var(--glow); }
+  .title { font-family:'Orbitron',sans-serif; color:var(--gold); font-weight:700;
+    letter-spacing:0.1em; font-size:20px; }
+  .sub { color:var(--muted); font-size:11px; letter-spacing:0.16em; text-transform:uppercase; }
+  .panel { border:1px solid var(--border); background:var(--panel); padding:16px; margin-bottom:18px; }
+  .panel-head { color:var(--gold); font-weight:700; letter-spacing:0.14em; text-transform:uppercase;
+    font-size:11px; margin-bottom:12px; display:flex; justify-content:space-between; }
+  .panel-head .sub { color:var(--muted); text-transform:none; letter-spacing:0; }
+
+  /* NVIDIA Omniverse tile grid */
+  .tiles { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  @media(max-width:760px){ .tiles{grid-template-columns:repeat(2,1fr);} }
+  .tile { border:1px solid var(--border); background:var(--panel-2); padding:12px; min-height:64px; }
+  .tile .k { color:var(--muted); font-size:10px; letter-spacing:0.14em; text-transform:uppercase; }
+  .tile .v { color:var(--neon); font-family:'Orbitron',sans-serif; font-size:15px; margin-top:6px;
+    word-break:break-word; }
+
+  /* spreadsheet */
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th, td { border:1px solid var(--border); padding:8px 10px; text-align:right; }
+  th { color:var(--gold); letter-spacing:0.1em; text-transform:uppercase; font-size:10px;
+    background:var(--panel-2); }
+  td.ts { color:var(--muted); text-align:left; font-size:11px; }
+  tbody tr:hover { background:var(--panel-2); }
+  tr.spark td { background:var(--panel-2); }
+  .sparkline { color:var(--gold); letter-spacing:2px; text-align:left; font-size:14px; }
+  .ok { color:#7ee787; } .err { color:#ff7b72; }
+  .foot { color:var(--muted); font-size:10px; letter-spacing:0.12em; margin-top:22px;
+    text-align:center; text-transform:uppercase; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">
+    <div class="glyph">æ</div>
+    <div>
+      <div class="title">agentic-grid</div>
+      <div class="sub">NVIDIA Omniverse tiles · sovereign spreadsheet · +bæsic://</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><span>Agentic computer · Victus GPU-MCP</span>
+      <span class="sub">computer:// probe</span></div>
+    <div class="tiles">
+<div class='tile'><div class='k'>GPU</div><div class='v'>NVIDIA GeForce RTX 3050 6GB Laptop GPU</div></div><div class='tile'><div class='k'>VRAM total</div><div class='v'>6144.0 MiB</div></div><div class='tile'><div class='k'>VRAM used</div><div class='v'>761.0 MiB</div></div><div class='tile'><div class='k'>Temp</div><div class='v'>46.0 °C</div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><span>Ledger spreadsheet (bæsic · in-language counts)</span>
+      <span class="sub">11 ticks · source C:\ae\ledger.csv</span></div>
+    <table>
+      <thead><tr><th>tick</th><th>01-Apps</th><th>02-Media</th><th>03-Projects</th><th>04-Docs</th></tr></thead>
+      <tbody>
+<tr><td class='ts'>1783726864</td><td>13</td><td>0</td><td>6</td><td>0</td></tr>
+<tr><td class='ts'>1783726906</td><td>13</td><td>0</td><td>6</td><td>0</td></tr>
+<tr><td class='ts'>1783726907</td><td>13</td><td>0</td><td>6</td><td>0</td></tr>
+<tr><td class='ts'>1783726953</td><td>13</td><td>0</td><td>6</td><td>0</td></tr>
+<tr><td class='ts'>1783726971</td><td>13</td><td>0</td><td>6</td><td>0</td></tr>
+<tr><td class='ts'>1783727083</td><td>13</td><td>0</td><td>6</td><td>0</td></tr>
+<tr><td class='ts'>1783727099</td><td>13</td><td>0</td><td>6</td><td>0</td></tr>
+<tr><td class='ts'>1783727116</td><td>13</td><td>0</td><td>6</td><td>0</td></tr>
+<tr><td class='ts'>1783727186</td><td>13</td><td>0</td><td>6</td><td>0</td></tr>
+<tr><td class='ts'>1783727698</td><td>13</td><td>0</td><td>6</td><td>0</td></tr>
+<tr><td class='ts'>1783727751</td><td>13</td><td>0</td><td>6</td><td>0</td></tr>
+<tr class='spark'><td class='ts'>01-Apps</td><td colspan='4' class='sparkline'>▄▄▄▄▄▄▄▄▄▄▄  (13→13)</td></tr>
+<tr class='spark'><td class='ts'>02-Media</td><td colspan='4' class='sparkline'>▄▄▄▄▄▄▄▄▄▄▄  (0→0)</td></tr>
+<tr class='spark'><td class='ts'>03-Projects</td><td colspan='4' class='sparkline'>▄▄▄▄▄▄▄▄▄▄▄  (6→6)</td></tr>
+<tr class='spark'><td class='ts'>04-Docs</td><td colspan='4' class='sparkline'>▄▄▄▄▄▄▄▄▄▄▄  (0→0)</td></tr>
+
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><span>file:// guard</span>
+      <span class="sub">count &gt; mutate · sovereign-scoped</span></div>
+    <table>
+      <thead><tr><th>action</th><th>verdict</th></tr></thead>
+      <tbody>
+<tr><td>count sovereign root</td><td class='ok'>✓ ALLOWED</td></tr>
+<tr><td>mutate off-root</td><td class='err'>✕ DENIED</td></tr>
+<tr><td>reach OneDrive</td><td class='err'>✕ DENIED</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="foot">#opensourceware #250 · +æ^victus · no Excel required</div>
+</div>
+</body>
+</html>

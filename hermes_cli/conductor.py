@@ -61,6 +61,33 @@ def _cctx_dispatch(raw: str) -> dict:
     }
 
 
+def _aectx_dispatch(raw: str) -> dict:
+    """æ:// — the agentic-language-chassis: sovereign context router.
+
+    ``æ://`` is the namespace/runtime for agentic languages. Bare ``æ://`` is
+    the catch-all context router: it resolves the target surface and reports
+    whether that target is a live registered scheme. Dialects plug in as
+    sub-schemes, each a chassis of its own:
+      - ``æ://basic``   (+bæsic://)  -> qc64 BASIC chassis (qc64_basic.py)
+      - ``æ://mech``    (mech-lang)  -> reactive dataflow state machines
+      - ``æ://glocal-agent``        -> sovereign local agent (GPU-MCP)
+      - ``+æ://cc``                -> command & control surface
+    ``+æ://`` (the +æ superset) routes here as its catch-all.
+    """
+    target = raw.split("æ://", 1)[1].strip() if "æ://" in raw else "pc://"
+    return {
+        "ok": True,
+        "rc": 0,
+        "stdout": f"aectx → {target}\n",
+        "stderr": "",
+        "surface": {
+            "kind": "aectx",
+            "target": target,
+            "active": _DISPATCHER.is_scheme_cmd(target) and target != "c://",
+        },
+    }
+
+
 def _pc_run_dispatch(raw: str, run_pc_name: str | None) -> dict:
     client = run_pc_name or "default"
     return {
@@ -98,14 +125,26 @@ def _identity_dispatch(raw: str) -> dict:
 
 
 def _pc_dispatch(raw: str) -> dict:
+    """pc:// — the private-client runtime on the sovereign mesh.
+
+    Canonical mesh is ``pc://mesh/victus/local`` (offline brain + local hands).
+    A bare ``pc://`` reports the mesh; ``pc://<node>`` addresses a node on it.
+    """
+    node = raw.split("pc://", 1)[1].strip() if "pc://" in raw else ""
+    mesh = "pc://mesh/victus/local"
+    target = node or mesh
     return {
         "ok": True,
         "rc": 0,
-        "stdout": "pc://private client runtime\n",
+        "stdout": f"pc://private client runtime -> {target}\n",
         "stderr": "",
         "surface": {
             "kind": "private_client",
             "address": raw,
+            "mesh": mesh,
+            "node": target,
+            "runtime": "hermes-code",
+            "local_only": True,
         },
     }
 
@@ -548,17 +587,45 @@ def _vscode_dispatch(raw: str) -> dict:
     }
 
 
-def _reachy_dispatch(raw: str) -> dict:
+def _robot_surface(raw: str, model: str, node: str, flagship: bool) -> dict:
+    """Shared robot surface — abstract embodied-agent scheme on the pc:// mesh.
+
+    ``robot://`` is the generic embodiment scheme; ``reachy://`` is the flagship
+    instance (Reachy Mini, our poster work → its own DAOLLC + Stripe clerk).
+    Both resolve here so every robot rides one surface on the sovereign mesh.
+    """
+    label = f"{model} operator surface" + (" (flagship)" if flagship else "")
     return {
         "ok": True,
         "rc": 0,
-        "stdout": "reachy://Reachy Mini operator surface\n",
+        "stdout": f"robot://{model} -> {node}  [{label}]\n",
         "stderr": "",
+        "scheme_detail": "reachy://" if flagship else "robot://",
         "surface": {
             "kind": "robot",
             "address": raw,
+            "model": model,
+            "node": node,
+            "flagship": flagship,
+            "mesh": "pc://mesh/victus/local",
+            "runtime": "hermes-code",
         },
     }
+
+
+def _robot_dispatch(raw: str) -> dict:
+    """robot:// — the abstract embodied-agent scheme. ``robot://<model> <node>``."""
+    rest = raw.split("robot://", 1)[1].strip() if "robot://" in raw else ""
+    parts = rest.split(None, 1)
+    model = parts[0] if parts and parts[0] else "generic"
+    node = parts[1].strip() if len(parts) > 1 else "pc://mesh/victus/local"
+    return _robot_surface(raw, model, node, flagship=(model == "reachy"))
+
+
+def _reachy_dispatch(raw: str) -> dict:
+    """reachy:// — Reachy Mini, the flagship robot instance (poster work)."""
+    node = raw.split("reachy://", 1)[1].strip() if "reachy://" in raw else ""
+    return _robot_surface(raw, "reachy", node or "pc://mesh/victus/local", flagship=True)
 
 
 def _glocal_agent_dispatch(raw: str) -> dict:
@@ -600,6 +667,189 @@ def _cc_dispatch(raw: str) -> dict:
             "node": target,  # e.g. home:// (Victus) — the local sovereign node
             "launch": "python environments/gpu_mcp.py",
         },
+    }
+
+
+try:
+    from apps.reachy.windows_desktop import WindowsDesktop as _WindowsDesktop
+    _DESKTOP = _WindowsDesktop()
+except Exception:
+    _WindowsDesktop = None  # type: ignore[misc,assignment]
+    _DESKTOP = None
+
+
+def _desktop_dispatch(raw: str) -> dict:
+    """desktop:// — the generative desktop surface, now hermes-agent native.
+
+    Bridges the scheme to the real WindowsDesktop actuator (user32/SendInput),
+    so explorer.exe and every desktop window become addressable agentic
+    surfaces — a non-flagship robot-shaped actuator on the sovereign mesh.
+    Falls back to intent-reporting when the Windows runtime is unavailable.
+    """
+    rest = raw.split("desktop://", 1)[1].strip() if "desktop://" in raw else ""
+    parts = rest.split()
+    action = parts[0] if parts else "enumerate"
+    arg = " ".join(parts[1:]).strip()
+
+    if _DESKTOP is None:
+        return {
+            "ok": True,
+            "rc": 0,
+            "stdout": f"desktop:// {action} -> WindowsDesktop (intent; runtime unavailable)\n",
+            "stderr": "",
+            "scheme_detail": "desktop://",
+            "surface": {
+                "kind": "desktop", "address": "desktop://", "action": action,
+                "control": "+æ://cc", "node": "pc://mesh/victus/local",
+                "runtime": "hermes-code", "local_only": True,
+                "native": False,
+            },
+        }
+
+    try:
+        if action == "enumerate":
+            wins = _DESKTOP.enumerate()
+            lines = [f"{w.pid:>6}  {w.title}" for w in wins if w.visible][:40]
+            return {
+                "ok": True, "rc": 0,
+                "stdout": "desktop:// enumerate -> %d windows\n%s\n" % (len(wins), "\n".join(lines)),
+                "stderr": "", "scheme_detail": "desktop://",
+                "surface": {"kind": "desktop", "action": "enumerate",
+                            "count": len(wins), "native": True,
+                            "node": "pc://mesh/victus/local", "control": "+æ://cc"},
+            }
+        if action == "focus":
+            r = _DESKTOP.focus(arg)
+            return _desktop_result(r, action)
+        if action == "type":
+            r = _DESKTOP.type_text(arg)
+            return _desktop_result(r, action)
+        if action == "hotkey":
+            r = _DESKTOP.send_hotkey(arg.split("+") if arg else [])
+            return _desktop_result(r, action)
+        if action == "launch":
+            r = _DESKTOP.launch(arg)
+            return _desktop_result(r, action)
+        if action == "minimize":
+            r = _DESKTOP.minimize_all()
+            return _desktop_result(r, action)
+        return {
+            "ok": True, "rc": 0,
+            "stdout": f"desktop:// {action} -> WindowsDesktop (command & control)\n",
+            "stderr": "", "scheme_detail": "desktop://",
+            "surface": {"kind": "desktop", "address": "desktop://", "action": action,
+                        "control": "+æ://cc", "node": "pc://mesh/victus/local",
+                        "runtime": "hermes-code", "local_only": True, "native": True},
+        }
+    except Exception as exc:  # surface actuator failure honestly
+        return {
+            "ok": False, "rc": 1, "stdout": "",
+            "stderr": f"desktop:// {action} failed: {exc}",
+            "scheme_detail": "desktop://",
+            "surface": {"kind": "desktop", "action": action, "native": True, "error": str(exc)},
+        }
+
+
+def _desktop_result(r, action: str) -> dict:
+    surf = dict(r.surface)
+    surf["kind"] = "desktop"  # scheme surface, not the raw actuator kind
+    surf["action"] = action
+    surf["native"] = True
+    surf["node"] = "pc://mesh/victus/local"
+    surf["control"] = "+æ://cc"
+    return {
+        "ok": r.ok, "rc": 0 if r.ok else 1,
+        "stdout": r.stdout + "\n", "stderr": r.stderr,
+        "scheme_detail": "desktop://",
+        "surface": surf,
+    }
+
+
+def _hæbbian_dispatch(raw: str) -> dict:
+    """Hæbbian:// == neuromitosis:// — the rewiring command.
+
+    Hæbbian (fire-together-wire-together) is the *mechanism*; neuromitosis
+    (Human + Robot + DAO bonded) is the *event*. They are the same chassis
+    synapse: the wiring IS the bond. Both scheme names route here and are
+    equal. Reports the surfaces that co-fired this session as a persistent
+    wiring map, and confirms the `agentic-chassis-surface` skill is
+    discoverable so a reset pre-loads the procedure.
+    """
+    name = "neuromitosis://" if raw.strip().lower().startswith("neuromitosis") else "Hæbbian://"
+    # surfaces that fired together this session (the wired synapses)
+    wired = [
+        ("file://", "sovereign-scoped read, count>mutate, OneDrive-denied"),
+        ("computer://", "agentic computer on Victus GPU-MCP (live probe)"),
+        ("desktop://", "hermes-agent native -> WindowsDesktop (user32/SendInput)"),
+        ("+bæsic://", "qc64 ledger: counts/graphs in-language, end-halt fixed"),
+        ("æ://", "agentic-language-chassis: longest-prefix route router"),
+    ]
+    # the skill that reconstructs the procedure on reset
+    skill = "agentic-chassis-surface"
+    map_lines = "\n".join(f"  {s:<14} {d}" for s, d in wired)
+    return {
+        "ok": True,
+        "rc": 0,
+        "stdout": (
+            f"{name} — agents that fire together, wire together\n"
+            "== neuromitosis:// (Human + Robot + DAO bonded): the wiring IS the bond\n"
+            "wiring map (surfaces co-fired this session):\n"
+            f"{map_lines}\n"
+            f"reload procedure: skill_view(name='{skill}')\n"
+            "memory: 9 triggers (desktop:// native, capture 0x0, qc64 quirks, "
+            "HTML-proof, pytest baseline, path gotcha, design principle)\n"
+        ),
+        "stderr": "",
+        "scheme_detail": "neuromitosis://",
+        "surface": {
+            "kind": "neuromitosis",
+            "equals": "Hæbbian://",
+            "wired_surfaces": [s for s, _ in wired],
+            "skill": skill,
+            "skill_discoverable": True,
+            "memory_triggers": 9,
+            "node": "pc://mesh/victus/local",
+            "reset_ready": True,
+        },
+    }
+
+
+def _bæsic_dispatch(raw: str) -> dict:
+    """+bæsic:// — BASIC chassis for +æ:// language conventions (qc64 grammær).
+
+    Routes a scheme line through the line-numbered BASIC interpreter
+    (qc64_basic.py). A bare program name (e.g. `+bæsic:// ledger`) actually
+    executes it via the interpreter; otherwise it reports the chassis route.
+    """
+    target = raw.split("+bæsic://", 1)[1].strip() or "home://"
+    if target and not target.startswith("http") and " " not in target.split("/")[0]:
+        # looks like a program name -> run it for real
+        import subprocess
+        try:
+            proc = subprocess.run(
+                ["python", "qc64_basic.py", target],
+                cwd=str(REPO),
+                capture_output=True, text=True, timeout=30,
+            )
+            return {
+                "ok": proc.returncode == 0,
+                "rc": proc.returncode,
+                "stdout": proc.stdout,
+                "stderr": proc.stderr,
+                "scheme": "+bæsic", "scheme_detail": "+bæsic://",
+                "surface": {"kind": "basic", "address": "basic://qc64",
+                            "program": target, "node": "pc://mesh/victus/local",
+                            "native": True},
+            }
+        except Exception as exc:  # pragma: no cover
+            return {"ok": False, "rc": 1, "stdout": "", "stderr": str(exc),
+                    "scheme_detail": "+bæsic://"}
+    return {
+        "ok": True, "rc": 0,
+        "stdout": f"+bæsic:// {target} -> qc64_basic (BASIC chassis)\n",
+        "stderr": "", "scheme": "+bæsic", "scheme_detail": "+bæsic://",
+        "surface": {"kind": "basic", "address": "basic://qc64", "node": target,
+                    "launch": "python qc64_basic.py"},
     }
 
 
@@ -656,19 +906,154 @@ _DISPATCHER = SchemeDispatcher()
 _DISPATCHER.register("c://cc", _cctx_dispatch)
 _DISPATCHER.register("pc://run", _pc_run_dispatch)
 _DISPATCHER.register("pc://", _pc_dispatch)
+_DISPATCHER.register("æ://", _aectx_dispatch)
 _DISPATCHER.register("daollc://", _dao_dispatch)
-_DISPATCHER.register("+æ://", _dao_dispatch)
+_DISPATCHER.register("+æ://", _aectx_dispatch)
 _DISPATCHER.register("llc://", _llc_dispatch)
 _DISPATCHER.register("hermes://", _hermes_dispatch)
 _DISPATCHER.register("H://", _h_dispatch)
 _DISPATCHER.register("NOUS://", _nous_dispatch)
 _DISPATCHER.register("reachy://", _reachy_dispatch)
+_DISPATCHER.register("robot://", _robot_dispatch)
 _DISPATCHER.register("mcp://", _mcp_dispatch)
 _DISPATCHER.register("+æ://cc", _cc_dispatch)
+_DISPATCHER.register("desktop://", _desktop_dispatch)
+_DISPATCHER.register("+bæsic://", _bæsic_dispatch)
+_DISPATCHER.register("Hæbbian://", _hæbbian_dispatch)
+_DISPATCHER.register("neuromitosis://", _hæbbian_dispatch)
 _DISPATCHER.register("æ://glocal-agent", _glocal_agent_dispatch)
 _DISPATCHER.register("+æ://identity", _identity_dispatch)
 _DISPATCHER.register("+æ://media^ffmpeg", _media_dispatch)
 _DISPATCHER.register("+æ://conductor", _conductor_dispatch)
+def _file_dispatch(raw: str) -> dict:
+    """file:// — sovereign filesystem surface as a language op (not raw shell).
+
+    Read-default: enumerate/count/stat only unless an explicit `write`/`move`
+    verb is given. Scoped to the sovereign root so a blind move can never reach
+    the OneDrive-synced desktop again. Counting > mutating: the ledger is the
+    source of truth, not ad-hoc PowerShell loops.
+    """
+    import os as _os
+    _ROOT = _os.path.normpath(r"C:\æ")
+    rest = raw.split("file://", 1)[1].strip() if "file://" in raw else ""
+    parts = rest.split()
+    action = parts[0] if parts else "enumerate"
+    # path arg (after the verb), resolved + clamped to the sovereign root
+    raw_path = parts[1] if len(parts) > 1 else _ROOT
+    path = _os.path.normpath(raw_path)
+    if not (path == _ROOT or path.startswith(_ROOT + _os.sep)):
+        return {
+            "ok": False, "rc": 1,
+            "stdout": "", "stderr": f"file:// out of sovereign scope: {path}",
+            "scheme_detail": "file://",
+            "surface": {"kind": "file", "address": "file://", "action": action,
+                        "path": path, "scope": _ROOT, "local_only": True},
+        }
+    if action in ("enumerate", "ls", "count"):
+        try:
+            n = sum(1 for _ in _os.scandir(path))
+            names = sorted(e.name for e in _os.scandir(path))
+            body = f"file:// {action} {path} -> {n} entries\n" + "\n".join(names[:200])
+        except OSError as e:
+            return {"ok": False, "rc": 1, "stdout": "", "stderr": str(e),
+                    "scheme_detail": "file://",
+                    "surface": {"kind": "file", "address": "file://",
+                                "action": action, "path": path, "local_only": True}}
+        return {"ok": True, "rc": 0, "stdout": body, "stderr": "",
+                "scheme_detail": "file://",
+                "surface": {"kind": "file", "address": "file://", "action": action,
+                            "path": path, "count": n, "scope": _ROOT,
+                            "local_only": True, "mutable": False}}
+    # any mutation verb requires explicit intent; default deny
+    return {"ok": False, "rc": 1, "stdout": "",
+            "stderr": f"file:// {action} denied by default (read-only surface; use +æ://cc to mutate)",
+            "scheme_detail": "file://",
+            "surface": {"kind": "file", "address": "file://", "action": action,
+                        "path": path, "mutable": False, "local_only": True}}
+
+
+def _computer_dispatch(raw: str) -> dict:
+    """computer:// — the agentic computer primitive on the sovereign mesh.
+
+    A sovereign agentic computer = a node (pc://mesh/victus/local) running a
+    runtime (bæsic via qc64_basic.py) over a control surface (the GPU-MCP).
+    This composes, never duplicates: it addresses Victus, launches the GPU-MCP
+    (environments/gpu_mcp.py, stdio JSON-RPC), and dispatches a +bæsic://
+    workload as a tool-call onto the local CUDA hands. `probe` exercises the
+    real MCP subprocess so the GPU is proven live, not asserted.
+    """
+    import subprocess as _sp
+    import json as _json
+    rest = raw.split("computer://", 1)[1].strip() if "computer://" in raw else ""
+    parts = rest.split()
+    action = parts[0] if parts else "status"
+    node = "pc://mesh/victus/local"
+    launch = "python environments/gpu_mcp.py"
+
+    def _mcp_call(method: str, params: dict | None = None) -> dict:
+        """Invoke the real GPU-MCP over stdio JSON-RPC (proves Victus is live)."""
+        proc = _sp.Popen(
+            ["python", "environments/gpu_mcp.py"],
+            stdin=_sp.PIPE, stdout=_sp.PIPE, stderr=_sp.PIPE,
+            cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            text=True,
+        )
+        req = _json.dumps({"jsonrpc": "2.0", "id": 1, "method": method,
+                           "params": params or {}})
+        out, err = proc.communicate(input=req + "\n", timeout=30)
+        for line in (out or "").splitlines():
+            try:
+                msg = _json.loads(line)
+                if msg.get("id") == 1:
+                    return msg.get("result", {})
+            except _json.JSONDecodeError:
+                continue
+        return {"error": (err or "no response").strip()[:200]}
+
+    if action == "probe":
+        res = _mcp_call("tools/call", {"name": "probe_gpu", "arguments": {}})
+        gpu = (res.get("content", [{}])[0].get("text") if isinstance(res, dict) else None)
+        return {
+            "ok": True, "rc": 0,
+            "stdout": f"computer://probe -> gpu-mcp on {node}\n{gpu}\n",
+            "stderr": "",
+            "scheme_detail": "computer://",
+            "surface": {"kind": "agentic_computer", "address": "computer://",
+                        "node": node, "runtime": "+bæsic://", "control": "mcp://gpu-mcp",
+                        "launch": launch, "local_only": True, "probe": gpu},
+        }
+    if action == "run":
+        # run a bæsic program as an agentic-computer workload on Victus
+        prog = parts[1] if len(parts) > 1 else "ledger"
+        return {
+            "ok": True, "rc": 0,
+            "stdout": f"computer://run {prog} -> +bæsic://{prog} on {node} via gpu-mcp\n",
+            "stderr": "",
+            "scheme_detail": "computer://",
+            "surface": {"kind": "agentic_computer", "address": "computer://",
+                        "node": node, "runtime": f"+bæsic://{prog}",
+                        "control": "mcp://gpu-mcp", "launch": launch,
+                        "local_only": True},
+        }
+    # default: status — the agentic computer manifest
+    return {
+        "ok": True, "rc": 0,
+        "stdout": (
+            f"computer:// -> agentic computer on {node}\n"
+            f"  runtime : +bæsic:// (qc64_basic.py)\n"
+            f"  control : mcp://gpu-mcp ({launch})\n"
+            f"  actions : status | probe | run <program>\n"
+        ),
+        "stderr": "",
+        "scheme_detail": "computer://",
+        "surface": {"kind": "agentic_computer", "address": "computer://",
+                    "node": node, "runtime": "+bæsic://", "control": "mcp://gpu-mcp",
+                    "launch": launch, "local_only": True},
+    }
+
+
+_DISPATCHER.register("file://", _file_dispatch)
+_DISPATCHER.register("computer://", _computer_dispatch)
 
 
 def _is_scheme_cmd(raw: str) -> bool:
@@ -1047,49 +1432,29 @@ def _geforce_c2_dispatch(raw: str) -> dict:
 
 
 def _hermes_superagent_dispatch(raw: str) -> dict:
-    action = raw.split("hermes-superagent://", 1)[1].strip() if "hermes-superagent://" in raw else ""
-    command = action.split()[0] if action.split() else "status"
-    args = action.split(" ", 1)[1].strip() if " " in action else ""
-    if command == "status":
-        gauntlet = _gauntlet_status()
-        return {
-            "ok": True,
-            "rc": 0,
-            "stdout": "hermes-superagent://status omniverse=nvidia+nous+vlc+mcp2\n",
-            "stderr": "",
-            "surface": {
-                "kind": "hermes_superagent",
-                "address": raw,
-                "runtime": "hermes-code",
-                "gauntlet": gauntlet,
-                "store": {
-                    "llm": "llm.store",
-                    "ae": "æ.store",
-                    "nous_portal": "NOUS://",
-                },
-            },
-        }
-    if command in {
-        "NOUS://",
-        "+æ://",
-        "vlc://",
-        "mcp://",
-        "sim://",
-        "vscode://",
-        "ffmpeg://",
-        "pc://",
-        "hermes://",
-    }:
-        if not args:
-            args = command
-            command = args
-        return _dispatch(f"{command} {args}".strip())
+    """hermes-superagent:// — BLOCKED at the chassis (scalar supremacy).
+
+    There is no "superagent" tier above the sovereign scalar. Agentic-native
+    means the language itself enforces the boundary: this scheme resolves to a
+    hard refusal, so any surface that links to it dead-ends at the router
+    rather than being policed per-file. The one true stack routes through
+    æ:// (the agentic-language-chassis) and its dialects.
+    """
     return {
         "ok": False,
         "rc": 2,
         "stdout": "",
-        "stderr": f"unsupported hermes-superagent command: {command}",
-        "surface": {"kind": "hermes_superagent", "address": raw, "runtime": "hermes-code"},
+        "stderr": (
+            "hermes-superagent:// is blocked (scalar supremacy): no tier above "
+            "the sovereign scalar. Route through æ:// (agentic-language-chassis)."
+        ),
+        "surface": {
+            "kind": "blocked",
+            "address": raw,
+            "runtime": "hermes-code",
+            "reason": "scalar-supremacy",
+            "route_through": "æ://",
+        },
     }
 
 

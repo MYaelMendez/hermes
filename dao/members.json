@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "surface": "æ://private client^glocal",
+  "members": [
+    {
+      "member_id": "+æ://private client^glocal",
+      "role": "founding-member",
+      "permissions": [
+        "propose",
+        "review",
+        "execute"
+      ],
+      "status": "active"
+    },
+    {
+      "member_id": "+æ://operator^glocal",
+      "role": "steward",
+      "permissions": [
+        "propose",
+        "review",
+        "vote"
+      ],
+      "status": "active"
+    }
+  ]
+}

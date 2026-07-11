@@ -53,3 +53,9 @@ environments/benchmarks/evals/
 
 # Release script temp files
 .release_notes.md
+
+# Vendored / nested third-party source trees (not first-party, large)
+tools/vlc/
+llm-bench-rig/
+media/
+movies/

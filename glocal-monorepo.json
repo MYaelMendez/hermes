@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "name": "hermes-glocal-monorepo",
+  "primitive": "glocal-git",
+  "mode": "local-first",
+  "surfaces": [
+    "æ://HERMES-AGENT^media",
+    "æ://private client^glocal"
+  ],
+  "runtime": {
+    "default": "ae://local^ollama",
+    "cloud": false
+  },
+  "domains": {
+    "local_truth": {
+      "repo_path": "C:/æ/hermes-fork",
+      "execution": [
+        "deterministic manifests",
+        "hash attestation",
+        "bounded retries",
+        "no cloud dependency"
+      ]
+    },
+    "global_surface": {
+      "surfaces": [
+        "æ.store",
+        "agentic.html",
+        "vscode-webview",
+        "browser"
+      ],
+      "viewports": [
+        {
+          "path": "C:/æ/templates/agentic.html",
+          "surface": "æ://private client^glocal/skills/agentic.html",
+          "command": "remoteUse.agenticHtmlViewport"
+        },
+        {
+          "path": "C:/æ/agentic-entrepreneurship/dao/index.html",
+          "surface": "æ://glocal^skills/agentic-entrepreneurship/dao",
+          "command": "remoteUse.daoSurface"
+        }
+      ]
+    },
+    "dao": {
+      "root": "dao",
+      "charter": "dao/charter.md",
+      "members": "dao/members.json",
+      "treasury": "dao/treasury/ledger.json",
+      "governance": "dao/governance/proposals.json",
+      "primary_artifact": "blueprints/laptop-as-dao.md",
+      "submission_artifact": "contest-submission/blueprints/laptop-as-dao.md",
+      "command": "hermes dao status"
+    }
+  },
+  "workspaces": [
+    {
+      "id": "core-python",
+      "path": ".",
+      "stack": "python",
+      "owners": ["hermes_cli", "agent", "gateway", "tools"]
+    },
+    {
+      "id": "vscode-remote-use",
+      "path": "vscode-remote-use",
+      "stack": "typescript",
+      "owners": ["remoteUse.mediaWindow", "remoteUse.mediaCoevolve", "remoteUse.agenticHtmlViewport", "remoteUse.daoBlueprint", "remoteUse.daoSurface"]
+    },
+    {
+      "id": "skills",
+      "path": "skills",
+      "stack": "mixed",
+      "owners": ["agentic-html", "media workflows"]
+    },
+    {
+      "id": "contest-submission",
+      "path": "contest-submission",
+      "stack": "artifacts",
+      "owners": ["release manifest", "attestation", "blueprints"]
+    },
+    {
+      "id": "dao",
+      "path": "dao",
+      "stack": "governance",
+      "owners": ["charter", "membership", "treasury", "proposal lifecycle"]
+    }
+  ],
+  "control_plane": {
+    "cli_entrypoint": "hermes_cli/main.py",
+    "media_policy": "hermes_cli/media.py",
+    "extension_manifest": "vscode-remote-use/package.json",
+    "extension_runtime": "vscode-remote-use/src/extension.ts"
+  },
+  "viewports": [
+    {
+      "path": "C:/æ/templates/agentic.html",
+      "surface": "æ://private client^glocal/skills/agentic.html",
+      "command": "remoteUse.agenticHtmlViewport"
+    },
+    {
+      "path": "C:/æ/agentic-entrepreneurship/dao/index.html",
+      "surface": "æ://glocal^skills/agentic-entrepreneurship/dao",
+      "command": "remoteUse.daoSurface"
+    }
+  ]
+}

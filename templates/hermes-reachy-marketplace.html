@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hermes 🤖</title>
+    <style>
+      :root {
+        --bg: #050505;
+        --panel: rgba(255, 255, 255, 0.03);
+        --border: rgba(212, 175, 55, 0.28);
+        --border-hot: rgba(212, 175, 55, 0.65);
+        --gold: #D4AF37;
+        --gold-light: #F2D06B;
+        --text: #f0ece4;
+        --muted: rgba(240, 236, 228, 0.65);
+        --ink: #f0ece4;
+        --neon: #00ff9d;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace; }
+
+      .wrap {
+        min-height: 100vh;
+        width: 100%;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 36px 28px 64px;
+        background:
+          radial-gradient(1200px 600px at 20% -20%, rgba(212, 175, 55, 0.08), transparent 55%),
+          radial-gradient(900px 500px at 80% 10%, rgba(0, 255, 157, 0.05), transparent 55%);
+      }
+
+      .header {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 18px;
+        align-items: center;
+        margin-bottom: 28px;
+      }
+      .glyph {
+        width: 56px; height: 56px; border: 1px solid var(--border-hot); border-radius: 50%;
+        display: grid; place-items: center; color: var(--gold); font-weight: 800; letter-spacing: 0.04em;
+        box-shadow: 0 0 22px rgba(212, 175, 55, 0.18);
+      }
+      .title { font-family: Orbitron, ui-sans-serif, system-ui, sans-serif; font-weight: 700; font-size: clamp(26px, 4vw, 42px); line-height: 1.1; letter-spacing: 0.04em; color: var(--text); }
+      .subtitle { color: var(--muted); font-size: 15px; margin-top: 8px; }
+
+      .pillrow { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+      .pill { padding: 6px 12px; border: 1px solid var(--border); background: var(--panel); color: var(--gold-light); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
+
+      .sec {
+        margin-top: 34px;
+        padding: 18px 16px;
+        border: 1px solid var(--border);
+        background: linear-gradient(180deg, rgba(212,175,55,0.05), rgba(0,0,0,0));
+      }
+      .sec h2 {
+        margin: 0 0 12px;
+        font-family: Orbitron, ui-sans-serif, system-ui, sans-serif;
+        font-weight: 600;
+        font-size: 16px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--gold-light);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+      }
+      @media (max-width: 860px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+      @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+
+      .card {
+        padding: 16px;
+        border: 1px solid var(--border);
+        background: var(--panel);
+        position: relative;
+        overflow: hidden;
+      }
+      .card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(120deg, rgba(212,175,55,0.08), transparent 40%);
+        opacity: 0;
+        transition: opacity 320ms ease;
+      }
+      .card:hover::before { opacity: 1; }
+      .card:hover { border-color: var(--border-hot); }
+      .k { color: var(--muted); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; }
+      .v { color: var(--text); margin-top: 6px; font-size: 14px; }
+
+      .cli {
+        margin-top: 28px;
+        padding: 16px;
+        border: 1px solid var(--border);
+        background: repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 4px);
+      }
+      .cli .prompt { color: var(--neon); }
+      .cli pre { margin: 0; white-space: pre-wrap; word-break: break-word; color: var(--text); font-size: 13px; }
+
+      .legal {
+        margin-top: 16px;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.55;
+      }
+      .legal a { color: var(--gold-light); }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="header">
+        <div class="glyph">HR</div>
+        <div>
+          <div class="title">Hermes 🤖</div>
+          <div class="subtitle">HuggingFace marketplace surface · embodied DAO operator</div>
+          <div class="pillrow">
+            <span class="pill">Hermes Agent</span>
+            <span class="pill">🤖 Mini</span>
+            <span class="pill">mech-lang</span>
+            <span class="pill">DAO</span>
+            <span class="pill">DAO LLC</span>
+            <span class="pill">HF Space</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <h2>Command Flow</h2>
+        <div class="v">Human intent → Private Client AI → Hermes → DAO logic → 🤖 executor → DAO LLC attribution</div>
+        <div class="legal" style="margin-top:12px;">Governed execution contract: DAO approves intent; 🤖 executes under authority; DAO LLC records identity and attribution.</div>
+      </div>
+
+      <div class="sec">
+        <h2>Capability Matrix</h2>
+        <div class="grid">
+          <div class="card"><div class="k">Surface</div><div class="v">HuggingFace Space + MCP-visible API</div></div>
+          <div class="card"><div class="k">Executor</div><div class="v">🤖 Mini actuator / simulator-first</div></div>
+          <div class="card"><div class="k">Runtime</div><div class="v">mech-lang.org Rust vision/runtime</div></div>
+          <div class="card"><div class="k">Governance</div><div class="v">DAO logic: proposals, votes, contracts</div></div>
+          <div class="card"><div class="k">Identity</div><div class="v">DAO LLC attribution + charter + membership</div></div>
+          <div class="card"><div class="k">Safety</div><div class="v">No secrets through Reachy; browser-controlled payments</div></div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <h2>Operator Commands</h2>
+        <div class="cli"><pre># Load context
++æ
+
+# DAO status
+hermes dao status
+
+# 🤖 probe
+remoteUse.reachyProbe
+
+# 🤖 control panel
+remoteUse.reachyPanel</pre></div>
+      </div>
+
+      <div class="legal">Pedigree open-sourceware only. No wrapper-only dependency. Vendors: Hermes, 🤖, mech-lang, Stripe, Doola.</div>
+    </div>
+  </body>
+</html>

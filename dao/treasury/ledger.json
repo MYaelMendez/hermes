@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "currency": "artifact-credits",
+  "entries": [
+    {
+      "entry_id": "T-0001",
+      "type": "credit",
+      "amount": 133.65,
+      "note": "Doola affiliate proof",
+      "reference": "challenge-seed",
+      "created_at_utc": "2026-07-01T20:04:17Z"
+    }
+  ]
+}

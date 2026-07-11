@@ -1,0 +1,793 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>æ:// — Omniverse-Ready Agentic Engineering Hub</title>
+<style>
+  :root {
+    --void: #050505;
+    --gold: #d4af37;
+    --neon: #00ff9d;
+    --ink: #f0ece4;
+    --muted: rgba(240,236,228,0.38);
+    --border: rgba(212,175,55,0.16);
+    --border-hot: rgba(212,175,55,0.5);
+    --bg: #030303;
+    --panel: #090909;
+    --panel-2: #0b0b0b;
+    --glow: rgba(212,175,55,0.08);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--void);
+    color: var(--ink);
+    font-family: ui-monospace, 'JetBrains Mono', Menlo, monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.03;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(212,175,55,0.12) 2px,
+      rgba(212,175,55,0.12) 4px
+    );
+  }
+  .wrap {
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    gap: 1px;
+    background: var(--border);
+  }
+  .statusbar {
+    background: var(--panel);
+    padding: 8px 14px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-hot);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .statusbar .left, .statusbar .right {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .chip {
+    padding: 5px 10px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: var(--panel-2);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .chip.hot {
+    color: var(--gold);
+    border-color: var(--border-hot);
+    box-shadow: 0 0 12px var(--glow);
+  }
+  .chip .live-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--neon);
+    box-shadow: 0 0 0 0 rgba(0,255,157,0.5);
+    animation: pulse 1.8s infinite;
+    flex-shrink: 0;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(0,255,157,0.5); }
+    70% { box-shadow: 0 0 0 10px rgba(0,255,157,0); }
+    100% { box-shadow: 0 0 0 0 rgba(0,255,157,0); }
+  }
+  header {
+    background: var(--panel);
+    padding: 14px 16px;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .brand { display: flex; gap: 12px; align-items: center; }
+  .glyph {
+    width: 40px; height: 40px;
+    border: 1px solid var(--border-hot);
+    display: grid;
+    place-items: center;
+    color: var(--gold);
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    background: var(--panel-2);
+    box-shadow: 0 0 18px var(--glow);
+    font-size: 20px;
+  }
+  .title { color: var(--gold); font-weight: 700; letter-spacing: 0.08em; font-size: 14px; }
+  .sub { color: var(--muted); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; }
+  .pillrow { display:flex; gap:8px; flex-wrap:wrap; margin-top: 6px; }
+  .pill {
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    background: var(--panel-2);
+  }
+  .pill.hot {
+    color: var(--gold);
+    border-color: var(--border-hot);
+    box-shadow: 0 0 10px var(--glow);
+  }
+  .tabbar {
+    background: var(--panel);
+    padding: 10px 14px 0;
+    display: flex;
+    gap: 2px;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .tab {
+    background: var(--panel-2);
+    color: var(--muted);
+    border: 1px solid transparent;
+    border-bottom: 0;
+    padding: 8px 12px;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: inherit;
+    position: relative;
+  }
+  .tab[aria-selected="true"] {
+    color: var(--gold);
+    border-color: var(--border-hot);
+    box-shadow: 0 -4px 12px var(--glow);
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1px;
+    background: var(--border);
+  }
+  @media (min-width: 900px) {
+    .layout { grid-template-columns: 320px 1fr; }
+  }
+  nav, main {
+    background: var(--bg);
+    min-height: 260px;
+  }
+  nav {
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .nav-title {
+    color: var(--gold);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-size: 11px;
+  }
+  button.cmd {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--ink);
+    padding: 10px 12px;
+    text-align: left;
+    font-family: inherit;
+    cursor: pointer;
+    transition: border-color .15s, color .15s;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 12px;
+  }
+  button.cmd:hover { border-color: var(--border-hot); color: var(--gold); }
+  button.cmd:active { background: var(--panel-2); }
+  button.cmd .arrow { color: var(--muted); font-size: 10px; }
+  main {
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .panel {
+    border: 1px solid var(--border);
+    background: var(--panel);
+    padding: 14px;
+  }
+  .panel-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    color: var(--gold);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-size: 11px;
+    margin-bottom: 10px;
+    align-items: center;
+  }
+  .panel-head .sub { color: var(--muted); text-transform: none; letter-spacing: 0; }
+  .status { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip.result {
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 11px;
+    background: var(--panel-2);
+    min-width: 80px;
+  }
+  .chip.result.ok { color:#7ee787; border-color:rgba(126,231,135,0.35); }
+  .chip.result.err { color:#ff7b72; border-color:rgba(255,123,114,0.35); }
+  .term {
+    border: 1px solid var(--border-hot);
+    background: var(--panel-2);
+    padding: 10px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .prompt { color: var(--gold); font-weight: 800; white-space: nowrap; }
+  input[type="text"] {
+    background: transparent;
+    border: 0;
+    color: var(--ink);
+    outline: none;
+    font-family: inherit;
+    flex: 1;
+    caret-color: var(--gold);
+  }
+  pre {
+    margin: 0;
+    white-space: pre-wrap;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.55;
+  }
+  .log { color: var(--neon); }
+  .err-log { color: #ff7b72; }
+  .dock {
+    border-top: 1px solid var(--border);
+    background: var(--panel);
+    padding: 12px 14px;
+  }
+  .dock .term {
+    border: 1px solid var(--border-hot);
+    background: var(--panel-2);
+    padding: 10px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .dock .prompt {
+    color: var(--gold);
+    font-weight: 800;
+    white-space: nowrap;
+  }
+  .dock #term-input {
+    background: transparent;
+    border: 0;
+    color: var(--ink);
+    outline: none;
+    font-family: inherit;
+    flex: 1;
+    caret-color: var(--gold);
+  }
+  .surfaces-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .surface-card {
+    border: 1px solid var(--border);
+    background: var(--panel);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .surface-card:hover { border-color: var(--border-hot); }
+  .surface-name { color: var(--gold); font-weight: 700; letter-spacing: 0.14em; font-size: 11px; text-transform: uppercase; }
+  .surface-meta { color: var(--muted); font-size: 11px; word-break: break-all; }
+  .surface-actions { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+  .surface-actions .chip { cursor: pointer; }
+  @media (max-width: 720px) {
+    .surfaces-grid { grid-template-columns: 1fr; }
+  }
+  kbd {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 2px 6px;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+  }
+  @media (max-width: 640px) {
+    .statusbar { gap: 6px; }
+    .glyph { width: 32px; height: 32px; font-size: 16px; }
+    .title { font-size: 13px; }
+    button.cmd { font-size: 11px; padding: 9px 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="statusbar">
+    <div class="left">
+      <div class="chip hot"><span class="live-dot"></span>LIVE</div>
+      <div class="chip" id="chip-surface">Surface: browser</div>
+      <div class="chip" id="chip-model">Model: not loaded</div>
+      <div class="chip" id="chip-backend">Backend: local</div>
+      <div class="chip" id="chip-clock"></div>
+    </div>
+    <div class="right">
+      <div class="chip">$OS <span style="color:var(--neon)">●</span></div>
+    </div>
+  </div>
+
+  <header>
+    <div class="brand">
+      <div class="glyph">æ</div>
+      <div>
+        <div class="title">Hermes 🤖 Agentic Engineering Hub</div>
+        <div class="sub">Omniverse-ready · media desktop · entrepreneur surface · private client mesh · conductor · monaco</div>
+        <div class="pillrow">
+          <span class="pill hot">Operator grammar</span>
+          <span class="pill hot">Sovereign</span>
+          <span class="pill">DAO = logic</span>
+          <span class="pill">DAO LLC = identity</span>
+          <span class="pill">Local-only</span>
+        </div>
+      </div>
+    </div>
+    <div class="status">
+      <div class="chip" id="chip-cmd"><span id="cmd-label">Ready</span></div>
+    </div>
+  </header>
+
+  <div class="tabbar" role="tablist">
+        <button class="tab" role="tab" aria-selected="true" data-tab="viewport">VIEWPORT</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="stack">STACK</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="apis">APIS</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="source">SOURCE</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="surfaces">SURFACES</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="terminal">TERMINAL</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="inference">INFERENCE</button>
+      </div>
+
+  <div class="layout">
+    <nav>
+      <div class="nav-title">Command palette</div>
+      <button class="cmd" data-cmd="c://cc pc://"><span>c://cc pc://</span><span class="arrow">›</span></button>
+      <button class="cmd" data-cmd="c://cc +æ://identity"><span>c://cc +æ://identity</span><span class="arrow">›</span></button>
+      <button class="cmd" data-cmd="help"><span>help</span><span class="arrow">›</span></button>
+      <button class="cmd" data-cmd="status"><span>status</span><span class="arrow">›</span></button>
+      <button class="cmd" data-cmd="pc://"><span>pc://</span><span class="arrow">›</span></button>
+      <button class="cmd" data-cmd="pc://list"><span>pc://list</span><span class="arrow">›</span></button>
+      <button class="cmd" data-cmd="pc://dispatch default"><span>pc://dispatch default</span><span class="arrow">›</span></button>
+      <button class="cmd" data-cmd="+æ://conductor plan"><span>+æ://conductor plan</span><span class="arrow">›</span></button>
+      <button class="cmd" data-cmd="+æ://identity"><span>+æ://identity</span><span class="arrow">›</span></button>
+      <button class="cmd" data-cmd="mcp://tools"><span>mcp://tools</span><span class="arrow">›</span></button>
+      <button class="cmd" data-cmd="vscode://"><span>vscode://</span><span class="arrow">›</span></button>
+      <button class="cmd" data-cmd="qr http://127.0.0.1:5173"><span>qr viewport</span><span class="arrow">›</span></button>
+      <button class="cmd" data-cmd="#startabusiness"><span>#startabusiness</span><span class="arrow">›</span></button>
+      <div class="nav-title" style="margin-top:6px">Shortcuts</div>
+      <div style="color:var(--muted);font-size:11px;line-height:1.6">
+        <div><kbd>Tab</kbd> switch panel</div>
+        <div><kbd>↑</kbd><kbd>↓</kbd> history</div>
+        <div><kbd>Enter</kbd> run</div>
+      </div>
+    </nav>
+
+    <main>
+      <section class="panel" id="panel-terminal" data-panel="terminal">
+        <div class="panel-head">
+          <span>Terminal</span>
+          <span class="sub">Your private client mesh console</span>
+        </div>
+        <div class="term">
+          <span class="prompt">h://</span>
+          <input id="term" type="text" autocomplete="off" spellcheck="false" placeholder="type help" />
+        </div>
+        <pre id="history" style="margin-top:10px;max-height:240px;overflow:auto"></pre>
+      </section>
+
+      <section class="panel" id="panel-inference" data-panel="inference" hidden>
+        <div class="panel-head">
+          <span>Local Inference</span>
+          <span class="sub">WebLLM · WebGPU</span>
+        </div>
+        <div class="panel-body">
+          <button class="chip hot" id="launch-webllm">Open WebLLM · WebGPU in browser</button>
+          <pre id="inference-log" style="margin-top:12px;max-height:240px;overflow:auto">Ready.</pre>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-monaco" data-panel="monaco" hidden>
+        <div class="panel-head">
+          <span>Monaco</span>
+          <span class="sub">In-viewport sovereign editor · Hermes runtime</span>
+        </div>
+        <div id="monaco-host" style="border:1px solid var(--border);background:#030508;min-height:520px"></div>
+      </section>
+
+      <section class="panel" id="panel-media" data-panel="media" hidden>
+        <div class="panel-head">
+          <span>Media Desktop</span>
+          <span class="sub">Local-first media primitive · +æ://media^ffmpeg</span>
+        </div>
+        <pre id="media">PRIMITIVE: bounded deterministic loop
+Planner/Auditor + FFmpeg executor + manifest + local HTML/CSS surface
+FFmpeg + HTML = destined multimedia/graphics primitive pair
+Runway: +æ://media^ffmpeg
+Gate: promote:scalar_supremacy
+Mesh: pc://mesh/&lt;surface&gt;/media</pre>
+      </section>
+
+      <section class="panel" id="panel-entrepreneur" data-panel="entrepreneur" hidden>
+        <div class="panel-head">
+          <span>Entrepreneur</span>
+          <span class="sub">#opensourceware · #250 mission</span>
+        </div>
+        <pre id="entrepreneur">Mission: help 250 entrepreneurs
+Challenge: $250,000
+Primitive: +æ:// → DAO = logic; DAO LLC = identity
+Revenue: $133.65 Doola commission
+Mesh: per-user private client mesh runtime
+Omniverse: QR-addressable surfaces to user-choice viewports</pre>
+      </section>
+
+      <section class="panel" id="panel-stack" data-panel="stack" hidden>
+        <div class="panel-head">
+          <span>Stack</span>
+          <span class="sub">Hermes · your private clients · conductor</span>
+        </div>
+        <pre id="stack">Hermes        conductor / harness / routing
+Monaco        sovereign editor
+Browser       sovereign machine C2
+pc://         private client surface
++æ://identity bounded mesh identity</pre>
+      </section>
+
+      <section class="panel" id="panel-business" data-panel="business" hidden>
+        <div class="panel-head">
+          <span>Business</span>
+          <span class="sub">#startabusiness → formation → revenue → scale</span>
+        </div>
+        <pre id="business">## Agentic Entrepreneurship
+Entry: #startabusiness
+Mesh: pc://<user>/<surface>
+Thesis: #hermiphicationinevitable
+Revenue: $133.65</pre>
+      </section>
+
+      <section class="panel" id="panel-apis" data-panel="apis" hidden>
+        <div class="panel-head">
+          <span>APIs</span>
+          <span class="sub">Local mesh endpoints</span>
+        </div>
+        <pre id="apis">/health
+/status
+/conductor
+/vscode/uri
+/vscode/open
+/static/hermes-monaco.js
+/ae/*
+qr: /qrx?addr=<target></pre>
+      </section>
+
+      <section class="panel" id="panel-surfaces" data-panel="surfaces" hidden>
+        <div class="panel-head">
+          <span>Surfaces</span>
+          <span class="sub">Local sovereign HTML system</span>
+        </div>
+        <div class="surfaces-grid">
+          <div class="surface-card">
+            <div class="surface-name">STARTABUSINESS</div>
+            <div class="surface-meta">Sovereign bootstrap</div>
+            <div class="surface-meta">file:///C:/Users/yaelm/OneDrive/BEFORE%202023/Desktop/Y-L.com/startabusiness.html</div>
+            <div class="surface-actions">
+              <button class="chip hot" data-surface="startabusiness">open</button>
+            </div>
+          </div>
+          <div class="surface-card">
+            <div class="surface-name">SECRET SOURCE BRIDGE</div>
+            <div class="surface-meta">Local secret manager</div>
+            <div class="surface-meta">file:///C:/æ/site/secret-source-bridge.html</div>
+            <div class="surface-actions">
+              <button class="chip hot" data-surface="secret-bridge">open</button>
+              <span class="chip result" id="bridge-status">checking</span>
+            </div>
+          </div>
+          <div class="surface-card">
+            <div class="surface-name">SYSTEM INDEX</div>
+            <div class="surface-meta">Coherent local hub</div>
+            <div class="surface-meta">file:///C:/æ/site/index.html</div>
+            <div class="surface-actions">
+              <button class="chip hot" data-surface="system-index">open</button>
+            </div>
+          </div>
+          <div class="surface-card">
+            <div class="surface-name">LOCAL INFERENCE</div>
+            <div class="surface-meta">Industrial-grade sovereign LLM runtime</div>
+            <div class="surface-meta">WebLLM · WebGPU</div>
+            <div class="surface-actions">
+              <button class="chip hot" data-command="remoteUse.webLLM">run</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+<div class="dock">
+  <div class="term">
+    <span class="prompt">>_æ|</span>
+    <input id="term-input" type="text" autocomplete="off" spellcheck="false" placeholder="type help" />
+  </div>
+  <pre id="dock-history" style="margin-top:10px;max-height:220px;overflow:auto"></pre>
+</div>
+
+<script type="module">
+const output = document.getElementById('history');
+const dockHistory = document.getElementById('dock-history');
+const term = document.getElementById('term');
+const chipCmd = document.getElementById('cmd-label');
+const terminalPanel = document.getElementById('panel-terminal');
+const termInput = document.getElementById('term-input');
+const panels = {
+  viewport: document.getElementById('panel-viewport'),
+  stack: document.getElementById('panel-stack'),
+  apis: document.getElementById('panel-apis'),
+  source: document.getElementById('panel-source'),
+  surfaces: document.getElementById('panel-surfaces'),
+  terminal: terminalPanel,
+};
+const tabs = document.querySelectorAll('.tab');
+let surface = 'http://127.0.0.1:7860';
+let historyArr = [];
+let historyIdx = -1;
+let activePanel = 'viewport';
+const termInput = document.getElementById('term-input') || document.getElementById('term');
+const legacyTerm = document.getElementById('term');
+
+function syncLog(text='', err=false) {
+  const cls = err ? 'err-log' : 'log';
+  [output, dockHistory].forEach(el => {
+    if (!el) return;
+    const d = document.createElement('div');
+    d.className = cls;
+    d.textContent = text || '';
+    el.insertBefore(d, el.firstChild);
+  });
+}
+function setCmd(text) { if (chipCmd) chipCmd.textContent = text || 'Ready'; }
+function showPanel(name) {
+    activePanel = name;
+    Object.entries(panels).forEach(([k, el]) => {
+      if (!el) return;
+      el.hidden = k !== name;
+    });
+    tabs.forEach((t) => t.setAttribute('aria-selected', t.dataset.tab === name ? 'true' : 'false'));
+    if (name === 'surfaces') refreshBridgeStatus();
+    if (name === 'monaco') bootstrapMonaco();
+  }
+ 
+ async function apiHealth(label, elId) {
+    try {
+      const res = await fetch(surface + '/health', { method: 'GET' });
+      const el = document.getElementById(elId);
+      if (!el) return;
+      el.className = 'chip result ' + (res.ok ? 'ok' : 'err');
+      el.textContent = label + ' ' + res.status;
+    } catch (e) {
+      const el = document.getElementById(elId);
+      if (el) { el.className = 'chip result err'; el.textContent = label + ' ERR'; }
+    }
+  }
+
+  async function reachy(endpoint, payload={}) {
+    const res = await fetch(surface + endpoint, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload || {}),
+    });
+    const data = await res.json().catch(()=>({}));
+    return { status: res.status, data };
+  }
+
+  async function conductor(cmd, args=[]) {
+    const res = await fetch(surface + '/conductor', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ cmd, args }),
+    });
+    const data = await res.json().catch(()=>({}));
+    return { status: res.status, data };
+  }
+
+  async function bootstrapMonaco() {
+    const host = document.getElementById('monaco-host');
+    if (!host || host.dataset.ready === '1') return;
+    host.dataset.ready = '1';
+    try {
+      const { HermesSurface } = window;
+      if (!window.MonacoEnvironment) {
+        window.MonacoEnvironment = {
+          getWorkerUrl: () => 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/base/worker/workerMain.js',
+        };
+      }
+      if (!window.require) {
+        const req = document.createElement('script');
+        req.async = true;
+        req.src = 'https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js';
+        document.head.appendChild(req);
+        await new Promise((resolve, reject) => {
+          req.onload = resolve;
+          req.onerror = () => reject(new Error('require.js failed'));
+        });
+      }
+      if (!window.monaco) {
+        const loader = document.createElement('script');
+        loader.async = true;
+        loader.src = 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.js';
+        await new Promise((resolve, reject) => {
+          loader.onload = () => {
+            require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } });
+            require(['vs/editor/editor.main'], () => {
+              if (window.monaco) resolve();
+              else reject(new Error('monaco main failed'));
+            }, reject);
+          };
+          loader.onerror = () => reject(new Error('monaco loader failed'));
+          document.head.appendChild(loader);
+        });
+      }
+      const model = monaco.editor.createModel('', 'javascript');
+      const editor = monaco.editor.create(host, {
+        model,
+        automaticLayout: true,
+        fontSize: 14,
+        minimap: { enabled: false },
+        scrollBeyondLastLine: false,
+        padding: { top: 12 },
+        theme: 'vs-dark',
+        value: '// æ:// sovereign editor\n// your private surface\n',
+        language: 'javascript',
+      });
+      editor.onDidChangeModelContent(() => {
+        if (HermesSurface && typeof HermesSurface.dispatch === 'function') {
+          HermesSurface.dispatch('monaco:change', { value: editor.getValue() }).catch(() => {});
+        }
+      });
+      window.HermesMonaco = { editor, model };
+    } catch (e) {
+      log('Monaco failed: ' + (e.message || e), true);
+    }
+  }
+
+  async function runCommand(rawCmd) {
+    const trimmed = String(rawCmd || '').trim();
+    if (!trimmed) return;
+    historyArr.unshift(trimmed);
+    historyIdx = -1;
+    raw('h://' + trimmed);
+    setCmd('running');
+    try {
+      if (trimmed === 'help') {
+        raw('Commands: help · status · pc:// · pc://list · pc://dispatch default · +æ://identity · +æ://conductor plan · mcp://tools · vscode:// · qr http://127.0.0.1:5173 · #startabusiness');
+        raw('Operator grammar: pc:// · pc://view · pc://run · pc://dispatch · c:// · H:// · hermes:// · mcp:// · mcp://tools · mcp://invoke · vscode:// · reachy:// · NOUS:// · llc:// · daollc:// · intent:// · +æ:// · +æ://identity · +æ://conductor · +æ://media^ffmpeg');
+        raw('Business: #startabusiness → formation → revenue → scale');
+        raw('Tabs: terminal · monaco · stack · business · apis');
+      } else if (trimmed === 'qr') {
+        const { data } = await conductor('pc://view ' + (surface || 'http://127.0.0.1:5173'), []);
+        raw(data.stdout || data.stderr || JSON.stringify(data, null, 2));
+      } else if (trimmed.startsWith('qr ')) {
+        const addr = trimmed.substring(3).trim();
+        const { data } = await conductor('pc://view ' + addr, []);
+        drawQR(addr);
+        raw(`QR → ${addr}`);
+        raw(data.stdout || data.stderr || '');
+      } else if (trimmed.startsWith('pc://') || trimmed.startsWith('+æ://') || trimmed.startsWith('c://') || trimmed.startsWith('H://') || trimmed.startsWith('hermes://') || trimmed.startsWith('mcp://') || trimmed.startsWith('vscode://') || trimmed.startsWith('reachy://') || trimmed.startsWith('NOUS://') || trimmed.startsWith('llc://') || trimmed.startsWith('daollc://') || trimmed.startsWith('intent://')) {
+        const { data } = await conductor(trimmed, []);
+        raw(data.stdout || data.stderr || JSON.stringify(data, null, 2));
+      } else if (trimmed === 'status') {
+        const { data } = await reachy('/status');
+        raw(JSON.stringify(data, null, 2));
+      } else if (trimmed === '#startabusiness') {
+        raw('> start business');
+        raw('Mesh: pc://<user>/<surface>');
+        raw('TX: $133.65');
+      } else {
+        log('Unknown command. Try: help', true);
+      }
+    } catch (e) {
+      log('Error: ' + (e.message || e), true);
+    }
+    setCmd('Ready');
+  }
+
+  term.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      runCommand(term.value);
+      term.value = '';
+      return;
+    }
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (historyArr.length === 0) return;
+      historyIdx = Math.min(historyIdx + 1, historyArr.length - 1);
+      term.value = historyArr[historyIdx];
+      return;
+    }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (historyIdx > 0) { historyIdx -= 1; term.value = historyArr[historyIdx]; }
+      else { historyIdx = -1; term.value = ''; }
+      return;
+    }
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const order = ['terminal','monaco','media','entrepreneur','stack','business','apis'];
+      const idx = order.indexOf(activePanel);
+      const next = order[(idx + 1) % order.length];
+      showPanel(next);
+      return;
+    }
+  });
+
+  document.querySelectorAll('button.cmd').forEach((btn) => {
+    btn.addEventListener('click', () => runCommand(btn.dataset.cmd));
+  });
+
+  tabs.forEach((t) => t.addEventListener('click', () => showPanel(t.dataset.tab)));
+
+  window.HermesSurface = window.HermesSurface || {
+    async dispatch(action, payload) {
+      try {
+        const res = await fetch('/conductor', {
+          method:'POST', headers:{'content-type':'application/json'},
+          body: JSON.stringify({cmd: 'monaco ' + action, args: [payload || {}]}),
+        });
+        return await res.json();
+      } catch (e) { return {ok:false, stderr: String(e)}; }
+    },
+    async hydrate(id) {
+      try {
+        const res = await fetch('/conductor', {
+          method:'POST', headers:{'content-type':'application/json'},
+          body: JSON.stringify({cmd: 'monaco hydrate ' + id, args: []}),
+        });
+        const data = await res.json();
+        return data && data.stdout ? data.stdout : null;
+      } catch (e) { return null; }
+    }
+  };
+
+  raw('æ:// sovereign shell ready.');
+  raw('Your private client mesh.');
+</script>
+</body>
+</html>

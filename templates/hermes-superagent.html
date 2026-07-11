@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Hermes Viewport // æ:// Superagent</title>
+<style>
+  :root{
+    --void:#050505;
+    --gold:#D4AF37;
+    --gold-dim:#7a6524;
+    --grid:#121212;
+    --ink:#f0ece4;
+    --panel:#070707;
+    --clip-path:polygon(0 0,100% 0,100% 100%,0 100%);
+  }
+  [data-theme="void"]{
+    --gold:#D4AF37;
+    --gold-dim:#7a6524;
+    --ink:#f0ece4;
+    --panel:#050505;
+  }
+  [data-theme="solar"]{
+    --void:#0a0a0a;
+    --gold:#FFB938;
+    --gold-dim:#6e480a;
+    --ink:#fff7e8;
+    --panel:#100b03;
+  }
+  [data-theme="terminal"]{
+    --void:#001414;
+    --gold:#39FF14;
+    --gold-dim:#1f7a0b;
+    --ink:#e8fff0;
+    --panel:#001d1d;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--void);color:var(--ink);font-family:'JetBrains Mono','Courier New',monospace;height:100%;transition:background .4s,color .4s}
+  body{display:flex;align-items:center;justify-content:center;padding:18px}
+  body::before{
+    content:"";
+    position:absolute;inset:0;pointer-events:none;
+    background:
+      linear-gradient(0deg,transparent,rgba(212,175,55,.05),transparent),
+      repeating-linear-gradient(0deg,rgba(212,175,55,.03) 0 1px,transparent 1px 64px),
+      repeating-linear-gradient(90deg,rgba(212,175,55,.03) 0 1px,transparent 1px 64px);
+    animation:scan 9s linear infinite;
+  }
+  @keyframes scan{0%{background-position:0 0,0 0,0 0}100%{background-position:0 0,0 64px,64px 0}}
+  .stage{position:relative;z-index:1;width:min(1160px,100%);height:min(780px,100%);border:1px solid var(--gold-dim);clip-path:var(--clip-path);background:radial-gradient(1200px 640px at 8% 10%,rgba(212,175,55,.12),transparent),radial-gradient(1200px 640px at 92% 92%,rgba(212,175,55,.12),transparent),var(--void);padding:22px 26px;display:flex;flex-direction:column;justify-content:space-between}
+  .stage::after{content:"";position:absolute;inset:0;clip-path:var(--clip-path);pointer-events:none;box-shadow:inset 0 0 100px rgba(5,5,5,.92),inset 0 0 4px rgba(212,175,55,.45)}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:16px}
+  .brand{font-family:'Orbitron',system-ui,sans-serif;text-transform:uppercase;letter-spacing:.14em;font-size:17px;color:var(--gold);text-shadow:0 0 18px rgba(212,175,55,.45)}
+  .brand span{color:#fff;opacity:.72;font-weight:600}
+  .mission{color:var(--gold);opacity:.82;font-size:11px;letter-spacing:.18em;text-transform:uppercase}
+  .title{font-family:'Orbitron',system-ui,sans-serif;font-size:clamp(42px,7vw,94px);line-height:.92;letter-spacing:-.02em;background:linear-gradient(180deg,#fff 0%,var(--gold) 62%,var(--gold-dim) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;padding-right:8px}
+  .title em{font-style:normal;color:var(--gold)}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .card{border:1px solid var(--gold-dim);background:rgba(10,10,10,.6);padding:16px;clip-path:var(--clip-path);transition:transform .2s,border-color .2s,background .3s}
+  .card:hover{border-color:var(--gold);transform:translateY(-2px)}
+  .label{font-size:11px;text-transform:uppercase;letter-spacing:.22em;opacity:.72}
+  .value{font-size:20px;margin-top:8px;color:#fff}
+  .sub{font-size:12px;opacity:.72;margin-top:6px}
+  .vitalspanel{border:1px solid var(--gold-dim);padding:14px;clip-path:var(--clip-path);background:rgba(6,6,6,.78);margin-top:16px;display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  @media (min-width: 860px){ .vitalspanel{ grid-template-columns: repeat(4, 1fr); } }
+  .vital .label{font-size:10px;opacity:.72}
+  .vital .value{font-size:18px;margin-top:6px}
+  .boot{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:18px;border-top:1px solid var(--gold-dim);padding-top:14px;flex-wrap:wrap}
+  .token{font-family:'Courier New',monospace;font-size:12px;opacity:.82;background:#000;border:1px solid var(--gold-dim);padding:10px 12px;clip-path:var(--clip-path)}
+  .ctagroup{display:flex;gap:10px;flex-wrap:wrap}
+  .button{font-family:'Orbitron',system-ui,sans-serif;text-transform:uppercase;letter-spacing:.16em;background:var(--gold);color:#000;border:none;padding:14px 16px;clip-path:var(--clip-path);cursor:pointer}
+  .button.secondary{background:transparent;color:var(--gold);border:1px solid var(--gold-dim)}
+  .button:hover{background:#fff;color:#000}
+  .selector{background:#000;color:var(--gold);border:1px solid var(--gold-dim);padding:10px 12px;font-family:inherit;letter-spacing:.12em;clip-path:var(--clip-path)}
+  @media (max-width:760px){.grid{grid-template-columns:repeat(2,1fr)}.boot{flex-direction:column;align-items:flex-start}}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+</head>
+<body data-theme="void">
+  <div class="stage">
+    <div class="top">
+      <div class="brand">Hermes <span>Superagent</span></div>
+      <div class="mission">#opensourceware #250 — deterministic mesh runtime</div>
+    </div>
+    <div class="title">glocal<br><em>industrial</em> agent</div>
+    <div class="grid">
+      <div class="card"><div class="label">Operator</div><div class="value">Yæl Méndez</div><div class="sub">@yaelmendez · yael@llm.store</div></div>
+      <div class="card"><div class="label">Surface</div><div class="value">Victus RTX</div><div class="sub">Local-first · 5173 / 7860</div></div>
+      <div class="card"><div class="label">Mesh</div><div class="value">pc://mesh/victus/local</div><div class="sub">Bounded sovereign private client mesh</div></div>
+      <div class="card"><div class="label">Mission</div><div class="value">#250</div><div class="sub">250 entrepreneurs · $250k challenge</div></div>
+    </div>
+    <div class="vitalspanel">
+      <div class="vital"><div class="label">CPU</div><div class="value" id="cpu">--</div></div>
+      <div class="vital"><div class="label">Memory</div><div class="value" id="mem">--</div></div>
+      <div class="vital"><div class="label">Disks</div><div class="value" id="disk">--</div></div>
+      <div class="vital"><div class="label">Writers</div><div class="value" id="writers">--</div></div>
+    </div>
+    <div class="boot">
+      <div class="token" id="token">boot:: +æ://kwk Hermes Code · desktop · vitals · mesh</div>
+      <div class="ctagroup">
+        <select id="theme" class="selector" onchange="applyTheme(this.value)">
+          <option value="void">Theme:: Void</option>
+          <option value="solar">Theme:: Solar</option>
+          <option value="terminal">Theme:: Terminal</option>
+        </select>
+        <button class="button secondary" onclick="dispatch('computer://minimize_all')">minimize_all</button>
+        <button class="button" onclick="dispatch('computer://move 200,200')">computer://move</button>
+        <button class="button" onclick="dispatch('computer://click left,200,200')">computer://click</button>
+      </div>
+    </div>
+  </div>
+<script>
+  const API = location.port ? `/${location.port === '5173' ? '' : ''}` : '';
+  const BRIDGE = `${location.protocol}//${location.hostname}:7860`;
+  function $(id){return document.getElementById(id)}
+  async function vitals(){
+    try{
+      const r = await fetch(`${BRIDGE}/vitals`); const j = await r.json(); if(!j.ok) return;
+      const m = j.machine || {};
+      $('cpu').textContent = (m.cpu_percent ?? '--') + '%';
+      $('mem').textContent = (m.memory_percent ?? '--') + '%';
+      $('disk').textContent = ((m.disks && m.disks.length) ? m.disks.length : '--');
+      $('writers').textContent = (m.writer_procs && m.writer_procs.length) ? m.writer_procs.length + ' pids' : '0 pids';
+    }catch(e){}
+  }
+  async function dispatch(cmd){
+    try{
+      const r = await fetch(`${BRIDGE}/windows/control`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({cmd})});
+      const j = await r.json();
+      $('token').textContent = JSON.stringify(j);
+    }catch(e){ $('token').textContent = 'dispatch_error'; }
+  }
+  function applyTheme(name){ document.body.setAttribute('data-theme', name); }
+  vitals(); setInterval(vitals, 1500);
+</script>
+</body>
+</html>

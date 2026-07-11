@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>æ:// — Agentic Engineering Hub</title>
+<title>æ:// — Omniverse-Ready Agentic Engineering Hub</title>
 <style>
   :root {
     --void: #050505;
@@ -304,7 +304,7 @@
       <div class="glyph">æ</div>
       <div>
         <div class="title">Hermes 🤖 Agentic Engineering Hub</div>
-        <div class="sub">User sovereign shell · private client mesh · conductor · vscode monaco</div>
+        <div class="sub">Omniverse-ready · media desktop · entrepreneur surface · private client mesh · conductor · monaco</div>
         <div class="pillrow">
           <span class="pill hot">Operator grammar</span>
           <span class="pill hot">Sovereign</span>
@@ -322,6 +322,8 @@
   <div class="tabbar" role="tablist">
     <button class="tab" role="tab" aria-selected="true" data-tab="terminal">Terminal</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="monaco">Monaco</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="media">Media</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="entrepreneur">Entrepreneur</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="stack">Stack</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="business">Business</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="apis">APIs</button>
@@ -330,6 +332,8 @@
   <div class="layout">
     <nav>
       <div class="nav-title">Command palette</div>
+      <button class="cmd" data-cmd="c://cc pc://"><span>c://cc pc://</span><span class="arrow">›</span></button>
+      <button class="cmd" data-cmd="c://cc +æ://identity"><span>c://cc +æ://identity</span><span class="arrow">›</span></button>
       <button class="cmd" data-cmd="help"><span>help</span><span class="arrow">›</span></button>
       <button class="cmd" data-cmd="status"><span>status</span><span class="arrow">›</span></button>
       <button class="cmd" data-cmd="pc://"><span>pc://</span><span class="arrow">›</span></button>
@@ -339,6 +343,7 @@
       <button class="cmd" data-cmd="+æ://identity"><span>+æ://identity</span><span class="arrow">›</span></button>
       <button class="cmd" data-cmd="mcp://tools"><span>mcp://tools</span><span class="arrow">›</span></button>
       <button class="cmd" data-cmd="vscode://"><span>vscode://</span><span class="arrow">›</span></button>
+      <button class="cmd" data-cmd="qr http://127.0.0.1:5173"><span>qr viewport</span><span class="arrow">›</span></button>
       <button class="cmd" data-cmd="#startabusiness"><span>#startabusiness</span><span class="arrow">›</span></button>
       <div class="nav-title" style="margin-top:6px">Shortcuts</div>
       <div style="color:var(--muted);font-size:11px;line-height:1.6">
@@ -355,7 +360,7 @@
           <span class="sub">Your private client mesh console</span>
         </div>
         <div class="term">
-          <span class="prompt">>_æ|</span>
+          <span class="prompt">h://</span>
           <input id="term" type="text" autocomplete="off" spellcheck="false" placeholder="type help" />
         </div>
         <pre id="history" style="margin-top:10px;max-height:240px;overflow:auto"></pre>
@@ -367,6 +372,32 @@
           <span class="sub">In-viewport sovereign editor · Hermes runtime</span>
         </div>
         <div id="monaco-host" style="border:1px solid var(--border);background:#030508;min-height:520px"></div>
+      </section>
+
+      <section class="panel" id="panel-media" data-panel="media" hidden>
+        <div class="panel-head">
+          <span>Media Desktop</span>
+          <span class="sub">Local-first media primitive · +æ://media^ffmpeg</span>
+        </div>
+        <pre id="media">PRIMITIVE: bounded deterministic loop
+Planner/Auditor + FFmpeg executor + manifest + local HTML/CSS surface
+FFmpeg + HTML = destined multimedia/graphics primitive pair
+Runway: +æ://media^ffmpeg
+Gate: promote:scalar_supremacy
+Mesh: pc://mesh/&lt;surface&gt;/media</pre>
+      </section>
+
+      <section class="panel" id="panel-entrepreneur" data-panel="entrepreneur" hidden>
+        <div class="panel-head">
+          <span>Entrepreneur</span>
+          <span class="sub">#opensourceware · #250 mission</span>
+        </div>
+        <pre id="entrepreneur">Mission: help 250 entrepreneurs
+Challenge: $250,000
+Primitive: +æ:// → DAO = logic; DAO LLC = identity
+Revenue: $133.65 Doola commission
+Mesh: per-user private client mesh runtime
+Omniverse: QR-addressable surfaces to user-choice viewports</pre>
       </section>
 
       <section class="panel" id="panel-stack" data-panel="stack" hidden>
@@ -404,7 +435,8 @@ Revenue: $133.65</pre>
 /vscode/uri
 /vscode/open
 /static/hermes-monaco.js
-/ae/*</pre>
+/ae/*
+qr: /qrx?addr=<target></pre>
       </section>
     </main>
   </div>
@@ -417,6 +449,8 @@ Revenue: $133.65</pre>
   const panels = {
     terminal: document.getElementById('panel-terminal'),
     monaco: document.getElementById('panel-monaco'),
+    media: document.getElementById('panel-media'),
+    entrepreneur: document.getElementById('panel-entrepreneur'),
     stack: document.getElementById('panel-stack'),
     business: document.getElementById('panel-business'),
     apis: document.getElementById('panel-apis'),
@@ -544,14 +578,23 @@ Revenue: $133.65</pre>
     if (!trimmed) return;
     historyArr.unshift(trimmed);
     historyIdx = -1;
-    raw('>_æ| ' + trimmed);
+    raw('h://' + trimmed);
     setCmd('running');
     try {
       if (trimmed === 'help') {
-        raw('Commands: help · status · pc:// · pc://list · pc://dispatch default · +æ://identity · +æ://conductor plan · mcp://tools · vscode:// · #startabusiness');
-        raw('Operator grammar: pc:// · pc://run · pc://dispatch · c:// · H:// · hermes:// · mcp:// · mcp://tools · mcp://invoke · vscode:// · reachy:// · NOUS:// · llc:// · daollc:// · intent:// · +æ:// · +æ://identity · +æ://conductor');
+        raw('Commands: help · status · pc:// · pc://list · pc://dispatch default · +æ://identity · +æ://conductor plan · mcp://tools · vscode:// · qr http://127.0.0.1:5173 · #startabusiness');
+        raw('Operator grammar: pc:// · pc://view · pc://run · pc://dispatch · c:// · H:// · hermes:// · mcp:// · mcp://tools · mcp://invoke · vscode:// · reachy:// · NOUS:// · llc:// · daollc:// · intent:// · +æ:// · +æ://identity · +æ://conductor · +æ://media^ffmpeg');
         raw('Business: #startabusiness → formation → revenue → scale');
         raw('Tabs: terminal · monaco · stack · business · apis');
+      } else if (trimmed === 'qr') {
+        const { data } = await conductor('pc://view ' + (surface || 'http://127.0.0.1:5173'), []);
+        raw(data.stdout || data.stderr || JSON.stringify(data, null, 2));
+      } else if (trimmed.startsWith('qr ')) {
+        const addr = trimmed.substring(3).trim();
+        const { data } = await conductor('pc://view ' + addr, []);
+        drawQR(addr);
+        raw(`QR → ${addr}`);
+        raw(data.stdout || data.stderr || '');
       } else if (trimmed.startsWith('pc://') || trimmed.startsWith('+æ://') || trimmed.startsWith('c://') || trimmed.startsWith('H://') || trimmed.startsWith('hermes://') || trimmed.startsWith('mcp://') || trimmed.startsWith('vscode://') || trimmed.startsWith('reachy://') || trimmed.startsWith('NOUS://') || trimmed.startsWith('llc://') || trimmed.startsWith('daollc://') || trimmed.startsWith('intent://')) {
         const { data } = await conductor(trimmed, []);
         raw(data.stdout || data.stderr || JSON.stringify(data, null, 2));
@@ -592,7 +635,7 @@ Revenue: $133.65</pre>
     }
     if (e.key === 'Tab') {
       e.preventDefault();
-      const order = ['terminal','monaco','stack','business','apis'];
+      const order = ['terminal','monaco','media','entrepreneur','stack','business','apis'];
       const idx = order.indexOf(activePanel);
       const next = order[(idx + 1) % order.length];
       showPanel(next);

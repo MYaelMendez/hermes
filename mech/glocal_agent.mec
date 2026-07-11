@@ -1,0 +1,96 @@
+# æ://glocal-agent — Mech Chassis for Sovereign Local Agents
+
+===============================================================================
+
+> Proof that mech-lang is the agentic chassis for `+æ://` conventions.
+> Every machine below is a real Mech relation; the state machine is the
+> planner -> executor -> auditor -> manifest loop. Runs locally via `mechc`,
+> no cloud, no API rent. The GeForce RTX is the compute node.
+
+## 1. Local Compute — GPU-MCP surface
+
+The GPU probe is a reactive relation. When `gpu` changes, `util` and `vram`
+update automatically (broadcast). This is Mech's dataflow: no loops, no
+explicit stepping.
+
+```
+# GPU state (filled by gpu_mcp.probe_gpu over stdio)
+gpu-vram = [3158 6144]
+gpu-temp = 58
+gpu-util = 41
+
+# derived relations (recompute on change)
+gpu-load = gpu-util / 100
+gpu-free = gpu-vram{2} - gpu-vram{1}
+```
+
+## 2. Brain — offline ollama
+
+The brain is a relation over local weights. No network at generate time.
+
+```
+brain-model = "qwen2.5-coder:3b"
+brain-ready = brain-model ?? "" != ""
+```
+
+## 3. Kernel pipeline — compile then run on silicon
+
+Mech's state machine expresses the agent loop as a protocol. Each phase
+advances on a trigger; the manifest seals when all phases complete.
+
+```
+# state machine: the glocal loop
+# states: idle -> plan -> exec -> audit -> sealed
+phase = #idle
+
+# plan: brain decides the kernel
+plan = [brain-model, "matmul"]
+
+# exec: compile then run (wired to gpu_mcp tools)
+compiled = compile_kernel(plan)
+ran = run_kernel(compiled)
+
+# audit: verify output
+audited = ran{ok} == 1
+
+# manifest: seal when audited
+manifest = if audited then #sealed else #pending
+```
+
+## 4. WASM viewport — Rust -> wasm32
+
+The viewport is a derived relation; when `wasm` changes, the surface
+re-renders (Mech reactive). `viewport://hermes-agent` is the bound address.
+
+```
+wasm = rust_build_wasm("agent")
+surface = if wasm ?? "" != "" then "viewport://hermes-agent" else #offline
+```
+
+## 5. The full cell — one reactive graph
+
+```
+# the glocal cell: brain + hands + viewport, all local
+cell = {
+  brain: brain-ready,
+  compute: gpu-load,
+  surface: surface,
+  manifest: manifest,
+}
+
+# sovereign: every value is local; nothing leaves the node
+sovereign = cell.brain & cell.manifest == #sealed
+```
+
+===============================================================================
+
+## Why Mech over qc64 here
+
+- **qc64** (BASIC): linear `gosub` dispatch — good for *routing* schemes
+  (it mirrors our conductor registry), but no reactivity, no state machines.
+- **Mech**: the agent loop IS a reactive dataflow + state machine. Perception
+  (`probe_gpu`) -> decision (`brain`) -> action (`run_kernel`) -> audit
+  (`manifest`) is exactly what Mech relations + `#state` express natively.
+
+This file is executable Mechdown. Build `mechc` and `mech glocal_agent.mec`
+to run the cell. The chassis is real; the loop is sovereign.

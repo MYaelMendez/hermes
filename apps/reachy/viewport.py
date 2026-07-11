@@ -19,15 +19,15 @@ def _repo_template(path: str) -> str:
 
 
 LOCAL_AI = _repo_template("templates/hermes-local-ai.html")
-A_HTML = _repo_template("templates/æ.html")
-viewport_app = FastAPI(title="Hermes Viewport", version="0.2")
+SUPERAGENT = _repo_template("templates/hermes-superagent.html")
+viewport_app = FastAPI(title="Hermes Viewport", version="0.3")
 _STATIC_ROOT = REPO / "apps" / "reachy"
 viewport_app.mount("/static", StaticFiles(directory=str(_STATIC_ROOT)), name="viewport-static")
 
 
 @viewport_app.get("/", response_class=HTMLResponse)
 async def index(_: Request) -> HTMLResponse:
-    return HTMLResponse(A_HTML)
+    return HTMLResponse(SUPERAGENT)
 
 
 @viewport_app.get("/health")

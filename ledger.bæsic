@@ -1,0 +1,53 @@
+rem +bæsic:// ledger - state ledger: count, record, graph changes
+rem lesson: keep calculations in the chassis so drift shows as a delta.
+rem read-only desktop; writes only to C:\ae\ledger.csv (sovereign root).
+rem string build uses cat$() (no + in this chassis).
+
+01 desk$ = "C:\Users\yaelm\OneDrive\BEFORE 2023\Desktop"
+02 ledger$ = "C:\ae\ledger.csv"
+
+10 t$ = now$()        ; timestamp (epoch)
+20 print "ledger tick "; t$
+
+30 pa$ = cat$(desk$;"\01-Apps")
+40 pm$ = cat$(desk$;"\02-Media")
+50 pp$ = cat$(desk$;"\03-Projects")
+60 pd$ = cat$(desk$;"\04-Docs")
+70 a = count_items$(pa$)
+80 m = count_items$(pm$)
+90 p = count_items$(pp$)
+100 d = count_items$(pd$)
+
+110 row1$ = cat$(t$;",01-Apps,";str$(a))
+120 row2$ = cat$(t$;",02-Media,";str$(m))
+130 row3$ = cat$(t$;",03-Projects,";str$(p))
+140 row4$ = cat$(t$;",04-Docs,";str$(d))
+150 full1$ = cat$(ledger$;"|";row1$)
+160 full2$ = cat$(ledger$;"|";row2$)
+170 full3$ = cat$(ledger$;"|";row3$)
+180 full4$ = cat$(ledger$;"|";row4$)
+190 r = append_line$(full1$)
+200 r = append_line$(full2$)
+210 r = append_line$(full3$)
+220 r = append_line$(full4$)
+
+230 print "01-Apps    = "; a
+240 print "02-Media   = "; m
+250 print "03-Projects= "; p
+260 print "04-Docs     = "; d
+270 print "recorded."
+280 gosub 9000       ; graph the changes
+290 print "halt."
+300 end
+
+9000 rem graph: sparkline per category (history from ledger.csv)
+9010 print "--- change graph (count history) ---"
+9020 sp1$ = cat$(ledger$;"|";"01-Apps")
+9030 sp2$ = cat$(ledger$;"|";"02-Media")
+9040 sp3$ = cat$(ledger$;"|";"03-Projects")
+9050 sp4$ = cat$(ledger$;"|";"04-Docs")
+9060 print "01-Apps    : "; sp$(sp1$)
+9070 print "02-Media   : "; sp$(sp2$)
+9080 print "03-Projects: "; sp$(sp3$)
+9090 print "04-Docs    : "; sp$(sp4$)
+9100 return

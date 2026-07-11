@@ -131,7 +131,7 @@ def test_policy_surface_keys_present_for_builtins() -> None:
         "reachy://": ("robot",),
         "mcp://tools": ("mcp",),
         "daollc://": ("dao",),
-        "+æ://ops": ("dao",),
+        "+æ://ops": ("aectx",),
         "commandprompt://": ("commandprompt",),
         "home://": ("os_home",),
         "fs://": ("fs",),
@@ -162,12 +162,12 @@ def test_cc_dispatch_routes_to_gpu_mcp() -> None:
     assert result["surface"]["launch"] == "python environments/gpu_mcp.py"
 
 
-def test_cc_longer_prefix_outranks_bare_ae() -> None:
-    """+æ://cc must win over the +æ:// (dao) prefix for cc subcommands."""
+def test_cc_longer_prefix_outranks_bare_aectx() -> None:
+    """+æ://cc must win over the +æ:// (aectx) catch-all for cc subcommands."""
     cc = _dispatch("+æ://cc home://")
     bare = _dispatch("+æ://ops")
     assert cc["scheme_detail"] == "+æ://cc"
-    assert bare["surface"]["kind"] == "dao"
+    assert bare["surface"]["kind"] == "aectx"
 
 
 def test_glocal_agent_dispatch_routes_to_gpu_mcp() -> None:
@@ -211,3 +211,92 @@ def test_viewport_hermes_agent_resolves_to_concrete_surface() -> None:
     assert r["surface"]["control_surface"] == "mcp://gpu-mcp"
     assert r["surface"]["brain"] == "ollama://localhost:11434"
     assert r["surface"]["html"] == "templates/surfaces/index.html"
+
+
+def test_ae_agentic_context_router() -> None:
+    """æ:// is the agentic context router; bare +æ:// catch-all resolves to
+    aectx (not dao). Longer prefixes still win over the catch-all."""
+    bare = _dispatch("æ://pc://")
+    assert bare["ok"] is True
+    assert bare["surface"]["kind"] == "aectx"
+    assert bare["surface"]["target"] == "pc://"
+    assert bare["surface"]["active"] is True
+
+    plus = _dispatch("+æ://ops")
+    assert plus["surface"]["kind"] == "aectx"
+    assert plus["surface"]["target"] == "ops"
+
+    ga = _dispatch("æ://glocal-agent home://")
+    assert ga["scheme_detail"] == "æ://glocal-agent"
+    assert ga["surface"]["kind"] == "mcp"
+
+    cc = _dispatch("+æ://cc home://")
+    assert cc["scheme_detail"] == "+æ://cc"
+
+
+def test_hermes_superagent_blocked_scalar_supremacy() -> None:
+    """hermes-superagent:// is blocked at the chassis (scalar supremacy).
+
+    No tier above the sovereign scalar; the language enforces the boundary so
+    surfaces linking to it dead-end at the router. status must NOT resolve.
+    """
+    r = _dispatch("hermes-superagent://status")
+    assert r["ok"] is False
+    assert r["rc"] == 2
+    assert r["surface"]["kind"] == "blocked"
+    assert r["surface"]["reason"] == "scalar-supremacy"
+    assert r["surface"]["route_through"] == "æ://"
+
+
+def test_pc_reports_sovereign_mesh() -> None:
+    """pc:// reports the canonical mesh; pc://<node> addresses a node on it."""
+    bare = _dispatch("pc://")
+    assert bare["surface"]["kind"] == "private_client"
+    assert bare["surface"]["mesh"] == "pc://mesh/victus/local"
+    assert bare["surface"]["node"] == "pc://mesh/victus/local"
+    assert bare["surface"]["local_only"] is True
+
+    node = _dispatch("pc://mesh/victus/local/vlc")
+    assert node["surface"]["node"] == "mesh/victus/local/vlc"
+
+
+def test_robot_scheme_with_reachy_flagship() -> None:
+    """robot:// is the abstract embodiment scheme; reachy:// is the flagship.
+
+    robot://reachy and reachy:// resolve to the same flagship surface; a
+    generic robot://<model> resolves non-flagship. All ride the pc:// mesh.
+    """
+    reachy = _dispatch("reachy://")
+    assert reachy["surface"]["kind"] == "robot"
+    assert reachy["surface"]["model"] == "reachy"
+    assert reachy["surface"]["flagship"] is True
+    assert reachy["scheme_detail"] == "reachy://"
+    assert reachy["surface"]["mesh"] == "pc://mesh/victus/local"
+
+    via_robot = _dispatch("robot://reachy")
+    assert via_robot["surface"]["model"] == "reachy"
+    assert via_robot["surface"]["flagship"] is True
+
+    generic = _dispatch("robot://arm42 pc://mesh/victus/local")
+    assert generic["surface"]["kind"] == "robot"
+    assert generic["surface"]["model"] == "arm42"
+    assert generic["surface"]["flagship"] is False
+    assert generic["surface"]["node"] == "pc://mesh/victus/local"
+
+
+def test_desktop_surface_under_cc() -> None:
+    """desktop:// is the generative desktop viewport, routed under +æ://cc.
+
+    Native when the WindowsDesktop actuator is available; otherwise it
+    degrades to intent-reporting. Either way it stays sovereign-scoped.
+    """
+    d = _dispatch("desktop://focus")
+    assert d["surface"]["kind"] == "desktop"
+    assert d["surface"]["action"] == "focus"
+    assert d["surface"]["control"] == "+æ://cc"
+    assert d["surface"]["node"] == "pc://mesh/victus/local"
+    # native bridge present on Windows; intent-only fallback elsewhere
+    assert d["surface"].get("native") in (True, False)
+
+    bare = _dispatch("desktop://")
+    assert bare["surface"]["action"] == "enumerate"

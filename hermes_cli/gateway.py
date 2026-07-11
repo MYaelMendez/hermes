@@ -1818,6 +1818,13 @@ def gateway_command(args):
         else:
             # Check for manually running processes
             pids = find_gateway_pids()
+            try:
+                from gateway.status import get_running_pid
+                running_pid = get_running_pid()
+                if running_pid is not None and running_pid not in pids:
+                    pids.append(running_pid)
+            except Exception:
+                pass
             if pids:
                 print(f"✓ Gateway is running (PID: {', '.join(map(str, pids))})")
                 print("  (Running manually, not as a system service)")

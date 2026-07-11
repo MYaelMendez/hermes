@@ -579,3 +579,64 @@ def test_named_custom_provider_anthropic_api_mode(monkeypatch):
 
     assert resolved["api_mode"] == "anthropic_messages"
     assert resolved["base_url"] == "https://proxy.example.com/anthropic"
+
+
+def test_resolve_runtime_provider_local_ollama_alias(monkeypatch):
+    monkeypatch.setattr(rp, "_auto_detect_local_model", lambda base_url: "qwen2.5-coder:3b")
+    monkeypatch.setenv("OLLAMA_HOST", "http://127.0.0.1:11434")
+    monkeypatch.delenv("OLLAMA_API_KEY", raising=False)
+
+    resolved = rp.resolve_runtime_provider(requested="ae://local^ollama")
+
+    assert resolved["provider"] == "ae://local^ollama"
+    assert resolved["api_mode"] == "chat_completions"
+    assert resolved["base_url"] == "http://127.0.0.1:11434"
+    assert resolved["api_key"] == "ollama"
+    assert resolved["requested_provider"] == "ae://local^ollama"
+    assert resolved["detected_model"] == "qwen2.5-coder:3b"
+    assert resolved["health_probe"] == "AE_LOCAL_OLLAMA_RUN_OK"
+
+
+def test_resolve_runtime_provider_local_ollama_explicit_base_url(monkeypatch):
+    monkeypatch.setattr(rp, "_auto_detect_local_model", lambda base_url: "")
+    monkeypatch.setenv("OLLAMA_API_KEY", "local-token")
+
+    resolved = rp.resolve_runtime_provider(
+        requested="ollama",
+        explicit_base_url="http://localhost:22434/",
+    )
+
+    assert resolved["provider"] == "ae://local^ollama"
+    assert resolved["base_url"] == "http://localhost:22434"
+    assert resolved["api_key"] == "local-token"
+    assert resolved["requested_provider"] == "ollama"
+
+
+def test_resolve_runtime_provider_unsloth_alias(monkeypatch):
+    monkeypatch.setattr(rp, "_auto_detect_local_model", lambda base_url: "unsloth/model")
+    monkeypatch.setenv("UNSLOTH_BASE_URL", "http://127.0.0.1:8000/v1")
+    monkeypatch.setenv("UNSLOTH_API_KEY", "unsloth-key")
+
+    resolved = rp.resolve_runtime_provider(requested="ae://unsloth")
+
+    assert resolved["provider"] == "ae://unsloth"
+    assert resolved["api_mode"] == "chat_completions"
+    assert resolved["base_url"] == "http://127.0.0.1:8000/v1"
+    assert resolved["api_key"] == "unsloth-key"
+    assert resolved["requested_provider"] == "ae://unsloth"
+    assert resolved["detected_model"] == "unsloth/model"
+    assert resolved["health_probe"] == "AE_UNSLOTH_READY"
+
+
+def test_resolve_runtime_provider_unsloth_without_base_url_falls_back(monkeypatch):
+    monkeypatch.delenv("UNSLOTH_BASE_URL", raising=False)
+    monkeypatch.setattr(rp, "resolve_provider", lambda *a, **k: "openrouter")
+    monkeypatch.setattr(rp, "_get_model_config", lambda: {})
+    monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
+    monkeypatch.delenv("OPENROUTER_BASE_URL", raising=False)
+    monkeypatch.setenv("OPENROUTER_API_KEY", "or-key")
+
+    resolved = rp.resolve_runtime_provider(requested="unsloth")
+
+    assert resolved["provider"] == "openrouter"
+    assert "openrouter.ai" in resolved["base_url"]

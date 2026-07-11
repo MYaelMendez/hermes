@@ -1,0 +1,44 @@
+{
+  "manifest_version": 1,
+  "release_date_utc": "2026-07-01",
+  "extension": {
+    "id": "undefined_publisher.vscode-remote-use",
+    "name": "vscode-remote-use",
+    "version": "0.1.0"
+  },
+  "artifact": {
+    "vsix_path": "C:/æ/hermes-fork/vscode-remote-use/vscode-remote-use-0.1.0.vsix",
+    "size_bytes": 6858,
+    "sha256": "cef7654ce59d7738fb2f3da42b149e3900d28552d7aa2a265d4563e9c8e90fdf"
+  },
+  "workflow": {
+    "entry_command": "Remote Use: VSCode VLC FFmpeg Media Player",
+    "panel_actions": [
+      "Open In VLC",
+      "FFmpeg To MP3",
+      "Run Manifest",
+      "Audit Manifest"
+    ],
+    "default_behavior": "Attempts startup auto-open from local media manifests when available"
+  },
+  "commands": [
+    "remoteUse.mediaWindow",
+    "remoteUse.mediaOpenVlc",
+    "remoteUse.mediaRunManifest",
+    "remoteUse.vscodeVlcFfmpegPlayer"
+  ],
+  "environment": {
+    "os": "Windows",
+    "local_runtime": "ae://local^ollama",
+    "media_tools": [
+      "ffmpeg",
+      "vlc"
+    ]
+  },
+  "verification": {
+    "compile": "pass",
+    "package": "pass",
+    "install": "pass",
+    "installed_extension": "undefined_publisher.vscode-remote-use@0.1.0"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "model": "local-baseline",
+  "task": "line-exact-match",
+  "dataset": "sample",
+  "seed": 42
+}
