@@ -322,6 +322,31 @@ def _mesh_save_peers() -> None:
         pass
 
 
+# ── fleet registry (MoD): mixture of sovereign devices ─────────────────────
+_FLEET_FILE = REPO / "fleet_registry.json"
+_FLEET_REGISTRY: dict[str, dict] = {}
+
+
+def _fleet_load() -> None:
+    global _FLEET_REGISTRY
+    if _FLEET_REGISTRY:
+        return
+    try:
+        txt = _FLEET_FILE.read_text(encoding="utf-8", errors="ignore")
+        _FLEET_REGISTRY = json.loads(txt) if txt.strip() else {}
+    except Exception:
+        _FLEET_REGISTRY = {}
+
+
+def _fleet_save() -> None:
+    try:
+        _FLEET_FILE.write_text(
+            json.dumps(_FLEET_REGISTRY, indent=2), encoding="utf-8"
+        )
+    except Exception:
+        pass
+
+
 def _mesh_local_lan_ip() -> str:
     """Best-effort LAN IP (ignores loopback). Returns '' if none found."""
     import socket
@@ -487,6 +512,162 @@ def _mesh_peer_dispatch(raw: str) -> dict:
             "address": f"pc://mesh/{name}/local",
             "peer": peer,
         },
+    }
+
+
+def _fleet_dispatch(raw: str) -> dict:
+    """+æ://fleet — mixture of devices (MoD) across sovereign nodes.
+
+    +æ://fleet offer <name> [--models m1,m2]   emit a QR carrying a capability manifest
+    +æ://fleet join <manifest> --node <n> --models <csv>  register a device into the mixture
+    +æ://fleet list                             show current fleet (MoD)
+    """
+    rest = raw.split("+æ://fleet", 1)[1].strip() if "+æ://fleet" in raw else ""
+    if rest.startswith("offer"):
+        return _fleet_offer_dispatch(raw)
+    if rest.startswith("join"):
+        return _fleet_join_dispatch(raw)
+    if rest.startswith("list"):
+        return _fleet_list_dispatch()
+    return {
+        "ok": True,
+        "rc": 0,
+        "stdout": (
+            "+æ://fleet — mixture of sovereign devices (MoD)\n"
+            "  +æ://fleet offer <name> [--models m1,m2]   emit capability QR\n"
+            "  +æ://fleet join <manifest> --node <n> --models <csv>  register device\n"
+            "  +æ://fleet list                             current fleet (MoD)\n"
+        ),
+        "stderr": "",
+        "scheme_detail": "+æ://fleet",
+        "surface": {"kind": "fleet_help"},
+    }
+
+
+def _fleet_offer_dispatch(raw: str) -> dict:
+    """+æ://fleet offer <name> [--models ...] — emit QR carrying capability manifest."""
+    import re as _re
+    rest = raw.split("offer", 1)[1].strip() if "offer" in raw else ""
+    # split off --models flag
+    models = ""
+    m = _re.search(r"--models\s+([^\s]+)", rest)
+    if m:
+        models = m.group(1)
+        rest = (rest[: m.start()] + rest[m.end():]).strip()
+    name = rest or "victus"
+    token = secrets.token_hex(6)
+    lan = _mesh_local_lan_ip() or "0.0.0.0"
+    manifest = (
+        f"ae://fleet?host={name}"
+        f"&mesh=pc://mesh/{name}/local"
+        f"&models={models}&role=engineering-computer&token={token}&via=wifi"
+    )
+    qr_path = _write_qrcode_image(manifest, f"fleet_offer_{name}", f"fleet_offer_{name}")
+    route = f"pc://mesh/{name}/local"
+    return {
+        "ok": True,
+        "rc": 0,
+        "stdout": (
+            f"+æ://fleet offer {name}\n"
+            f"  QR     : {qr_path}\n"
+            f"  route  : {route}\n"
+            f"  models : {models or '(none advertised)'}\n"
+            f"  token  : {token} (ephemeral)\n"
+            f"  scan with a device running fleet.html, then: +æ://fleet join <manifest> --node <n>\n"
+        ),
+        "stderr": "",
+        "scheme": "+æ",
+        "scheme_detail": "+æ://fleet offer",
+        "surface": {
+            "kind": "fleet_offer",
+            "route": route,
+            "models": models,
+            "qr_image": qr_path,
+            "manifest": manifest,
+            "lan": lan,
+            "policy": "opt-in; device must explicitly join",
+        },
+    }
+
+
+def _fleet_join_dispatch(raw: str) -> dict:
+    """+æ://fleet join <manifest> --node <n> --models <csv> — register a device into the mixture."""
+    import re as _re
+    rest = raw.split("join", 1)[1].strip() if "join" in raw else ""
+    m = _re.search(r"--node\s+([^\s]+)", rest)
+    node = m.group(1) if m else "node-01"
+    mm = _re.search(r"--models\s+([^\s]+)", rest)
+    models = mm.group(1) if mm else ""
+    # manifest is the first ae://fleet token
+    payload = rest.split("--node")[0].strip()
+    try:
+        if payload.startswith("ae://fleet"):
+            from urllib.parse import parse_qs, urlparse
+            q = parse_qs(urlparse(payload).query)
+            host = (q.get("host") or [None])[0]
+            mesh = (q.get("mesh") or [None])[0]
+        else:
+            blob = json.loads(payload)
+            host = blob.get("host")
+            mesh = blob.get("mesh")
+    except Exception as exc:
+        return {
+            "ok": False, "rc": 2, "stdout": "",
+            "stderr": f"could not parse fleet manifest: {exc}",
+            "scheme_detail": "+æ://fleet join",
+        }
+    if not host or not mesh:
+        return {
+            "ok": False, "rc": 2, "stdout": "",
+            "stderr": "fleet manifest missing host/mesh",
+            "scheme_detail": "+æ://fleet join",
+        }
+    _fleet_load()
+    _FLEET_REGISTRY[node] = {
+        "host": host,
+        "mesh": mesh,
+        "models": [x for x in models.split(",") if x] if models else [],
+        "role": "device",
+        "joined_at": datetime.datetime.now().isoformat(timespec="seconds"),
+    }
+    _fleet_save()
+    return {
+        "ok": True, "rc": 0,
+        "stdout": (
+            f"+æ://fleet join {node}\n"
+            f"  engineering computer: {host} ({mesh})\n"
+            f"  device registered     : {node}\n"
+            f"  models advertised     : {models or '(none)'}\n"
+            f"  fleet now has {len(_FLEET_REGISTRY)} node(s). Mixture of devices (MoD) updated.\n"
+        ),
+        "stderr": "",
+        "scheme": "+æ",
+        "scheme_detail": "+æ://fleet join",
+        "surface": {"kind": "fleet_join", "node": node, "mesh": mesh, "models": models},
+    }
+
+
+def _fleet_list_dispatch() -> dict:
+    """+æ://fleet list — current fleet (MoD)."""
+    _fleet_load()
+    if not _FLEET_REGISTRY:
+        return {
+            "ok": True, "rc": 0,
+            "stdout": "+æ://fleet list — fleet empty (0 nodes). Offer one with +æ://fleet offer.\n",
+            "stderr": "", "scheme_detail": "+æ://fleet list",
+            "surface": {"kind": "fleet_list", "nodes": []},
+        }
+    lines = [f"+æ://fleet list — {len(_FLEET_REGISTRY)} node(s) (MoD):"]
+    for node, info in _FLEET_REGISTRY.items():
+        lines.append(
+            f"  • {node}: {info.get('host')} ({info.get('mesh')}) "
+            f"models={','.join(info.get('models', [])) or '—'} role={info.get('role')}"
+        )
+    return {
+        "ok": True, "rc": 0,
+        "stdout": "\n".join(lines) + "\n",
+        "stderr": "", "scheme_detail": "+æ://fleet list",
+        "surface": {"kind": "fleet_list", "nodes": _FLEET_REGISTRY},
     }
 
 
@@ -1173,6 +1354,7 @@ _DISPATCHER.register("robot://", _robot_dispatch)
 _DISPATCHER.register("mcp://", _mcp_dispatch)
 _DISPATCHER.register("+æ://cc", _cc_dispatch)
 _DISPATCHER.register("+æ://glocal cloud computer", _glocal_cloud_computer_dispatch)
+_DISPATCHER.register("+æ://fleet", _fleet_dispatch)
 _DISPATCHER.register("desktop://", _desktop_dispatch)
 _DISPATCHER.register("+bæsic://", _bæsic_dispatch)
 _DISPATCHER.register("Hæbbian://", _hæbbian_dispatch)
