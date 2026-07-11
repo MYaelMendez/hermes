@@ -1959,6 +1959,103 @@ def _vps_dispatch(raw: str) -> dict:
 _DISPATCHER.register("+æ://vps", _vps_dispatch)
 
 
+# ── +æ://secrets — local-first secret broker (github.io = surface, Victus = custody) ──
+def _secrets_dispatch(raw: str) -> dict:
+    """Local broker between the github.io secret-bridge surface and GLOCAL agents.
+
+    The bridge UI lives on github.io (source of truth for the SURFACE).
+    The SECRET lives only on Victus, in C:\\æ\\secrets\\secrets.json (git-ignored).
+    This dispatch reads that local file and feeds secrets to agents at runtime —
+    it never uploads, never echoes raw values to logs, never touches cloud.
+
+    +æ://secrets status            → file present? count? (no values)
+    +æ://secrets list              → keys + kinds + masked preview (no raw value)
+    +æ://secrets get <KEY>         → resolve value for an agent (masked in stdout)
+    +æ://secrets path              → where the local source lives
+    """
+    rest = raw.split("secrets", 1)[1].strip() if "secrets" in raw else ""
+    parts = rest.split(" ", 1)
+    action = parts[0] if parts else "status"
+    arg = parts[1] if len(parts) > 1 else ""
+
+    # locate the local source (env HERMES_SECRETS, else GLOCAL default)
+    import sys as _sys
+    _HERE = os.path.dirname(os.path.abspath(__file__))
+    if _HERE not in _sys.path:
+        _sys.path.insert(0, _HERE)
+    # agents/ lives one level up from hermes_cli/
+    _AGENTS = os.path.normpath(os.path.join(_HERE, "..", "..", "agents"))
+    if os.path.isdir(_AGENTS) and _AGENTS not in _sys.path:
+        _sys.path.insert(0, _AGENTS)
+    try:
+        from secret_source import get_secret, get_by_prefix, DEFAULT_PATHS
+    except Exception as exc:
+        return {"ok": False, "stderr": f"secrets: cannot load secret_source ({exc})"}
+
+    src = os.environ.get("HERMES_SECRETS") or next(
+        (p for p in DEFAULT_PATHS if p and os.path.exists(p)), None)
+
+    if action == "path":
+        return {"ok": True, "stdout": f"secrets source: {src or '(none found)'}\n",
+                "surface": {"kind": "secrets", "local_only": True, "path": src}}
+
+    if action == "status":
+        if not src or not os.path.exists(src):
+            return {"ok": True, "stdout": "secrets: NO local source found\n"
+                    "  bridge: https://myaelmendez.github.io/secret-source-bridge.html\n"
+                    "  fix: in bridge click 'Push to local' -> save to C:\\æ\\secrets\\secrets.json\n",
+                    "surface": {"kind": "secrets", "local_only": True, "present": False}}
+        try:
+            data = json.load(open(src, encoding="utf-8"))
+            n = len(data.get("secrets", []))
+        except Exception as exc:
+            return {"ok": False, "stderr": f"secrets: unreadable source ({exc})",
+                    "surface": {"kind": "secrets", "local_only": True, "path": src}}
+        return {"ok": True, "stdout": f"secrets: {n} entry(ies) at {src}\n",
+                "surface": {"kind": "secrets", "local_only": True, "present": True,
+                            "count": n, "path": src}}
+
+    if action == "list":
+        if not src or not os.path.exists(src):
+            return {"ok": False, "stderr": "secrets: NO local source (Push to local first)"}
+        data = json.load(open(src, encoding="utf-8"))
+        rows = []
+        for s in data.get("secrets", []):
+            v = str(s.get("value", ""))
+            mask = "•" * min(12, max(4, len(v))) if v else ""
+            rows.append(f"  {s.get('key')}  [{s.get('kind')}]  {mask}")
+        body = "secrets (local, masked):\n" + "\n".join(rows) + "\n"
+        return {"ok": True, "stdout": body,
+                "surface": {"kind": "secrets", "local_only": True, "count": len(rows)}}
+
+    if action == "get":
+        if not arg:
+            return {"ok": False, "stderr": "secrets get <KEY> — key required"}
+        val = get_secret(arg)
+        if val is None:
+            # try prefix (e.g. 'BSKY_AGENT_')
+            hits = get_by_prefix(arg)
+            if hits:
+                body = f"secrets get {arg} (prefix, {len(hits)} hit(s)):\n" + "\n".join(
+                    f"  {k} = {'•'*min(12,max(4,len(v)))}" for k, v in hits.items()) + "\n"
+                return {"ok": True, "stdout": body,
+                        "surface": {"kind": "secrets", "local_only": True, "prefix": arg,
+                                    "count": len(hits)}}
+            return {"ok": False, "stderr": f"secrets: '{arg}' not found locally"}
+        # value resolved — show masked in stdout; real value available to the agent only
+        mask = "•" * min(12, max(4, len(val)))
+        return {"ok": True,
+                "stdout": f"secrets get {arg} = {mask}  (resolved locally; injected at runtime)\n",
+                "surface": {"kind": "secrets", "local_only": True, "key": arg,
+                            "resolved": True},
+                "secret_value": val}  # carrier only; never logged by callers
+
+    return {"ok": False, "stderr": f"secrets: unknown action '{action}' (status|list|get|path)"}
+
+
+_DISPATCHER.register("+æ://secrets", _secrets_dispatch)
+
+
 def _gauntlet_status() -> dict:
     nous = _dispatch("NOUS://") if "_nous_dispatch" in globals() else {"ok": True, "stdout": "NOUS://\n"}
     vlc = _dispatch("vlc://status")
