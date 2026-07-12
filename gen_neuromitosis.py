@@ -56,7 +56,7 @@ def _mesh_js(mesh: dict | None) -> str:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--out", default=os.path.join(HERE, "neuromitosis.static.html"))
+    ap.add_argument("--out", default=os.path.join(HERE, "neuromitosis.html"))
     ap.add_argument("--bridge", default="http://127.0.0.1:8093")
     args = ap.parse_args()
 
@@ -95,6 +95,12 @@ def main() -> int:
     with open(args.out, "w", encoding="utf-8") as fh:
         fh.write(html)
     print(f"wrote {args.out} ({os.path.getsize(args.out)} bytes)")
+    # also emit neuromitosis.static.html (DNS deploy artifact) from the same bake
+    static_out = os.path.join(HERE, "neuromitosis.static.html")
+    if os.path.abspath(args.out) != os.path.abspath(static_out):
+        with open(static_out, "w", encoding="utf-8") as fh:
+            fh.write(html)
+        print(f"wrote {static_out} ({os.path.getsize(static_out)} bytes)")
     return 0
 
 

@@ -77,7 +77,28 @@ def _aectx_dispatch(raw: str) -> dict:
       - ``+æ://cc``                -> command & control surface
     ``+æ://`` (the +æ superset) routes here as its catch-all.
     """
-    target = raw.split("æ://", 1)[1].strip() if "æ://" in raw else "pc://"
+    target = raw.split("æ://", 1)[1].strip() if "æ://" in raw else (
+        raw.split("æ", 1)[1].strip() if "æ" in raw else "pc://"
+    )
+    # æ l — the chassis axiom: "language is compute". Shortest route to the
+    # longest truth. The cortex addresses its own founding principle.
+    if target in ("l", "language"):
+        return {
+            "ok": True,
+            "rc": 0,
+            "stdout": (
+                "aectx → l\n"
+                "language is compute\n"
+                "neuromitosis agentic cortex: evolution of human distributive cognition\n"
+            ),
+            "stderr": "",
+            "surface": {
+                "kind": "aectx",
+                "target": "l",
+                "axiom": "language is compute",
+                "active": True,
+            },
+        }
     return {
         "ok": True,
         "rc": 0,
@@ -1649,6 +1670,7 @@ _DISPATCHER.register("c://cc", _cctx_dispatch)
 _DISPATCHER.register("pc://run", _pc_run_dispatch)
 _DISPATCHER.register("pc://", _pc_dispatch)
 _DISPATCHER.register("æ://", _aectx_dispatch)
+_DISPATCHER.register("æ ", _aectx_dispatch)  # bare "æ l" / "æ language" shorthand
 _DISPATCHER.register("daollc://", _dao_dispatch)
 _DISPATCHER.register("+æ://", _aectx_dispatch)
 _DISPATCHER.register("llc://", _llc_dispatch)
