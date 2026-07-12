@@ -1443,21 +1443,32 @@ def _hæbbian_dispatch(raw: str) -> dict:
     # the wiring map IS the cognitive evolution log.
     # NOTE: qc64 CSV helpers write to C:\ae (lowercase-ae sovereign root), same
     # place as ledger.csv — NOT REPO (C:\æ with the æ glyph). Match that.
-    meta_path = "C:\\ae\\meta_memory.csv"
-    meta_rows = []
+    # meta_memory: the distributed-cognition trace (persistent, human-steered).
+    # the wiring map IS the cognitive evolution log.
+    # NOTE: qc64 CSV helpers write to C:\ae (lowercase-ae sovereign root), same
+    # place as ledger.csv — NOT REPO (C:\æ with the æ glyph). Match that.
+    # The cortex now scales: flat CSV journal is ingested into a concurrent
+    # SQLite store (cortex_store.CortexStore) — queryable, lock-free reads.
     try:
-        with open(meta_path, "r", encoding="utf-8") as fh:
-            meta_rows = [ln.strip() for ln in fh if ln.strip()]
-    except FileNotFoundError:
-        meta_rows = []
-    # surface (do NOT auto-apply) any pending skill_evolution deltas so the
-    # chassis co-fire shows what is queued for human review + skill fold-in.
-    proposed_notes = [
-        ln.split("|", 2)[2]
-        for ln in meta_rows
-        if ln.startswith(("|", "")) and len(ln.split("|")) == 3
-        and ln.split("|")[1] == "skill_evolution"
-    ]
+        from cortex_store import CortexStore
+        _store = CortexStore()
+        meta_rows = _store.recent(50)
+        proposed_notes = _store.query("skill_evolution")
+        meta_count = _store.count()
+    except Exception:
+        # fallback: naive CSV read if the store is unavailable
+        meta_path = "C:\\ae\\meta_memory.csv"
+        try:
+            with open(meta_path, "r", encoding="utf-8") as fh:
+                meta_rows = [ln.strip() for ln in fh if ln.strip()]
+        except FileNotFoundError:
+            meta_rows = []
+        proposed_notes = [
+            ln.split("|", 2)[2]
+            for ln in meta_rows
+            if len(ln.split("|")) == 3 and ln.split("|")[1] == "skill_evolution"
+        ]
+        meta_count = len(meta_rows)
     return {
         "ok": True,
         "rc": 0,
@@ -1484,7 +1495,7 @@ def _hæbbian_dispatch(raw: str) -> dict:
             "memory_triggers": 9,
             "meta_memory": {
                 "path": "C:\\ae\\meta_memory.csv",
-                "entries": len(meta_rows),
+                "entries": meta_count,
                 "rows": meta_rows[-10:],
                 "discipline": "agent proposes via +bæsic:// compose, human steers; not silent drift",
                 "proposed_skill_notes": proposed_notes,
