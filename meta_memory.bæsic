@@ -1,0 +1,40 @@
+rem +bæsic:// meta_memory - distributed-cognition memory surface (in-language)
+rem lesson: memory is a language. counts/graphs/memory stay in-language.
+rem human is the prime mover: agent proposes via compose, you steer. not silent drift.
+rem writes only to C:\ae\meta_memory.csv (sovereign root, never OneDrive).
+rem
+rem line numbers are 2000+ to AVOID COLLISION with the chassis bootstrap
+rem (qc64_basic.py loads ledger.bæsic as default PROGRAM; its lines 1-1090 + 9000-9100
+rem  shadow any program using those ranges).
+rem
+rem usage (through the +bæsic:// compose Code Mode surface):
+rem   record:  +bæsic:// compose gosub 2900 : k$ = "codemode" : v$ = "compose IS meta-memory substrate" : end
+rem   list:    +bæsic:// compose gosub 2100 : end
+rem   graph:   +bæsic:// compose gosub 2950 : end
+
+2001 mem$ = "C:\ae\meta_memory.csv"
+2010 t$ = now$()        ; timestamp (epoch)
+2020 print "meta_memory tick "; t$
+
+rem === record routine (line 2900): k$ key, v$ value -> append epoch|key|value ===
+2900 if k$ = "" then print "record: k$ empty (no delta)" : return
+2910 row$ = cat$(t$;"|";k$;"|";v$)
+2920 r = append_line$(cat$(mem$;"|";row$))
+2930 print "recorded: "; k$ ; " = " ; v$
+2940 return
+
+rem === list routine (line 2100): print all rows ===
+2100 print "--- meta_memory (distributed cognition trace) ---"
+2110 lines$ = read_lines$(mem$)
+2120 if lines$ = "" then print "(empty - no memory yet)" : return
+2130 print lines$
+2140 return
+
+rem === graph routine (line 2950): sparkline of write history ===
+2950 print "--- memory evolution (write history) ---"
+2960 print spark$(mem$)
+2970 return
+
+rem default action: list
+gosub 2100
+end

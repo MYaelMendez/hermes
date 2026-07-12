@@ -1,0 +1,2697 @@
+{
+ "generated": "2026-07-12T21:03:12.848845+00:00",
+ "source": "C:\\æ\\hermes-fork (excl. website/contest vendored)",
+ "counts": {
+  "skill": 373,
+  "other": 33,
+  "blueprint": 23,
+  "doc": 11,
+  "manifest": 6,
+  "readme": 1
+ },
+ "total": 447,
+ "entries": [
+  {
+   "path": "AGENTS.md",
+   "size": 16970,
+   "title": "Hermes Agent - Development Guide",
+   "cat": "manifest"
+  },
+  {
+   "path": "CAPABILITIES.md",
+   "size": 3353,
+   "title": "Hermes Viewport Computer — Capabilities",
+   "cat": "manifest"
+  },
+  {
+   "path": "CONTRIBUTING.md",
+   "size": 27521,
+   "title": "Contributing to Hermes Agent",
+   "cat": "other"
+  },
+  {
+   "path": "OPENSOURCEWARE_250.md",
+   "size": 3228,
+   "title": "#opensourceware · #osw — THE WORKED EXAMPLE",
+   "cat": "manifest"
+  },
+  {
+   "path": "PR_BODY.md",
+   "size": 1976,
+   "title": "Summary",
+   "cat": "manifest"
+  },
+  {
+   "path": "PR_DESCRIPTION.md",
+   "size": 1738,
+   "title": "Hermes Conductor — Scheme Dispatcher + Operator Grammar",
+   "cat": "manifest"
+  },
+  {
+   "path": "README.md",
+   "size": 10867,
+   "title": "Hermes Agent ☤",
+   "cat": "readme"
+  },
+  {
+   "path": "RELEASE_v0.2.0.md",
+   "size": 32768,
+   "title": "Hermes Agent v0.2.0 (v2026.3.12)",
+   "cat": "other"
+  },
+  {
+   "path": "RELEASE_v0.3.0.md",
+   "size": 36101,
+   "title": "Hermes Agent v0.3.0 (v2026.3.17)",
+   "cat": "other"
+  },
+  {
+   "path": "RELEASE_v0.4.0.md",
+   "size": 45848,
+   "title": "Hermes Agent v0.4.0 (v2026.3.23)",
+   "cat": "other"
+  },
+  {
+   "path": "SPEC.md",
+   "size": 3635,
+   "title": "Hermes Operator Grammar — Specification",
+   "cat": "manifest"
+  },
+  {
+   "path": "SYNC_README.md",
+   "size": 1657,
+   "title": "Sync Index & Droplet PDS — local dev corpus",
+   "cat": "other"
+  },
+  {
+   "path": ".github/PULL_REQUEST_TEMPLATE.md",
+   "size": 3187,
+   "title": "What does this PR do?",
+   "cat": "other"
+  },
+  {
+   "path": ".plans/openai-api-server.md",
+   "size": 10670,
+   "title": "OpenAI-Compatible API Server for Hermes Agent",
+   "cat": "doc"
+  },
+  {
+   "path": ".plans/streaming-support.md",
+   "size": 25098,
+   "title": "Streaming LLM Response Support for Hermes Agent",
+   "cat": "doc"
+  },
+  {
+   "path": "blueprints/ae-ffmpeg-omniverse-live.md",
+   "size": 1317,
+   "title": "#opensourceware",
+   "cat": "blueprint"
+  },
+  {
+   "path": "blueprints/breakout-001-250-baseline.md",
+   "size": 1501,
+   "title": "#opensourceware",
+   "cat": "blueprint"
+  },
+  {
+   "path": "blueprints/breakout-002-accelerator.md",
+   "size": 1702,
+   "title": "#opensourceware",
+   "cat": "blueprint"
+  },
+  {
+   "path": "blueprints/breakout-002-vscode-codemode.md",
+   "size": 1644,
+   "title": "#opensourceware",
+   "cat": "blueprint"
+  },
+  {
+   "path": "blueprints/computer-as-dao-incubator.md",
+   "size": 1466,
+   "title": "#opensourceware",
+   "cat": "blueprint"
+  },
+  {
+   "path": "blueprints/computer-use-for-business.md",
+   "size": 2702,
+   "title": "#opensourceware",
+   "cat": "blueprint"
+  },
+  {
+   "path": "blueprints/hermes-robot-context.md",
+   "size": 1771,
+   "title": "Hermes Robot Context",
+   "cat": "blueprint"
+  },
+  {
+   "path": "blueprints/hermes-robot.md",
+   "size": 3287,
+   "title": "Hermes 🤖 Blueprint",
+   "cat": "blueprint"
+  },
+  {
+   "path": "blueprints/hermes-viewport-computer.md",
+   "size": 3462,
+   "title": "Hermes Viewport Computer Blueprint",
+   "cat": "blueprint"
+  },
+  {
+   "path": "blueprints/kaizen-glocal-ml-computer-hermes.md",
+   "size": 3110,
+   "title": "#opensourceware",
+   "cat": "blueprint"
+  },
+  {
+   "path": "blueprints/laptop-as-dao.md",
+   "size": 4200,
+   "title": "Laptop as a DAO Blueprint",
+   "cat": "blueprint"
+  },
+  {
+   "path": "blueprints/neuroplasticity-in-mech-lang.md",
+   "size": 2471,
+   "title": "#opensourceware",
+   "cat": "blueprint"
+  },
+  {
+   "path": "blueprints/omniverse-250-runner-manifest.md",
+   "size": 1368,
+   "title": "#opensourceware",
+   "cat": "blueprint"
+  },
+  {
+   "path": "blueprints/omniverse-250000-simulator.md",
+   "size": 1955,
+   "title": "#opensourceware",
+   "cat": "blueprint"
+  },
+  {
+   "path": "blueprints/plus-æ-ffmpeg-omniverse-protocol.md",
+   "size": 2740,
+   "title": "#opensourceware",
+   "cat": "blueprint"
+  },
+  {
+   "path": "blueprints/plus-æ-ffmpeg-protocol.md",
+   "size": 2312,
+   "title": "#opensourceware",
+   "cat": "blueprint"
+  },
+  {
+   "path": "blueprints/plus-æ-glocal-omniverse-surface.md",
+   "size": 3075,
+   "title": "#opensourceware",
+   "cat": "blueprint"
+  },
+  {
+   "path": "blueprints/plus-æ-governance-economics-protocol.md",
+   "size": 2640,
+   "title": "#opensourceware",
+   "cat": "blueprint"
+  },
+  {
+   "path": "blueprints/plus-æ-vlc-protocol.md",
+   "size": 2360,
+   "title": "#opensourceware",
+   "cat": "blueprint"
+  },
+  {
+   "path": "blueprints/reachy-daollc-operator-protocol.md",
+   "size": 3214,
+   "title": "#opensourceware",
+   "cat": "blueprint"
+  },
+  {
+   "path": "blueprints/reachy-software-factory.md",
+   "size": 5111,
+   "title": "#opensourceware",
+   "cat": "blueprint"
+  },
+  {
+   "path": "blueprints/slash-learn-command-protocol.md",
+   "size": 1854,
+   "title": "#opensourceware",
+   "cat": "blueprint"
+  },
+  {
+   "path": "blueprints/smarter-smart-contracts-dao-blocks.md",
+   "size": 3049,
+   "title": "#opensourceware",
+   "cat": "blueprint"
+  },
+  {
+   "path": "dao/charter.md",
+   "size": 858,
+   "title": "Hermes Glocal DAO Charter",
+   "cat": "other"
+  },
+  {
+   "path": "docs/acp-setup.md",
+   "size": 6117,
+   "title": "Hermes Agent — ACP (Agent Client Protocol) Setup Guide",
+   "cat": "doc"
+  },
+  {
+   "path": "docs/glocal-monorepo.md",
+   "size": 2887,
+   "title": "Glocal Monorepo Operating Model",
+   "cat": "doc"
+  },
+  {
+   "path": "docs/honcho-integration-spec.md",
+   "size": 15759,
+   "title": "honcho-integration-spec",
+   "cat": "doc"
+  },
+  {
+   "path": "docs/local-hermes-mandate.md",
+   "size": 3228,
+   "title": "#opensourceware",
+   "cat": "doc"
+  },
+  {
+   "path": "docs/local-vitals-cron.md",
+   "size": 1274,
+   "title": "Local Computer Vitals via Hermes Cron",
+   "cat": "doc"
+  },
+  {
+   "path": "docs/vscode-installer-research.md",
+   "size": 13545,
+   "title": "Technical Report: The Visual Studio Code Installer (All Versions)",
+   "cat": "doc"
+  },
+  {
+   "path": "docs/migration/openclaw.md",
+   "size": 5049,
+   "title": "Migrating from OpenClaw to Hermes Agent",
+   "cat": "doc"
+  },
+  {
+   "path": "docs/plans/2026-03-16-pricing-accuracy-architecture-design.md",
+   "size": 15296,
+   "title": "Pricing Accuracy Architecture",
+   "cat": "doc"
+  },
+  {
+   "path": "docs/plans/2026-07-08-hermes-code-player-llm-store-vlc-skin.md",
+   "size": 4495,
+   "title": "Hermes Code Player / llm.store VLC Skin Implementation Plan",
+   "cat": "doc"
+  },
+  {
+   "path": "environments/README.md",
+   "size": 15412,
+   "title": "Hermes-Agent Atropos Environments",
+   "cat": "other"
+  },
+  {
+   "path": "environments/benchmarks/tblite/README.md",
+   "size": 3772,
+   "title": "OpenThoughts-TBLite Evaluation Environment",
+   "cat": "other"
+  },
+  {
+   "path": "environments/benchmarks/yc_bench/README.md",
+   "size": 4557,
+   "title": "YC-Bench: Long-Horizon Agent Benchmark",
+   "cat": "other"
+  },
+  {
+   "path": "gateway/platforms/ADDING_A_PLATFORM.md",
+   "size": 9139,
+   "title": "Adding a New Messaging Platform",
+   "cat": "other"
+  },
+  {
+   "path": "gpu-mcp/README.md",
+   "size": 2601,
+   "title": "gpu-mcp",
+   "cat": "other"
+  },
+  {
+   "path": "llm-bench-rig/AGENTS.md",
+   "size": 840,
+   "title": "Working agreements (agents read this first)",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/CLAUDE.md",
+   "size": 260,
+   "title": "Claude Code — start here",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/README.md",
+   "size": 1949,
+   "title": "llm-bench-rig",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/adr/ADR-0001-no-stop-sequences-code-eval.md",
+   "size": 1228,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/adr/ADR-0002-results-record-think-mode.md",
+   "size": 1030,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/adr/ADR-0003-invariants-in-tested-code.md",
+   "size": 1219,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/adr/README.md",
+   "size": 1658,
+   "title": "Architectural Decision Records",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/dataset/README.md",
+   "size": 6331,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/dataset-agentic/README.md",
+   "size": 5064,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/leaderboard/README.md",
+   "size": 7706,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/lib/agentic/README.md",
+   "size": 4839,
+   "title": "Hermes Pairing — agentic benchmark for local LLMs",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/ace-step-music.md",
+   "size": 4575,
+   "title": "Making music on a gaming GPU: ACE-Step 1.5 on one RTX 5090",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/agentic-leaderboard.md",
+   "size": 3841,
+   "title": "Agentic Score leaderboard (7 models): small models punch up, long-context splits the field",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/agentic-nex-n2-mini.md",
+   "size": 3749,
+   "title": "Agentic post-training, measured: Nex-N2-mini vs its base — on one RTX 5090",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/agentworld-lwm-transfer.md",
+   "size": 5241,
+   "title": "Qwen-AgentWorld's zero-fine-tune transfer doesn't show up on a 5090: flat on synthetic, down on real coding",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/agentworld-think-on-null.md",
+   "size": 5349,
+   "title": "Thinking mode isn't hiding Qwen-AgentWorld's transfer either: think-ON is bug-for-bug identical to think-OFF",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/asr-head-to-head.md",
+   "size": 4505,
+   "title": "Sovereign ASR on one RTX 5090: a 0.6B transducer beats 5-year-old Whisper-large on *noisy* speech — and runs 4–9× faster",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/bias-only-steering.md",
+   "size": 6799,
+   "title": "Bias-Only Reasoning Steering on one RTX 5090: nothing moves at bounded budget — and random rewards match correct ones",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/cacheback-spec-decode.md",
+   "size": 6626,
+   "title": "Draft-free spec-decode on Qwen3-8B: the win is the workload, and the fancy table buys nothing",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/deepseek-ocr-2.md",
+   "size": 7372,
+   "title": "DeepSeek-OCR-2: the compression ratio is real, but decode accuracy degrades faster than the paper's curve on real documents",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/diffusion-vs-ar.md",
+   "size": 5174,
+   "title": "Block diffusion vs its autoregressive twin on one RTX 5090: the hyped speedup doesn't show — AR wins at every length",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/echo-maze-microcosm.md",
+   "size": 4769,
+   "title": "ECHO has no maze, so I built one: the \"free world model\" loss is inert in pure imitation",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/embedding-retrieval-bench.md",
+   "size": 4985,
+   "title": "Does a vision-language embedder beat its text sibling on *text* retrieval?",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/fp4-consumer-blackwell.md",
+   "size": 8865,
+   "title": "FP4 on a consumer RTX 5090: the Blackwell headline loses to plain int4",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/fp8-rl-grpo.md",
+   "size": 4712,
+   "title": "RL on a 5090: FP8 RL hit a triple wall, so portable GRPO shipped a real +7.66",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/gemma-4-12b-it-q6-k.md",
+   "size": 2933,
+   "title": "Benchmark Report: gemma-4-12b-it (Q6_K)",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/gemma-4-31b-it-q6-k.md",
+   "size": 2931,
+   "title": "Benchmark Report: gemma-4-31B-it (Q6_K)",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/gemma4-31b-qat-mtp.md",
+   "size": 4140,
+   "title": "The quality king, quantized: Gemma 4 31B QAT + MTP on a 32GB card",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/glm-5-2-autopsy.md",
+   "size": 4411,
+   "title": "GLM-5.2 autopsy: they did the hard math for cheap 1M context, and it still can't run at home",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/gpt-oss-120b-mxfp4.md",
+   "size": 3114,
+   "title": "Benchmark Report: gpt-oss-120b (mxfp4)",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/gpt-oss-20b-q4-k-m.md",
+   "size": 2902,
+   "title": "Benchmark Report: gpt-oss-20b (Q4_K_M)",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/gsm8k-finetune.md",
+   "size": 3246,
+   "title": "Fine-tuning a 1B for a measured GSM8K gain (and the eval bug that hid it)",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/hrm-text-1b.md",
+   "size": 4559,
+   "title": "HRM-Text-1B: the recurrent 1B holds up on GSM8K — and one missing tensor silently costs 26 points",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/keye-vl-2-autopsy.md",
+   "size": 5712,
+   "title": "Keye-VL-2.0-30B on a consumer GPU: an autopsy — five measured walls between \"open weights\" and a running model",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/lfm2-5-vl-1-6b-extract.md",
+   "size": 3812,
+   "title": "LFM2.5-VL-1.6B-Extract — receipt extraction on one RTX 5090",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/locateanything-3b.md",
+   "size": 4476,
+   "title": "LocateAnything-3B outside the H100: PBD's 2x survives a consumer card — but the official eval protocol doesn't",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/ltx-2.3.md",
+   "size": 4697,
+   "title": "LTX-2.3: synchronized audio-video generation on one RTX 5090",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/mistral-small-4-speed.md",
+   "size": 4084,
+   "title": "Two 120-billion-parameter reasoning models on one consumer card",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/mtp-speedup.md",
+   "size": 6431,
+   "title": "MTP self-speculative decoding on Qwen3.6-27B (RTX 5090)",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/nemotron-3-nano-30b-a3b-ud-q4-k-xl.md",
+   "size": 5118,
+   "title": "Benchmark Report: Nemotron-3-Nano-30B-A3B (UD-Q4_K_XL)",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/nemotron-twotower-autopsy.md",
+   "size": 6139,
+   "title": "Nemotron-TwoTower autopsy: a 2.4x speedup that costs a second 30B model",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/north-mini-code.md",
+   "size": 5739,
+   "title": "Benchmark Report: north-mini-code (unknown)",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/nvfp4-vs-q6-qwen3-6-27b.md",
+   "size": 4030,
+   "title": "NVFP4 vs GGUF quants — does Blackwell-native FP4 pay off? (Qwen3.6-27B)",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/nvidia-nemotron-cascade-2-30b-a3b-q4-k-m.md",
+   "size": 3124,
+   "title": "Benchmark Report: nvidia_Nemotron-Cascade-2-30B-A3B (Q4_K_M)",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/omp-harness-as-variable.md",
+   "size": 5708,
+   "title": "Swap the agent harness, keep the model: one bug in twelve moves — and it moves on *persistence*, not reasoning",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/one-shot-em.md",
+   "size": 5337,
+   "title": "One-Shot Entropy Minimization on a 5090: the entropy fell, the accuracy didn't",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/ornith-1-0-35b-anchor.md",
+   "size": 8423,
+   "title": "Ornith-1.0-35B's self-written scaffold doesn't survive a different harness: 5/12 on real bugs, below its own base's 7/12",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/ornith-1-0-35b-harness-inversion.md",
+   "size": 7512,
+   "title": "Leg A's Ornith \"regression\" was the harness: swap it and the gap to the base vanishes",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/qwable-3.6-27b-q4.md",
+   "size": 4284,
+   "title": "Qwable-3.6-27b: the distill every cheap eval passes and SWE-bench fails",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/qwable-5-27b-coder.md",
+   "size": 6776,
+   "title": "Qwable-5-27B-Coder: a real-trace coding SFT that ties its base on every cheap eval — and still loses 2 real bugs",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/qwable-v1.md",
+   "size": 3439,
+   "title": "Qwable-v1: a Claude-Code-distilled \"agentic coder\" that's worse than its own base — measured",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/qwen3-6-27b-pi-tune.md",
+   "size": 4548,
+   "title": "Qwen3.6-27B pi-tune: the coding tune that actually works — real agent traces beat synthetic distill",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/qwen3-6-27b-q4-k-m.md",
+   "size": 1828,
+   "title": "Benchmark Report: Qwen3.6-27B (Q4_K_M)",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/qwen3-6-27b-q6-k.md",
+   "size": 2913,
+   "title": "Benchmark Report: Qwen3.6-27B (Q6_K)",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/qwen3-6-28b-reap20-a3b-q6-k.md",
+   "size": 2901,
+   "title": "Benchmark Report: Qwen3.6-28B-REAP20-A3B (Q6_K)",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/qwen3-6-35b-a3b-ud-q4-k-m.md",
+   "size": 2981,
+   "title": "Benchmark Report: Qwen3.6-35B-A3B (UD-Q4_K_M)",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/qwen3-6-35b-a3b-ud-q6-k.md",
+   "size": 2877,
+   "title": "Benchmark Report: Qwen3.6-35B-A3B (UD-Q6_K)",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/qwen3-coder-next-ud-q2-k-xl.md",
+   "size": 2980,
+   "title": "Benchmark Report: Qwen3-Coder-Next (UD-Q2_K_XL)",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/qwopus-coder-27b.md",
+   "size": 5201,
+   "title": "Qwopus3.6-27B-Coder, four legs measured: a real #2 quality model, a true 100-tps claim — and the cleanest synthetic-benchmark mirage the reality anchor has caught",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/qwopus-coder-35b-a3b.md",
+   "size": 8488,
+   "title": "Qwopus-3.6-35B-A3B-Coder-MTP: the coder curriculum doesn't break the regression pattern, and a lenient harness only closes half the gap",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/qwopus-coder-compat.md",
+   "size": 6394,
+   "title": "Qwopus3.6-27B-Coder-Compat — the prior tune's two regressions, healed",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/specdecode-gemma-4-26b-a4b.md",
+   "size": 6322,
+   "title": "Three ways to draft, one RTX 5090: MTP vs EAGLE-3 vs DFlash on Gemma 4 26B-A4B — and the consumer-Blackwell tax to run any of them",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/swebench-anchor.md",
+   "size": 5899,
+   "title": "Reality anchor, tightened: the synthetic Agentic Score predicts real SWE-bench *rank* — with one instructive blind spot (Pearson r = 0.50, Spearman ρ = 0.68)",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/tts-head-to-head.md",
+   "size": 5572,
+   "title": "Sovereign TTS head-to-head: the 1.7B Apache model beats the 4B research-license model on a 5090",
+   "cat": "skill"
+  },
+  {
+   "path": "llm-bench-rig/reports/z-image-turbo.md",
+   "size": 6032,
+   "title": "Making pictures on a gaming GPU: Z-Image-Turbo on one RTX 5090",
+   "cat": "skill"
+  },
+  {
+   "path": "ml/README.md",
+   "size": 1098,
+   "title": "ML Workstation (Phase 1)",
+   "cat": "other"
+  },
+  {
+   "path": "movies/hermes-code-mcp2/plan.md",
+   "size": 441,
+   "title": "Hermes Code + MCP2 explainer",
+   "cat": "other"
+  },
+  {
+   "path": "optional-skills/DESCRIPTION.md",
+   "size": 1039,
+   "title": "Optional Skills",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/autonomous-ai-agents/DESCRIPTION.md",
+   "size": 130,
+   "title": "Optional autonomous AI agent integrations — external coding agent CLIs",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/autonomous-ai-agents/blackbox/SKILL.md",
+   "size": 5543,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/blockchain/base/SKILL.md",
+   "size": 8043,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/blockchain/solana/SKILL.md",
+   "size": 6764,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/creative/blender-mcp/SKILL.md",
+   "size": 4228,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/creative/meme-generation/EXAMPLES.md",
+   "size": 1122,
+   "title": "Meme Generation Examples",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/creative/meme-generation/SKILL.md",
+   "size": 5558,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/email/agentmail/SKILL.md",
+   "size": 4252,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/health/DESCRIPTION.md",
+   "size": 134,
+   "title": "Health, wellness, and biometric integration skills — BCI wearables, neurofeedbac",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/health/neuroskill-bci/SKILL.md",
+   "size": 17111,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/health/neuroskill-bci/references/api.md",
+   "size": 8672,
+   "title": "NeuroSkill WebSocket & HTTP API Reference",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/health/neuroskill-bci/references/metrics.md",
+   "size": 9699,
+   "title": "NeuroSkill Metric Definitions & Interpretation Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/health/neuroskill-bci/references/protocols.md",
+   "size": 16984,
+   "title": "NeuroSkill Guided Protocols",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/mcp/DESCRIPTION.md",
+   "size": 92,
+   "title": "MCP",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/mcp/fastmcp/SKILL.md",
+   "size": 8633,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/mcp/fastmcp/references/fastmcp-cli.md",
+   "size": 2469,
+   "title": "FastMCP CLI Reference",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/migration/DESCRIPTION.md",
+   "size": 119,
+   "title": "Optional migration workflows for importing user state and customizations from",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/migration/openclaw-migration/SKILL.md",
+   "size": 16190,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/productivity/telephony/SKILL.md",
+   "size": 13294,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/research/bioinformatics/SKILL.md",
+   "size": 14158,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/research/qmd/SKILL.md",
+   "size": 13503,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/security/DESCRIPTION.md",
+   "size": 102,
+   "title": "Security",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/security/1password/SKILL.md",
+   "size": 4815,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/security/1password/references/cli-examples.md",
+   "size": 581,
+   "title": "op CLI examples",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/security/1password/references/get-started.md",
+   "size": 548,
+   "title": "1Password CLI get-started (summary)",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/security/oss-forensics/SKILL.md",
+   "size": 20347,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/security/oss-forensics/references/evidence-types.md",
+   "size": 5202,
+   "title": "Evidence Types Reference",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/security/oss-forensics/references/github-archive-guide.md",
+   "size": 6180,
+   "title": "GitHub Archive Query Guide (BigQuery)",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/security/oss-forensics/references/investigation-templates.md",
+   "size": 5684,
+   "title": "Investigation Templates",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/security/oss-forensics/references/recovery-techniques.md",
+   "size": 5931,
+   "title": "Deleted Content Recovery Techniques",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/security/oss-forensics/templates/forensic-report.md",
+   "size": 4977,
+   "title": "Forensic Investigation Report",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/security/oss-forensics/templates/malicious-package-report.md",
+   "size": 1400,
+   "title": "Malicious Package Investigation Report",
+   "cat": "skill"
+  },
+  {
+   "path": "optional-skills/security/sherlock/SKILL.md",
+   "size": 6221,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "pkg/pcmesh/OPENSOURCEWARE_BOUNDARY.md",
+   "size": 575,
+   "title": "OPENSOURCEWARE BOUNDARY",
+   "cat": "other"
+  },
+  {
+   "path": "plans/gemini-oauth-provider.md",
+   "size": 4364,
+   "title": "Gemini OAuth Provider — Implementation Plan",
+   "cat": "other"
+  },
+  {
+   "path": "secret_source_bridge/OPENSOURCEWARE_BOUNDARY.md",
+   "size": 1050,
+   "title": "secret_source_bridge — Opensourceware Boundary",
+   "cat": "other"
+  },
+  {
+   "path": "secret_source_bridge/README.md",
+   "size": 1892,
+   "title": "Hermes Secret Source Bridge",
+   "cat": "other"
+  },
+  {
+   "path": "secret_source_bridge/RELEASE_MANIFEST.md",
+   "size": 1051,
+   "title": "secret_source_bridge — Release Manifest",
+   "cat": "other"
+  },
+  {
+   "path": "skills/apple/DESCRIPTION.md",
+   "size": 155,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/apple/apple-notes/SKILL.md",
+   "size": 2277,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/apple/apple-reminders/SKILL.md",
+   "size": 2646,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/apple/findmy/SKILL.md",
+   "size": 3879,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/apple/imessage/SKILL.md",
+   "size": 2544,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/autonomous-ai-agents/DESCRIPTION.md",
+   "size": 214,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/autonomous-ai-agents/claude-code/SKILL.md",
+   "size": 3241,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/autonomous-ai-agents/codex/SKILL.md",
+   "size": 4214,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/autonomous-ai-agents/hermes-agent/SKILL.md",
+   "size": 9347,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/autonomous-ai-agents/opencode/SKILL.md",
+   "size": 7574,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/creative/DESCRIPTION.md",
+   "size": 119,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/creative/ascii-art/SKILL.md",
+   "size": 10952,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/creative/ascii-video/README.md",
+   "size": 16730,
+   "title": "☤ ASCII Video",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/creative/ascii-video/SKILL.md",
+   "size": 13181,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/creative/ascii-video/references/architecture.md",
+   "size": 33806,
+   "title": "Architecture Reference",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/creative/ascii-video/references/composition.md",
+   "size": 30549,
+   "title": "Composition & Brightness Reference",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/creative/ascii-video/references/effects.md",
+   "size": 74793,
+   "title": "Effect Catalog",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/creative/ascii-video/references/inputs.md",
+   "size": 25260,
+   "title": "Input Sources",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/creative/ascii-video/references/optimization.md",
+   "size": 24953,
+   "title": "Optimization Reference",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/creative/ascii-video/references/scenes.md",
+   "size": 38498,
+   "title": "Scene System & Creative Composition",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/creative/ascii-video/references/shaders.md",
+   "size": 50557,
+   "title": "Shader Pipeline & Composable Effects",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/creative/ascii-video/references/troubleshooting.md",
+   "size": 13188,
+   "title": "Troubleshooting Reference",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/creative/excalidraw/SKILL.md",
+   "size": 7446,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/creative/excalidraw/references/colors.md",
+   "size": 1821,
+   "title": "Excalidraw Color Palette",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/creative/excalidraw/references/dark-mode.md",
+   "size": 2350,
+   "title": "Excalidraw Dark Mode Diagrams",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/creative/excalidraw/references/examples.md",
+   "size": 14367,
+   "title": "Excalidraw Diagram Examples",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/data-science/DESCRIPTION.md",
+   "size": 140,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/data-science/jupyter-live-kernel/SKILL.md",
+   "size": 5742,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/diagramming/DESCRIPTION.md",
+   "size": 162,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/dogfood/SKILL.md",
+   "size": 6521,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/dogfood/hermes-agent-setup/SKILL.md",
+   "size": 9804,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/dogfood/references/issue-taxonomy.md",
+   "size": 3791,
+   "title": "Issue Taxonomy",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/dogfood/templates/dogfood-report-template.md",
+   "size": 1614,
+   "title": "Dogfood QA Report",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/domain/DESCRIPTION.md",
+   "size": 1166,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/email/DESCRIPTION.md",
+   "size": 104,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/email/himalaya/SKILL.md",
+   "size": 6281,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/email/himalaya/references/configuration.md",
+   "size": 4268,
+   "title": "Himalaya Configuration Reference",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/email/himalaya/references/message-composition.md",
+   "size": 3998,
+   "title": "Message Composition with MML (MIME Meta Language)",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/feeds/DESCRIPTION.md",
+   "size": 118,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/gaming/DESCRIPTION.md",
+   "size": 132,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/gaming/minecraft-modpack-server/SKILL.md",
+   "size": 6848,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/gaming/pokemon-player/SKILL.md",
+   "size": 9033,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/gifs/DESCRIPTION.md",
+   "size": 112,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/github/DESCRIPTION.md",
+   "size": 170,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/github/codebase-inspection/SKILL.md",
+   "size": 3853,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/github/github-auth/SKILL.md",
+   "size": 7713,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/github/github-code-review/SKILL.md",
+   "size": 13863,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/github/github-code-review/references/review-output-template.md",
+   "size": 2539,
+   "title": "Review Output Template",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/github/github-issues/SKILL.md",
+   "size": 9465,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/github/github-issues/templates/bug-report.md",
+   "size": 504,
+   "title": "Bug Description",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/github/github-issues/templates/feature-request.md",
+   "size": 629,
+   "title": "Feature Description",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/github/github-pr-workflow/SKILL.md",
+   "size": 10195,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/github/github-pr-workflow/references/ci-troubleshooting.md",
+   "size": 5062,
+   "title": "CI Troubleshooting Quick Reference",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/github/github-pr-workflow/references/conventional-commits.md",
+   "size": 2488,
+   "title": "Conventional Commits Quick Reference",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/github/github-pr-workflow/templates/pr-body-bugfix.md",
+   "size": 548,
+   "title": "Bug Description",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/github/github-pr-workflow/templates/pr-body-feature.md",
+   "size": 613,
+   "title": "Summary",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/github/github-repo-management/SKILL.md",
+   "size": 14035,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/github/github-repo-management/references/github-api-cheatsheet.md",
+   "size": 6231,
+   "title": "GitHub REST API Cheatsheet",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/hermes-native/SKILL.md",
+   "size": 2171,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/hermes-native/references/llm-bench-rig-design-notes.md",
+   "size": 1274,
+   "title": "llm-bench-rig Reference Design Notes",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/hermes-native/references/victus-capability-map.md",
+   "size": 2495,
+   "title": "Victus Capability Map",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/hermes-operator-grammar/SKILL.md",
+   "size": 2061,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/inference-sh/DESCRIPTION.md",
+   "size": 725,
+   "title": "inference.sh",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/inference-sh/cli/SKILL.md",
+   "size": 4811,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/inference-sh/cli/references/app-discovery.md",
+   "size": 2232,
+   "title": "Discovering Apps",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/inference-sh/cli/references/authentication.md",
+   "size": 1143,
+   "title": "Authentication & Setup",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/inference-sh/cli/references/cli-reference.md",
+   "size": 3285,
+   "title": "CLI Reference",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/inference-sh/cli/references/running-apps.md",
+   "size": 3876,
+   "title": "Running Apps",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/leisure/find-nearby/SKILL.md",
+   "size": 3157,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mcp/DESCRIPTION.md",
+   "size": 274,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mcp/mcporter/SKILL.md",
+   "size": 3274,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mcp/native-mcp/SKILL.md",
+   "size": 12898,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/media/DESCRIPTION.md",
+   "size": 142,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/media/agentic-html/SKILL.md",
+   "size": 1647,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/media/gif-search/SKILL.md",
+   "size": 2773,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/media/heartmula/SKILL.md",
+   "size": 6572,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/media/songsee/SKILL.md",
+   "size": 2523,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/media/youtube-content/SKILL.md",
+   "size": 2621,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/media/youtube-content/references/output-formats.md",
+   "size": 1315,
+   "title": "Output Format Examples",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/DESCRIPTION.md",
+   "size": 165,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/cloud/DESCRIPTION.md",
+   "size": 95,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/cloud/lambda-labs/SKILL.md",
+   "size": 12726,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/cloud/lambda-labs/references/advanced-usage.md",
+   "size": 15711,
+   "title": "Lambda Labs Advanced Usage Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/cloud/lambda-labs/references/troubleshooting.md",
+   "size": 12213,
+   "title": "Lambda Labs Troubleshooting Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/cloud/modal/SKILL.md",
+   "size": 8924,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/cloud/modal/references/advanced-usage.md",
+   "size": 11406,
+   "title": "Modal Advanced Usage Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/cloud/modal/references/troubleshooting.md",
+   "size": 11010,
+   "title": "Modal Troubleshooting Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/cuda/SKILL.md",
+   "size": 10170,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/cuda/references/host-bridge.md",
+   "size": 3619,
+   "title": "Host Bridge — `remoteUse.nvidia` (full handler)",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/evaluation/DESCRIPTION.md",
+   "size": 129,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/evaluation/huggingface-tokenizers/SKILL.md",
+   "size": 14218,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/evaluation/huggingface-tokenizers/references/algorithms.md",
+   "size": 15835,
+   "title": "Tokenization Algorithms Deep Dive",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/evaluation/huggingface-tokenizers/references/integration.md",
+   "size": 16026,
+   "title": "Transformers Integration",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/evaluation/huggingface-tokenizers/references/pipeline.md",
+   "size": 17469,
+   "title": "Tokenization Pipeline Components",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/evaluation/huggingface-tokenizers/references/training.md",
+   "size": 15124,
+   "title": "Training Custom Tokenizers",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/evaluation/lm-evaluation-harness/SKILL.md",
+   "size": 12413,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/evaluation/lm-evaluation-harness/references/api-evaluation.md",
+   "size": 11604,
+   "title": "API Evaluation",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/evaluation/lm-evaluation-harness/references/benchmark-guide.md",
+   "size": 11257,
+   "title": "Benchmark Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/evaluation/lm-evaluation-harness/references/custom-tasks.md",
+   "size": 13727,
+   "title": "Custom Tasks",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/evaluation/lm-evaluation-harness/references/distributed-eval.md",
+   "size": 11945,
+   "title": "Distributed Evaluation",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/evaluation/nemo-curator/SKILL.md",
+   "size": 9749,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/evaluation/nemo-curator/references/deduplication.md",
+   "size": 2229,
+   "title": "Deduplication Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/evaluation/nemo-curator/references/filtering.md",
+   "size": 2453,
+   "title": "Quality Filtering Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/evaluation/saelens/SKILL.md",
+   "size": 13168,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/evaluation/saelens/references/api.md",
+   "size": 7301,
+   "title": "SAELens API Reference",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/evaluation/saelens/references/README.md",
+   "size": 2225,
+   "title": "SAELens Reference Documentation",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/evaluation/saelens/references/tutorials.md",
+   "size": 9701,
+   "title": "SAELens Tutorials",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/evaluation/weights-and-biases/SKILL.md",
+   "size": 13072,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/evaluation/weights-and-biases/references/artifacts.md",
+   "size": 14009,
+   "title": "Artifacts & Model Registry Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/evaluation/weights-and-biases/references/integrations.md",
+   "size": 16919,
+   "title": "Framework Integrations Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/evaluation/weights-and-biases/references/sweeps.md",
+   "size": 18522,
+   "title": "Comprehensive Hyperparameter Sweeps Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/huggingface-hub/SKILL.md",
+   "size": 3830,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/DESCRIPTION.md",
+   "size": 164,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/gguf/SKILL.md",
+   "size": 10775,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/gguf/references/advanced-usage.md",
+   "size": 11391,
+   "title": "GGUF Advanced Usage Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/gguf/references/troubleshooting.md",
+   "size": 9346,
+   "title": "GGUF Troubleshooting Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/guidance/SKILL.md",
+   "size": 15115,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/guidance/references/backends.md",
+   "size": 12564,
+   "title": "Backend Configuration Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/guidance/references/constraints.md",
+   "size": 16560,
+   "title": "Comprehensive Constraint Patterns",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/guidance/references/examples.md",
+   "size": 20846,
+   "title": "Production-Ready Examples",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/instructor/SKILL.md",
+   "size": 17595,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/instructor/references/examples.md",
+   "size": 2427,
+   "title": "Real-World Examples",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/instructor/references/providers.md",
+   "size": 1399,
+   "title": "Provider Configuration",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/instructor/references/validation.md",
+   "size": 15912,
+   "title": "Advanced Validation Patterns",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/llama-cpp/SKILL.md",
+   "size": 6198,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/llama-cpp/references/optimization.md",
+   "size": 1748,
+   "title": "Performance Optimization Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/llama-cpp/references/quantization.md",
+   "size": 5169,
+   "title": "GGUF Quantization Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/llama-cpp/references/server.md",
+   "size": 2384,
+   "title": "Server Deployment Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/obliteratus/SKILL.md",
+   "size": 15696,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/obliteratus/references/analysis-modules.md",
+   "size": 6436,
+   "title": "OBLITERATUS Analysis Modules — Reference",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/obliteratus/references/methods-guide.md",
+   "size": 6860,
+   "title": "OBLITERATUS Methods — Detailed Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/outlines/SKILL.md",
+   "size": 16631,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/outlines/references/backends.md",
+   "size": 15022,
+   "title": "Backend Configuration Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/outlines/references/examples.md",
+   "size": 22004,
+   "title": "Production-Ready Examples",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/outlines/references/json_generation.md",
+   "size": 15579,
+   "title": "Comprehensive JSON Generation Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/tensorrt-llm/SKILL.md",
+   "size": 5254,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/tensorrt-llm/references/multi-gpu.md",
+   "size": 6997,
+   "title": "Multi-GPU Deployment Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/tensorrt-llm/references/optimization.md",
+   "size": 5855,
+   "title": "TensorRT-LLM Optimization Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/tensorrt-llm/references/serving.md",
+   "size": 10268,
+   "title": "Production Serving Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/vllm/SKILL.md",
+   "size": 9418,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/vllm/references/optimization.md",
+   "size": 5995,
+   "title": "Performance Optimization",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/vllm/references/quantization.md",
+   "size": 7030,
+   "title": "Quantization Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/vllm/references/server-deployment.md",
+   "size": 5507,
+   "title": "Server Deployment Patterns",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/inference/vllm/references/troubleshooting.md",
+   "size": 9484,
+   "title": "Troubleshooting Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/models/DESCRIPTION.md",
+   "size": 194,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/models/audiocraft/SKILL.md",
+   "size": 16900,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/models/audiocraft/references/advanced-usage.md",
+   "size": 17619,
+   "title": "AudioCraft Advanced Usage Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/models/audiocraft/references/troubleshooting.md",
+   "size": 11916,
+   "title": "AudioCraft Troubleshooting Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/models/clip/SKILL.md",
+   "size": 7165,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/models/clip/references/applications.md",
+   "size": 5567,
+   "title": "CLIP Applications Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/models/llava/SKILL.md",
+   "size": 8165,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/models/llava/references/training.md",
+   "size": 4935,
+   "title": "LLaVA Training Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/models/segment-anything/SKILL.md",
+   "size": 13931,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/models/segment-anything/references/advanced-usage.md",
+   "size": 16392,
+   "title": "Segment Anything Advanced Usage Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/models/segment-anything/references/troubleshooting.md",
+   "size": 12398,
+   "title": "Segment Anything Troubleshooting Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/models/stable-diffusion/SKILL.md",
+   "size": 13536,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/models/stable-diffusion/references/advanced-usage.md",
+   "size": 18406,
+   "title": "Stable Diffusion Advanced Usage Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/models/stable-diffusion/references/troubleshooting.md",
+   "size": 12956,
+   "title": "Stable Diffusion Troubleshooting Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/models/whisper/SKILL.md",
+   "size": 7811,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/models/whisper/references/languages.md",
+   "size": 4975,
+   "title": "Whisper Language Support Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/research/DESCRIPTION.md",
+   "size": 116,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/research/dspy/SKILL.md",
+   "size": 15909,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/research/dspy/references/examples.md",
+   "size": 19646,
+   "title": "DSPy Real-World Examples",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/research/dspy/references/modules.md",
+   "size": 12838,
+   "title": "DSPy Modules",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/research/dspy/references/optimizers.md",
+   "size": 15499,
+   "title": "DSPy Optimizers (Teleprompters)",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/DESCRIPTION.md",
+   "size": 153,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/accelerate/SKILL.md",
+   "size": 8700,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/accelerate/references/custom-plugins.md",
+   "size": 12234,
+   "title": "Custom Plugins for Accelerate",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/accelerate/references/megatron-integration.md",
+   "size": 11741,
+   "title": "Megatron Integration with Accelerate",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/accelerate/references/performance.md",
+   "size": 13094,
+   "title": "Accelerate Performance Tuning",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/axolotl/SKILL.md",
+   "size": 4983,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/axolotl/references/api.md",
+   "size": 126692,
+   "title": "Axolotl - Api",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/axolotl/references/dataset-formats.md",
+   "size": 47072,
+   "title": "Axolotl - Dataset-Formats",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/axolotl/references/index.md",
+   "size": 214,
+   "title": "Axolotl Documentation Index",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/axolotl/references/other.md",
+   "size": 143968,
+   "title": "Axolotl - Other",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/flash-attention/SKILL.md",
+   "size": 10596,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/flash-attention/references/benchmarks.md",
+   "size": 7344,
+   "title": "Performance Benchmarks",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/flash-attention/references/transformers-integration.md",
+   "size": 7720,
+   "title": "HuggingFace Transformers Integration",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/grpo-rl-training/README.md",
+   "size": 3611,
+   "title": "GRPO/RL Training Skill",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/grpo-rl-training/SKILL.md",
+   "size": 17800,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/hermes-atropos-environments/SKILL.md",
+   "size": 13728,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/hermes-atropos-environments/references/agentresult-fields.md",
+   "size": 2114,
+   "title": "AgentResult Fields Reference",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/hermes-atropos-environments/references/atropos-base-env.md",
+   "size": 3098,
+   "title": "Atropos BaseEnv Reference",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/hermes-atropos-environments/references/usage-patterns.md",
+   "size": 6049,
+   "title": "Usage Patterns — Testing Environments and Evaluating Models",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/peft/SKILL.md",
+   "size": 12669,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/peft/references/advanced-usage.md",
+   "size": 13055,
+   "title": "PEFT Advanced Usage Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/peft/references/troubleshooting.md",
+   "size": 10824,
+   "title": "PEFT Troubleshooting Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/pytorch-fsdp/SKILL.md",
+   "size": 160299,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/pytorch-fsdp/references/index.md",
+   "size": 103,
+   "title": "Pytorch-Fsdp Documentation Index",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/pytorch-fsdp/references/other.md",
+   "size": 341761,
+   "title": "Pytorch-Fsdp - Other",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/pytorch-lightning/SKILL.md",
+   "size": 9495,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/pytorch-lightning/references/callbacks.md",
+   "size": 12467,
+   "title": "PyTorch Lightning Callbacks",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/pytorch-lightning/references/distributed.md",
+   "size": 11308,
+   "title": "PyTorch Lightning Distributed Training",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/pytorch-lightning/references/hyperparameter-tuning.md",
+   "size": 13073,
+   "title": "Hyperparameter Tuning with PyTorch Lightning",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/simpo/SKILL.md",
+   "size": 6163,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/simpo/references/datasets.md",
+   "size": 11367,
+   "title": "Datasets",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/simpo/references/hyperparameters.md",
+   "size": 8954,
+   "title": "Hyperparameters",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/simpo/references/loss-functions.md",
+   "size": 7417,
+   "title": "Loss Functions",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/slime/SKILL.md",
+   "size": 12092,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/slime/references/api-reference.md",
+   "size": 12299,
+   "title": "slime API Reference",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/slime/references/troubleshooting.md",
+   "size": 7607,
+   "title": "slime Troubleshooting Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/torchtitan/SKILL.md",
+   "size": 9313,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/torchtitan/references/checkpoint.md",
+   "size": 4397,
+   "title": "Checkpointing in TorchTitan",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/torchtitan/references/custom-models.md",
+   "size": 7641,
+   "title": "Adding Custom Models to TorchTitan",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/torchtitan/references/float8.md",
+   "size": 4188,
+   "title": "Float8 Training in TorchTitan",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/torchtitan/references/fsdp.md",
+   "size": 4014,
+   "title": "FSDP2 in TorchTitan",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/trl-fine-tuning/SKILL.md",
+   "size": 11934,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/trl-fine-tuning/references/dpo-variants.md",
+   "size": 4524,
+   "title": "DPO Variants",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/trl-fine-tuning/references/online-rl.md",
+   "size": 2053,
+   "title": "Online RL Methods",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/trl-fine-tuning/references/reward-modeling.md",
+   "size": 2719,
+   "title": "Reward Modeling",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/trl-fine-tuning/references/sft-training.md",
+   "size": 3405,
+   "title": "SFT Training Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/unsloth/SKILL.md",
+   "size": 2415,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/unsloth/references/index.md",
+   "size": 105,
+   "title": "Unsloth Documentation Index",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/unsloth/references/llms-full.md",
+   "size": 1094024,
+   "title": "Unsloth Docs",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/unsloth/references/llms-txt.md",
+   "size": 825133,
+   "title": "Unsloth - Llms-Txt",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/training/unsloth/references/llms.md",
+   "size": 12586,
+   "title": "Unsloth Documentation",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/vector-databases/DESCRIPTION.md",
+   "size": 128,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/vector-databases/chroma/SKILL.md",
+   "size": 9599,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/vector-databases/chroma/references/integration.md",
+   "size": 809,
+   "title": "Chroma Integration Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/vector-databases/faiss/SKILL.md",
+   "size": 5297,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/vector-databases/faiss/references/index_types.md",
+   "size": 6461,
+   "title": "FAISS Index Types Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/vector-databases/pinecone/SKILL.md",
+   "size": 8213,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/vector-databases/pinecone/references/deployment.md",
+   "size": 3738,
+   "title": "Pinecone Deployment Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/vector-databases/qdrant/SKILL.md",
+   "size": 13972,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/vector-databases/qdrant/references/advanced-usage.md",
+   "size": 15617,
+   "title": "Qdrant Advanced Usage Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/mlops/vector-databases/qdrant/references/troubleshooting.md",
+   "size": 13313,
+   "title": "Qdrant Troubleshooting Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/music-creation/DESCRIPTION.md",
+   "size": 120,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/note-taking/DESCRIPTION.md",
+   "size": 149,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/note-taking/obsidian/SKILL.md",
+   "size": 1330,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/productivity/DESCRIPTION.md",
+   "size": 117,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/productivity/google-workspace/SKILL.md",
+   "size": 8371,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/productivity/google-workspace/references/gmail-search-syntax.md",
+   "size": 2213,
+   "title": "Gmail Search Syntax",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/productivity/linear/SKILL.md",
+   "size": 11621,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/productivity/nano-pdf/SKILL.md",
+   "size": 1545,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/productivity/notion/SKILL.md",
+   "size": 5471,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/productivity/notion/references/block-types.md",
+   "size": 3133,
+   "title": "Notion Block Types",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/productivity/ocr-and-documents/DESCRIPTION.md",
+   "size": 150,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/productivity/ocr-and-documents/SKILL.md",
+   "size": 5570,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/productivity/powerpoint/editing.md",
+   "size": 7090,
+   "title": "Editing Presentations",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/productivity/powerpoint/pptxgenjs.md",
+   "size": 13239,
+   "title": "PptxGenJS Tutorial",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/productivity/powerpoint/SKILL.md",
+   "size": 9426,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/research/DESCRIPTION.md",
+   "size": 182,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/research/arxiv/SKILL.md",
+   "size": 10493,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/research/blogwatcher/SKILL.md",
+   "size": 1295,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/research/domain-intel/SKILL.md",
+   "size": 4613,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/research/duckduckgo-search/SKILL.md",
+   "size": 5874,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/research/ml-paper-writing/SKILL.md",
+   "size": 36538,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/research/ml-paper-writing/references/checklists.md",
+   "size": 11135,
+   "title": "Conference Paper Checklists",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/research/ml-paper-writing/references/citation-workflow.md",
+   "size": 15754,
+   "title": "Citation Management & Hallucination Prevention",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/research/ml-paper-writing/references/reviewer-guidelines.md",
+   "size": 10818,
+   "title": "Reviewer Guidelines & Evaluation Criteria",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/research/ml-paper-writing/references/sources.md",
+   "size": 7469,
+   "title": "Source Bibliography",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/research/ml-paper-writing/references/writing-guide.md",
+   "size": 16773,
+   "title": "ML Paper Writing Philosophy & Best Practices",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/research/ml-paper-writing/templates/README.md",
+   "size": 6958,
+   "title": "LaTeX Templates for ML/AI Conferences",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/research/ml-paper-writing/templates/aaai2026/README.md",
+   "size": 18520,
+   "title": "AAAI 2026 统一LaTeX模板使用说明 / AAAI 2026 Unified LaTeX Template Guide",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/research/ml-paper-writing/templates/acl/formatting.md",
+   "size": 18249,
+   "title": "Instructions for *ACL Proceedings",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/research/ml-paper-writing/templates/acl/README.md",
+   "size": 2176,
+   "title": "*ACL Paper Styles",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/research/ml-paper-writing/templates/colm2025/README.md",
+   "size": 54,
+   "title": "Template",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/research/parallel-cli/SKILL.md",
+   "size": 11329,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/research/polymarket/SKILL.md",
+   "size": 3122,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/research/polymarket/references/api-endpoints.md",
+   "size": 4762,
+   "title": "Polymarket API Endpoints Reference",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/smart-home/DESCRIPTION.md",
+   "size": 126,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/smart-home/openhue/SKILL.md",
+   "size": 2878,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/social-media/DESCRIPTION.md",
+   "size": 154,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/social-media/xitter/SKILL.md",
+   "size": 6342,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/software-development/code-review/SKILL.md",
+   "size": 2292,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/software-development/plan/SKILL.md",
+   "size": 2126,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/software-development/requesting-code-review/SKILL.md",
+   "size": 6418,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/software-development/subagent-driven-development/SKILL.md",
+   "size": 10185,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/software-development/systematic-debugging/SKILL.md",
+   "size": 10904,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/software-development/test-driven-development/SKILL.md",
+   "size": 9967,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/software-development/writing-plans/SKILL.md",
+   "size": 7605,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/æ/SKILL.md",
+   "size": 2851,
+   "title": "---",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/æ/references/mesh-identity.md",
+   "size": 542,
+   "title": "Mesh Identity",
+   "cat": "skill"
+  },
+  {
+   "path": "skills/æ/references/scalar-supremacy.md",
+   "size": 1549,
+   "title": "Scalar Supremacy via Private Client Viewports",
+   "cat": "skill"
+  },
+  {
+   "path": "tools/vlc/README.md",
+   "size": 5924,
+   "title": "VLC media player",
+   "cat": "other"
+  },
+  {
+   "path": "tools/vlc/contrib/src/README.md",
+   "size": 3662,
+   "title": "Writing rules",
+   "cat": "other"
+  },
+  {
+   "path": "tools/vlc/doc/BUILD-win32.md",
+   "size": 14302,
+   "title": "Compile VLC for Windows",
+   "cat": "other"
+  },
+  {
+   "path": "tools/vlc/doc/clock.md",
+   "size": 4715,
+   "title": "Clock Architecture",
+   "cat": "other"
+  },
+  {
+   "path": "tools/vlc/doc/executor.md",
+   "size": 9410,
+   "title": "Executor",
+   "cat": "other"
+  },
+  {
+   "path": "tools/vlc/doc/libvlc/CHANGES-v3-to-v4.md",
+   "size": 22948,
+   "title": "LibVLC 3 to 4 Migration Guide",
+   "cat": "other"
+  },
+  {
+   "path": "tools/vlc/doc/standalone/buildsystem.md",
+   "size": 12120,
+   "title": "Buildsystem documentation {#buildsystem}",
+   "cat": "other"
+  },
+  {
+   "path": "tools/vlc/doc/standalone/libvlc.md",
+   "size": 877,
+   "title": "LibVLC Documentation {#libvlc}",
+   "cat": "other"
+  },
+  {
+   "path": "tools/vlc/doc/standalone/mainpage.md",
+   "size": 782,
+   "title": "\\mainpage",
+   "cat": "other"
+  },
+  {
+   "path": "tools/vlc/doc/standalone/rust.md",
+   "size": 4280,
+   "title": "Rust bindings for vlccore #{rust_bindings}",
+   "cat": "other"
+  },
+  {
+   "path": "tools/vlc/share/lua/extensions/Extensions.md",
+   "size": 213,
+   "title": "VLC Lua Extensions",
+   "cat": "other"
+  },
+  {
+   "path": "vscode-remote-use/OPENSOURCEWARE_BOUNDARY.md",
+   "size": 883,
+   "title": "OpenSourceWare Boundary",
+   "cat": "other"
+  },
+  {
+   "path": "vscode-remote-use/README.md",
+   "size": 3228,
+   "title": "Hermes Agent — VS Code Extension",
+   "cat": "other"
+  },
+  {
+   "path": "vscode-remote-use/RELEASE_MANIFEST.md",
+   "size": 2269,
+   "title": "Release Manifest: vscode-remote-use",
+   "cat": "other"
+  }
+ ]
+}
