@@ -144,3 +144,7 @@ apps/desktop/demo/
 # PR body is the archive. See the hermes-agent-dev skill's
 # pr-infographic-workflow reference (storage rule + lapse #8 / #COMMIT-1).
 infographic/
+
+# Manim render temp
+media/**/partial_movie_files/
+media/**/*_partial*

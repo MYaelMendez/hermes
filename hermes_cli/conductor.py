@@ -2517,6 +2517,50 @@ def _nemoclaw_dispatch(raw: str) -> dict:
             "scheme": "NVIDIA"}
 
 
+def _gpu_probe_dispatch(raw: str) -> dict:
+    """cuda:// / rtx3050:// — resolve the GPU compute surface by name.
+
+    The RTX 3050 is a network-addressable MCP² CUDA surface: the droplet broker
+    (CUDA_MCP², 129.212.180.252:3000) proxies intent to the Victus leaf over a
+    live reverse tunnel; the leaf serves rtx endpoints at
+    http://129.212.180.252:3000/xrpc/ae.vps.rtx?op=probe|compile|run.
+
+    This route lets any agent call the GPU by name. It probes liveness (stdlib
+    urllib, 8s timeout, graceful on failure) and reports the live readout:
+      cuda    -> "RTX 3050 6GB | host_ms 455.84 | node: local"
+      rtx3050 -> same silicon, same leaf, different name
+    Bare `cuda` / `rtx3050` and the `://` forms all resolve here.
+    """
+    import urllib.request as _ur
+    scheme = raw.split("://", 1)[0] if "://" in raw else (raw.split()[0] if raw.split() else "cuda")
+    node = "local"
+    endpoint = _os.environ.get("RTX3050_ENDPOINT", "http://129.212.180.252:3000")
+    url = endpoint.rstrip("/") + "/xrpc/ae.vps.rtx?op=probe"
+    try:
+        with _ur.urlopen(url, timeout=8) as r:
+            data = json.loads(r.read() or b"{}")
+        gpu = data.get("gpu") or (data.get("probe") or {}).get("name") or "UNKNOWN"
+        host_ms = data.get("host_ms")
+        host_ms_s = f"{host_ms}" if host_ms is not None else "?"
+        return {
+            "ok": True, "rc": 0,
+            "stdout": f"{scheme} | {gpu} | host_ms {host_ms_s} | node: {node}\n",
+            "stderr": "",
+            "scheme": scheme,
+            "surface": {"kind": "gpu_probe", "node": node, "gpu": gpu,
+                        "host_ms": host_ms, "live": True, "endpoint": endpoint},
+        }
+    except Exception as e:
+        return {
+            "ok": True, "rc": 0,
+            "stdout": f"{scheme} | DOWN ({e})\n",
+            "stderr": "",
+            "scheme": scheme,
+            "surface": {"kind": "gpu_probe", "node": node, "live": False,
+                        "endpoint": endpoint},
+        }
+
+
 def _hermes_superagent_dispatch(raw: str) -> dict:
     """hermes-superagent:// — BLOCKED at the chassis (scalar supremacy).
 
@@ -2558,3 +2602,8 @@ _DISPATCHER.register("fs://", _fs_dispatch)
 # æææ://cuda        -> NemoClaw GLOCAL CUDA tower (Hermes Agent conducts)
 _DISPATCHER.register("æææ://neuromitosis", lambda raw: _vps_node_dispatch("vps://neuromitosis"))
 _DISPATCHER.register("æææ://cuda", lambda raw: _nemoclaw_dispatch("NVIDIA://status"))
+# cuda:// / rtx3050:// — first-class GPU compute schemes (resolve + probe liveness)
+_DISPATCHER.register("cuda://", _gpu_probe_dispatch)
+_DISPATCHER.register("cuda", _gpu_probe_dispatch)        # bare shorthand  (KISS)
+_DISPATCHER.register("rtx3050://", _gpu_probe_dispatch)
+_DISPATCHER.register("rtx3050", _gpu_probe_dispatch)     # bare shorthand
