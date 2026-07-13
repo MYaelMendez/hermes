@@ -28,6 +28,13 @@ Dialects plug in as sub-schemes, each its own chassis:
 | `rtx3050://` / `cuda://` | **GPU-in-MCP** — RTX 3050 as a network-addressable CUDA compute surface |
 | `cuda_IDE_RTX` | live GPU/MCP demo surface |
 
+The operator glyph **☺** (U+263A) spans both owned domains —
+[`æææ.com`](https://æææ.com) (agentic storefront mesh) and
+[`moltcontextprotocol.com`](https://moltcontextprotocol.com) (the Molt Context
+Protocol — the agentic cortex / proto-memory surface). `☺://` is the operator
+scheme; `☺://cc` is command & control across both. (æ is Yæl's glyph; ☺ is the
+operator's.)
+
 ## The unlock: GPU in MCP terms, with CUDA
 
 Your RTX 3050 is not "a laptop GPU" — it is a **network-addressable MCP compute

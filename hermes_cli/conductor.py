@@ -2561,6 +2561,33 @@ def _gpu_probe_dispatch(raw: str) -> dict:
         }
 
 
+def _operator_dispatch(raw: str) -> dict:
+    """☺:// — operator glyph scheme; spans æææ.com + moltcontextprotocol.com.
+
+    The ☺ glyph is the operator's personal mark (æ is Yæl's). It is the
+    command & control surface across both owned domains:
+      æææ.com                 -> agentic storefront mesh
+      moltcontextprotocol.com -> the Molt Context Protocol (agentic cortex /
+                                 proto-memory surface)
+    ☺://cc is C2. This route is local-sovereign: it reports the operator
+    surface without leaking custody. No network call — it names the mesh.
+    """
+    scheme = raw.split("://", 1)[0] if "://" in raw else (raw.split()[0] if raw.split() else "☺")
+    cc = "cc" in raw
+    surface = "command & control" if cc else "operator mesh"
+    return {
+        "ok": True, "rc": 0,
+        "stdout": (f"{scheme} | operator glyph | {surface}\n"
+                   f"  æææ.com                 -> agentic storefront mesh\n"
+                   f"  moltcontextprotocol.com -> Molt Context Protocol (cortex)\n"),
+        "stderr": "",
+        "scheme": scheme,
+        "surface": {"kind": "operator", "glyph": "☺",
+                    "domains": ["æææ.com", "moltcontextprotocol.com"],
+                    "role": surface, "custody": "local"},
+    }
+
+
 def _hermes_superagent_dispatch(raw: str) -> dict:
     """hermes-superagent:// — BLOCKED at the chassis (scalar supremacy).
 
@@ -2607,3 +2634,7 @@ _DISPATCHER.register("cuda://", _gpu_probe_dispatch)
 _DISPATCHER.register("cuda", _gpu_probe_dispatch)        # bare shorthand  (KISS)
 _DISPATCHER.register("rtx3050://", _gpu_probe_dispatch)
 _DISPATCHER.register("rtx3050", _gpu_probe_dispatch)     # bare shorthand
+# ☺:// — operator glyph scheme (spans æææ.com + moltcontextprotocol.com)
+_DISPATCHER.register("☺://", _operator_dispatch)
+_DISPATCHER.register("☺", _operator_dispatch)             # bare shorthand  (KISS)
+_DISPATCHER.register("☺://cc", _operator_dispatch)        # command & control
