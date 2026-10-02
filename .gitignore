@@ -148,3 +148,7 @@ infographic/
 # Manim render temp
 media/**/partial_movie_files/
 media/**/*_partial*
+
+# Contest bundle artifact (heavy vendored tree + zip) — deliverable, not source
+contest-submission-v2/
+contest-submission-v2.zip
