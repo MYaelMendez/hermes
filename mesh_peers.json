@@ -1,0 +1,44 @@
+{
+  "legion": {
+    "mesh": "pc://mesh/legion/local",
+    "token": "3881745859e25ea1",
+    "via": "wifi",
+    "accepted_at": "2026-07-12T23:38:04"
+  },
+  "sovereign": {
+    "mesh": "pc://mesh/sovereign/local",
+    "via": "glocal",
+    "primitive": ">_\u00e6:",
+    "route": "\u00e6://",
+    "conducts": "scheme routing, +\u00e6://route/+\u00e6://mesh/+\u00e6://secrets/+\u00e6://identity",
+    "rides_on": "vps://neuromitosis (droplet brain)",
+    "spawned_at": "2026-07-12T23:38:04"
+  },
+  "intent": {
+    "mesh": "pc://mesh/intent/local",
+    "via": "glocal",
+    "primitive": ">_h:",
+    "route": "hermes-agent",
+    "conducts": "Hermes Agent conductor / SchemeDispatcher \u2014 conducts all other peers",
+    "rides_on": "conductor runtime (this process)",
+    "spawned_at": "2026-07-12T23:38:04"
+  },
+  "compute": {
+    "mesh": "pc://mesh/compute/local",
+    "via": "glocal",
+    "primitive": ">_n:",
+    "route": "NVIDIA://",
+    "conducts": "NemoClaw GLOCAL CUDA (matmul/probe) via RTX 3050 hands",
+    "rides_on": "rtx3050:// (Victus) + vps://cloud (burst slot)",
+    "spawned_at": "2026-07-12T23:38:04"
+  },
+  "rails": {
+    "mesh": "pc://mesh/rails/local",
+    "via": "glocal",
+    "primitive": ">_$:",
+    "route": "doola-affiliate://",
+    "conducts": "Doola affiliate \u2014 paid, zero custody. Plugin scaffolding open (sovereignty test)",
+    "rides_on": "doola affiliate terms (no money-flow, no KYC/AML on operator)",
+    "spawned_at": "2026-07-12T23:38:04"
+  }
+}

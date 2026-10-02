@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hermes Agentic HTML Viewport</title>
+    <style>
+      :root {
+        --bg: #050505;
+        --panel: #111111;
+        --text: #d4af37;
+        --muted: #9f9f9f;
+      }
+      body {
+        margin: 0;
+        padding: 16px;
+        font-family: "Orbitron", "JetBrains Mono", monospace;
+        background: var(--bg);
+        color: var(--text);
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid #222;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 12px;
+      }
+      h1 { margin: 0 0 8px; font-size: 18px; }
+      h2 { margin: 0 0 8px; font-size: 14px; color: var(--muted); }
+      .row { margin: 6px 0; }
+      .k { color: var(--muted); }
+      .v { color: var(--text); word-break: break-all; }
+      pre {
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+        color: #f2f2f2;
+      }
+      audio, video { width: 100%; margin-top: 8px; }
+      video { max-height: 320px; background: #000; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Hermes Agentic HTML Viewport</h1>
+      <div class="row"><span class="k">Action:</span> <span class="v">{{ACTION}}</span></div>
+      <div class="row"><span class="k">Engine:</span> <span class="v">{{ENGINE}}</span></div>
+      <div class="row"><span class="k">Surface:</span> <span class="v">{{SURFACE}}</span></div>
+      <div class="row"><span class="k">Manifest:</span> <span class="v">{{MANIFEST_PATH}}</span></div>
+    </div>
+
+    <div class="card">
+      <h2>Execution</h2>
+      <pre>{{COMMAND}}</pre>
+    </div>
+
+    <div class="card">
+      <h2>Integrity</h2>
+      <div class="row"><span class="k">Manifest SHA256:</span> <span class="v">{{MANIFEST_SHA256}}</span></div>
+      <div class="row"><span class="k">Input SHA256:</span> <span class="v">{{INPUT_SHA256}}</span></div>
+    </div>
+
+    <div class="card">
+      <h2>Input Preview</h2>
+      {{INPUT_PREVIEW}}
+    </div>
+
+    <div class="card">
+      <h2>Output Preview</h2>
+      {{OUTPUT_PREVIEW}}
+    </div>
+  </body>
+</html>

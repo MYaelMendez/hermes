@@ -1,0 +1,6 @@
+file 'C:/æ/hermes-fork/movies/hermes-code-mcp2/media/videos/hermes_code_mcp2/480p15/HermesCodeIntro.mp4'
+file 'C:/æ/hermes-fork/movies/hermes-code-mcp2/media/videos/hermes_code_mcp2/480p15/VictusLocalRoot.mp4'
+file 'C:/æ/hermes-fork/movies/hermes-code-mcp2/media/videos/hermes_code_mcp2/480p15/ConductorDispatch.mp4'
+file 'C:/æ/hermes-fork/movies/hermes-code-mcp2/media/videos/hermes_code_mcp2/480p15/MCP2Mesh.mp4'
+file 'C:/æ/hermes-fork/movies/hermes-code-mcp2/media/videos/hermes_code_mcp2/480p15/LocalTokenProof.mp4'
+file 'C:/æ/hermes-fork/movies/hermes-code-mcp2/media/videos/hermes_code_mcp2/480p15/Closing.mp4'

@@ -1,0 +1,22 @@
+rem +bæsic:// skill_evolution — reference + logging helper (in-language)
+rem
+rem lesson: the agentic-chassis-surface SKILL.md reconstructs itself from the
+rem cognitive trace. This helper documents how to APPEND a `skill_evolution`
+rem delta to the sovereign meta_memory trace (C:\ae\meta_memory.csv). The human
+rem reviews the delta and, if it merits, folds the note into the SKILL.md section
+rem "## Cognitive Trace (meta_memory)". No silent auto-edit of the skill.
+rem
+rem human steers: agent PROPOSES a delta via compose; human reviews + applies.
+rem
+rem run as a named program (crash-free reference):
+rem   +bæsic:// skill_evolution
+rem the REAL logging goes through the inline COMPOSE call printed below
+rem (subroutines in a separate .bæsic file are NOT reachable from a compose temp
+rem  file, and compose runs vars left-to-right, so inline-assign before use).
+
+10 print "skill_evolution: log a chassis-surface evolution delta"
+20 print "canonical COMPOSE call (agent proposes, human steers):"
+30 print "+bæsic:// compose k$ = "skill_evolution" : v$ = "<note>" : t$ = now$() : mem$ = "C:\ae\meta_memory.csv" : row$ = cat$(t$; "|"; k$; "|"; v$) : r = append_line$(cat$(mem$; "|"; row$)) : print "proposed: "; v$ : end"
+40 print "review + fold into agentic-chassis-surface SKILL.md (## Cognitive Trace) — human step."
+50 print "verify co-fire surfaces it: Hæbbian:// -> surface.meta_memory.proposed_skill_notes"
+60 end
