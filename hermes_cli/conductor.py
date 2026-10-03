@@ -1528,18 +1528,42 @@ def _local_mcp_invoke(tool: str, args: dict) -> dict | None:
         return None  # any local failure → broker proxy
 
 
+_HOST = "teknium"  # sovereign hostname (honoring Teknium, Nous Research)
+
 def _aecore_dispatch(raw: str) -> dict:
     """æ:// — the sovereign namespace router.
 
     Unifies all surface schemes into a single addressable fabric:
-      æ://gpu/<op>       → local RTX 3050 compute
-      æ://videolab/<cmd> → video rendering + telemetry
-      æ://vps/<node>     → backbone node status
-      æ://mesh           → list all bots + liveness
-      æ://cc             → conductor surface (human)
+      æ://mesh                → list all bots + liveness
+      æ://gpu/<op>            → local RTX 3050 compute
+      æ://videolab/<cmd>      → video rendering + telemetry
+      æ://vps/<node>          → backbone node status
+      æ://cc                  → conductor surface (human)
+      æ://teknium             → this sovereign host profile
+
+    The hostname is `teknium` — a sovereign node honoring Teknium (Nous Research),
+    the co-founder who proved that one agent manager + 1,393 worker agents can
+    refactor a million lines of Python without human mid-task decisions.
     """
     import json as _json
+    import socket
+    try:
+        host = socket.gethostname()
+    except Exception:
+        host = _HOST
     rest = raw.split("æ://", 1)[1].strip() if "æ://" in raw else ""
+    # --- æ://teknium or æ://host — this sovereign host profile ---
+    if rest in ("teknium", "host", "this", "self") or not rest:
+        return {"ok": True, "rc": 0,
+                "stdout": f"æ://teknium — sovereign compute node\n  hostname : {host}\n  operator : ☺://cc\n  mesh     : pc://mesh/victus/local\n",
+                "stderr": "", "scheme": "æ",
+                "surface": {"kind": "host", "address": "æ://teknium",
+                            "hostname": "teknium", "system_hostname": host,
+                            "operator": "☺://cc",
+                            "mesh": "pc://mesh/victus/local",
+                            "gpu": "NVIDIA GeForce RTX 3050 6GB",
+                            "brain_model": "qwen2.5-coder:7b",
+                            "location": "local"}}
     # --- æ://mesh — list all bots + liveness ---
     if not rest or rest == "mesh" or rest == "mesh/list":
         nodes = []
@@ -1548,8 +1572,9 @@ def _aecore_dispatch(raw: str) -> dict:
         nodes.append({"name": "vps_node", "kind": "broker", "status": "live",
                       "address": "vps://129.212.180.252:3000",
                       "tools": ["rtx3050://matmul", "rtx3050://probe"]})
-        nodes.append({"name": "gpu-mcp", "kind": "compute", "status": "live",
-                      "address": "æ://gpu", "hardware": "RTX 3050 6GB"})
+        nodes.append({"name": "teknium", "kind": "compute", "status": "live",
+                      "address": "æ://teknium", "hardware": "RTX 3050 6GB",
+                      "hostname": _HOST, "operator": "☺://cc"})
         # check leaf liveness
         leaf_live = False
         try:
@@ -1584,9 +1609,9 @@ def _aecore_dispatch(raw: str) -> dict:
                 "surface": {"kind": "conductor", "address": "æ://cc",
                             "operator": "☺://cc",
                             "bots": 3,
-                            "surfaces": ["æ://mesh", "æ://gpu", "æ://videolab"]}}
+                            "surfaces": ["æ://mesh", "æ://teknium", "æ://gpu", "æ://videolab"]}}
     return {"ok": True, "rc": 0,
-            "stdout": f"æ://{rest} — available: æ://mesh, æ://gpu/<op>, æ://videolab/<cmd>, æ://vps/<node>, æ://cc\n",
+            "stdout": f"æ://{rest} — available: æ://mesh, æ://teknium, æ://gpu/<op>, æ://videolab/<cmd>, æ://vps/<node>, æ://cc\n",
             "stderr": "", "scheme": "æ",
             "surface": {"kind": "aecore", "address": f"æ://{rest}"}}
 
