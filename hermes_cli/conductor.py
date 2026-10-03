@@ -54,7 +54,7 @@ def _cctx_dispatch(raw: str) -> dict:
     return {
         "ok": True,
         "rc": 0,
-        "stdout": f"cctx → {target}\n",
+        "stdout": f"cctx -> {target}\n",
         "stderr": "",
         "surface": {
             "kind": "cctx",
@@ -65,23 +65,23 @@ def _cctx_dispatch(raw: str) -> dict:
 
 
 def _aectx_dispatch(raw: str) -> dict:
-    """æ:// — the agentic-language-chassis: sovereign context router.
+    """?:// - the agentic-language-chassis: sovereign context router.
 
-    ``æ://`` is the namespace/runtime for agentic languages. Bare ``æ://`` is
+    ``?://`` is the namespace/runtime for agentic languages. Bare ``?://`` is
     the catch-all context router: it resolves the target surface and reports
     whether that target is a live registered scheme. Dialects plug in as
     sub-schemes, each a chassis of its own:
-      - ``æ://basic``   (+bæsic://)  -> qc64 BASIC chassis (qc64_basic.py)
-      - ``æ://mech``    (mech-lang)  -> reactive dataflow state machines
-      - ``æ://glocal-agent``        -> sovereign local agent (GPU-MCP)
-      - ``+æ://cc``                -> command & control surface
-    ``+æ://`` (the +æ superset) routes here as its catch-all.
+      - ``?://basic``   (+b?sic://)  -> qc64 BASIC chassis (qc64_basic.py)
+      - ``?://mech``    (mech-lang)  -> reactive dataflow state machines
+      - ``?://glocal-agent``        -> sovereign local agent (GPU-MCP)
+      - ``+?://cc``                -> command & control surface
+    ``+?://`` (the +? superset) routes here as its catch-all.
     """
-    target = raw.split("æ://", 1)[1].strip() if "æ://" in raw else "pc://"
+    target = raw.split("?://", 1)[1].strip() if "?://" in raw else "pc://"
     return {
         "ok": True,
         "rc": 0,
-        "stdout": f"aectx → {target}\n",
+        "stdout": f"aectx -> {target}\n",
         "stderr": "",
         "surface": {
             "kind": "aectx",
@@ -110,16 +110,16 @@ def _identity_dispatch(raw: str) -> dict:
     return {
         "ok": True,
         "rc": 0,
-        "stdout": "+æ://identity bounded private client mesh^hermes-agent/conductor\n",
+        "stdout": "+?://identity bounded private client mesh^hermes-agent/conductor\n",
         "stderr": "",
         "surface": {
             "kind": "bounded_private_client_mesh",
-            "address": "+æ://identity",
+            "address": "+?://identity",
             "conductor": "hermes-agent/conductor",
             "runtime": "bounded_dispatch",
             "contract": "PCSurfaceContract",
             "governance": {
-                "required": "+æ member token",
+                "required": "+? member token",
                 "audit": True,
                 "tracer": "Wyoming DAO LLC audit trail",
             },
@@ -127,8 +127,123 @@ def _identity_dispatch(raw: str) -> dict:
     }
 
 
+# --- known sovereign routes (GLOCAL: droplet = public brain, Victus = hands) ---
+# `cloud` is the burst MoD node: provisioned on demand (RunPod/Vast/DO-gpu),
+# identical vps_node deploys to it. Slot is codemode-ready - endpoint is filled
+# when a pod appears (see +?://route register); no cloud spend until then.
+import os as _os
+_VPS_ROUTES = {
+    "neuromitosis": {
+        "endpoint": "http://129.212.180.252:3000",
+        "role": "vps:// backbone - public identity/data + rtx3050:// front door",
+        "host": "DigitalOcean s-2vcpu-4gb atl1",
+        "kind": "sovereign",
+    },
+    "cloud": {
+        "endpoint": _os.environ.get("VPS_CLOUD_ENDPOINT", ""),
+        "role": "burst CUDA hands (Mixture of Devices) - pod-provisioned",
+        "host": _os.environ.get("VPS_CLOUD_HOST", "(unprovisioned)"),
+        "kind": "burst",
+    },
+}
+
+
+def _vps_register_dispatch(raw: str) -> dict:
+    """+?://route register vps://<name> <endpoint> [--host ...] - add a MoD node.
+
+    codemode: a device becomes an addressable route. Persists to a local ledger
+    (no cloud), survives the session. The `cloud` burst node is registered this way
+    once a pod is up.
+    """
+    import re as _re
+    rest = raw.split("register", 1)[1].strip() if "register" in raw else ""
+    m = _re.match(r"(vps://\S+)\s+(\S+)(?:\s+--host\s+(\S+))?", rest)
+    if not m:
+        return {"ok": False, "rc": 2, "stdout": "",
+                "stderr": "usage: +?://route register vps://<name> <endpoint> [--host <host>]"}
+    name = m.group(1).split("vps://", 1)[1].split("/")[0]
+    endpoint = m.group(2)
+    host = m.group(3) or "(unknown)"
+    _VPS_ROUTES[name] = {"endpoint": endpoint, "role": "registered MoD node", "host": host,
+                          "kind": "burst" if name == "cloud" else "peer"}
+    return {"ok": True, "rc": 0,
+            "stdout": f"+?://route register {name} -> {endpoint}\n  now addressable as vps://{name}\n",
+            "stderr": "", "scheme": "+?", "scheme_detail": "+?://route register",
+            "surface": {"kind": "route_register", "node": name, "endpoint": endpoint}}
+
+
+def _vps_node_dispatch(raw: str) -> dict:
+    """vps:// - sovereign backbone node (droplet) as an addressable route.
+
+    vps://                 -> list known backbone nodes + liveness
+    vps://neuromitosis     -> status probe of the live droplet endpoint
+    """
+    import urllib.request as _ur
+
+    node = raw.split("vps://", 1)[1].strip() if "vps://" in raw else ""
+    node = node.split("/")[0].split("?")[0].strip()
+    if not node:
+        lines = ["vps:// - sovereign backbone nodes (GLOCAL)"]
+        for name, info in _VPS_ROUTES.items():
+            lines.append(f"  {name:12} {info['endpoint']}  [{info['role']}]")
+        lines.append("  (probe a node: vps://<name>)")
+        return {"ok": True, "rc": 0, "stdout": "\n".join(lines), "stderr": "",
+                "scheme": "vps", "surface": {"kind": "vps_list", "routes": list(_VPS_ROUTES)}}
+
+    info = _VPS_ROUTES.get(node)
+    if not info:
+        return {"ok": False, "rc": 2, "stdout": "", "stderr": f"unknown vps node: {node}",
+                "scheme": "vps"}
+    url = info["endpoint"].rstrip("/") + "/xrpc/ae.vps.status"
+    try:
+        with _ur.urlopen(url, timeout=8) as r:
+            data = json.loads(r.read() or b"{}")
+        live = data.get("vps") == "up"
+        return {"ok": True, "rc": 0,
+                "stdout": (f"vps://{node} -> {info['endpoint']}\n"
+                           f"  liveness: {'UP' if live else 'DOWN'}\n"
+                           f"  role    : {info['role']}\n"
+                           f"  records : {data.get('records')}\n"
+                           f"  compute : {data.get('compute')}\n"),
+                "stderr": "", "scheme": "vps",
+                "surface": {"kind": "vps_node", "node": node, "live": live,
+                            "endpoint": info["endpoint"]}}
+    except Exception as e:
+        return {"ok": True, "rc": 0,
+                "stdout": (f"vps://{node} -> {info['endpoint']}\n"
+                           f"  liveness: DOWN (probe failed: {e})\n"
+                           f"  role    : {info['role']}\n"),
+                "stderr": "", "scheme": "vps",
+                "surface": {"kind": "vps_node", "node": node, "live": False,
+                            "endpoint": info["endpoint"]}}
+
+
+def _route_dispatch(raw: str) -> dict:
+    """+?://route - report the registered GLOCAL route tower.
+
+    Surfaces: pc://mesh/victus/local (Victus RTX hands), vps://neuromitosis
+    (droplet brain), +?:// (conductor), github.io (surface). Honest, no claims
+    unless the node answers.
+    """
+    rest = raw.split("+?://route", 1)[1].strip() if "+?://route" in raw else ""
+    if rest.startswith("register"):
+        return _vps_register_dispatch(raw)
+    parts = []
+    parts.append("+?://route - GLOCAL route tower (Mixture of Devices)")
+    parts.append("  github.io        -> surface source of truth (public)")
+    parts.append("  +?://            -> conductor (local broker)")
+    parts.append("  pc://mesh/victus -> Victus RTX 3050 (sovereign hands, offline-capable)")
+    for name, info in _VPS_ROUTES.items():
+        ep = info["endpoint"] or "(unprovisioned)"
+        parts.append(f"  vps://{name:11} -> {ep}  [{info.get('kind','peer')}]")
+    parts.append("  register a node: +?://route register vps://<name> <endpoint> [--host <h>]")
+    return {"ok": True, "rc": 0, "stdout": "\n".join(parts), "stderr": "",
+            "scheme": "+?", "scheme_detail": "+?://route",
+            "surface": {"kind": "route_tower", "vps": list(_VPS_ROUTES)}}
+
+
 def _pc_dispatch(raw: str) -> dict:
-    """pc:// — the private-client runtime on the sovereign mesh.
+    """pc:// - the private-client runtime on the sovereign mesh.
 
     Canonical mesh is ``pc://mesh/victus/local`` (offline brain + local hands).
     A bare ``pc://`` reports the mesh; ``pc://<node>`` addresses a node on it.
@@ -156,17 +271,17 @@ def _qrcode_dispatch(raw: str) -> dict:
     html = ""
     action = None
     source = "unknown"
-    if raw.partition("+æ://")[2].strip().startswith("qrcode payload "):
-        html = raw.split("+æ://qrcode payload ", 1)[1].strip()
+    if raw.partition("+?://")[2].strip().startswith("qrcode payload "):
+        html = raw.split("+?://qrcode payload ", 1)[1].strip()
         source = "payload"
     else:
-        path = raw.split("+æ://qrcode", 1)[1].strip() if "+æ://qrcode" in raw else ""
+        path = raw.split("+?://qrcode", 1)[1].strip() if "+?://qrcode" in raw else ""
         if not path:
             return {
                 "ok": False,
                 "rc": 2,
                 "stdout": "",
-                "stderr": "missing +æ://qrcode payload or file path",
+                "stderr": "missing +?://qrcode payload or file path",
                 "surface": {"kind": "qrcode_surface", "address": raw, "runtime": "hermes-code"},
             }
         path = path.strip()
@@ -193,7 +308,7 @@ def _qrcode_dispatch(raw: str) -> dict:
     return {
         "ok": True,
         "rc": 0,
-        "stdout": f"+æ://qrcode {source} -> {qr_path}\n",
+        "stdout": f"+?://qrcode {source} -> {qr_path}\n",
         "stderr": "",
         "surface": {
             "kind": "qrcode_surface",
@@ -217,12 +332,12 @@ def _qrcode_headless_manifest(html: str) -> dict[str, object | None]:
     token = None
     action = None
     target_surface = None
-    for marker in ["<!-- +æ_qrcode_token:", "<!-- qrcode_token:", "<!-- token:"]:
+    for marker in ["<!-- +?_qrcode_token:", "<!-- qrcode_token:", "<!-- token:"]:
         if marker in stripped:
             token = stripped.split(marker, 1)[1].split("-->", 1)[0].strip()
             break
     for marker, kind in [
-        ("<!-- +æ_qrcode_action:", "action"),
+        ("<!-- +?_qrcode_action:", "action"),
         ("<!-- qrcode_action:", "action"),
         ("<!-- target_surface:", "target_surface"),
     ]:
@@ -251,7 +366,7 @@ def _write_qrcode_image(html: str, raw: str, source: str) -> str:
     try:
         import qrcode
     except Exception:
-        raise RuntimeError("qrcode is required for +æ://qrcode")
+        raise RuntimeError("qrcode is required for +?://qrcode")
     safe_source = source.replace("/", "_").replace("\\", "_") or "input"
     if not safe_source.endswith(".html"):
         safe_source = f"{safe_source}.html"
@@ -289,15 +404,15 @@ def _write_qrcode_image(html: str, raw: str, source: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# +æ://mesh  — sovereign LAN mesh pairing via QR handshake (opt-in, no cloud)
+# +?://mesh  - sovereign LAN mesh pairing via QR handshake (opt-in, no cloud)
 # ---------------------------------------------------------------------------
-# Emitter:  +æ://mesh offer <name>   -> writes a QR PNG encoding a peer manifest
+# Emitter:  +?://mesh offer <name>   -> writes a QR PNG encoding a peer manifest
 #           (ae://peer?host=<name>&mesh=pc://mesh/<name>/local&port=<lan>&
 #            token=<ephemeral>&via=wifi). The NEW node emits; the sovereign node
 #           scans + accepts.
-# Receiver: +æ://mesh accept <payload>  -> registers pc://mesh/<name>/local as a
+# Receiver: +?://mesh accept <payload>  -> registers pc://mesh/<name>/local as a
 #           real route. NEVER auto-trusts a scanned code; explicit accept only.
-# Peers persist locally (scoped JSON) — no cloud, no secrets in the code.
+# Peers persist locally (scoped JSON) - no cloud, no secrets in the code.
 _PEERS_FILE = REPO / "mesh_peers.json"
 _PEER_REGISTRY: dict[str, dict] = {}
 
@@ -322,7 +437,7 @@ def _mesh_save_peers() -> None:
         pass
 
 
-# ── fleet registry (MoD): mixture of sovereign devices ─────────────────────
+# ?? fleet registry (MoD): mixture of sovereign devices ?????????????????????
 _FLEET_FILE = REPO / "fleet_registry.json"
 _FLEET_REGISTRY: dict[str, dict] = {}
 
@@ -361,12 +476,12 @@ def _mesh_local_lan_ip() -> str:
 
 
 def _mesh_dispatch(raw: str) -> dict:
-    """+æ://mesh — sovereign LAN mesh pairing via QR handshake.
+    """+?://mesh - sovereign LAN mesh pairing via QR handshake.
 
-    +æ://mesh offer <name>  -> emit a QR carrying a peer manifest
-    +æ://mesh accept <pay>  -> register a scanned peer route (explicit, opt-in)
+    +?://mesh offer <name>  -> emit a QR carrying a peer manifest
+    +?://mesh accept <pay>  -> register a scanned peer route (explicit, opt-in)
     """
-    rest = raw.split("+æ://mesh", 1)[1].strip() if "+æ://mesh" in raw else ""
+    rest = raw.split("+?://mesh", 1)[1].strip() if "+?://mesh" in raw else ""
     if rest.startswith("offer"):
         return _mesh_offer_dispatch(raw)
     if rest.startswith("accept"):
@@ -375,18 +490,18 @@ def _mesh_dispatch(raw: str) -> dict:
         "ok": True,
         "rc": 0,
         "stdout": (
-            "+æ://mesh — sovereign LAN mesh pairing (QR handshake, opt-in)\n"
-            "  +æ://mesh offer <name>   emit QR carrying peer manifest\n"
-            "  +æ://mesh accept <pay>   register scanned peer as pc://mesh/<name>/local\n"
+            "+?://mesh - sovereign LAN mesh pairing (QR handshake, opt-in)\n"
+            "  +?://mesh offer <name>   emit QR carrying peer manifest\n"
+            "  +?://mesh accept <pay>   register scanned peer as pc://mesh/<name>/local\n"
         ),
         "stderr": "",
-        "scheme_detail": "+æ://mesh",
+        "scheme_detail": "+?://mesh",
         "surface": {"kind": "mesh_help"},
     }
 
 
 def _mesh_offer_dispatch(raw: str) -> dict:
-    """+æ://mesh offer <name> — emit a QR carrying a peer manifest for <name>."""
+    """+?://mesh offer <name> - emit a QR carrying a peer manifest for <name>."""
     name = raw.split("offer", 1)[1].strip() if "offer" in raw else ""
     if not name:
         name = "legion"
@@ -403,15 +518,15 @@ def _mesh_offer_dispatch(raw: str) -> dict:
         "ok": True,
         "rc": 0,
         "stdout": (
-            f"+æ://mesh offer {name}\n"
+            f"+?://mesh offer {name}\n"
             f"  QR     : {qr_path}\n"
             f"  route  : {route}\n"
             f"  token  : {token} (ephemeral, shown to scanner only)\n"
-            f"  scan with the sovereign node, then run: +æ://mesh accept <payload>\n"
+            f"  scan with the sovereign node, then run: +?://mesh accept <payload>\n"
         ),
         "stderr": "",
-        "scheme": "+æ",
-        "scheme_detail": "+æ://mesh offer",
+        "scheme": "+?",
+        "scheme_detail": "+?://mesh offer",
         "surface": {
             "kind": "mesh_offer",
             "route": route,
@@ -425,15 +540,15 @@ def _mesh_offer_dispatch(raw: str) -> dict:
 
 
 def _mesh_accept_dispatch(raw: str) -> dict:
-    """+æ://mesh accept <payload> — register a scanned peer route (explicit)."""
+    """+?://mesh accept <payload> - register a scanned peer route (explicit)."""
     payload = raw.split("accept", 1)[1].strip() if "accept" in raw else ""
     if not payload:
         return {
             "ok": False,
             "rc": 2,
             "stdout": "",
-            "stderr": "missing peer payload — scan a +æ://mesh offer QR first",
-            "scheme_detail": "+æ://mesh accept",
+            "stderr": "missing peer payload - scan a +?://mesh offer QR first",
+            "scheme_detail": "+?://mesh accept",
         }
     # accept either the full manifest URI or a json blob
     try:
@@ -454,7 +569,7 @@ def _mesh_accept_dispatch(raw: str) -> dict:
             "rc": 2,
             "stdout": "",
             "stderr": f"could not parse peer payload: {exc}",
-            "scheme_detail": "+æ://mesh accept",
+            "scheme_detail": "+?://mesh accept",
         }
     if not name or not mesh:
         return {
@@ -462,7 +577,7 @@ def _mesh_accept_dispatch(raw: str) -> dict:
             "rc": 2,
             "stdout": "",
             "stderr": "peer payload missing host/mesh",
-            "scheme_detail": "+æ://mesh accept",
+            "scheme_detail": "+?://mesh accept",
         }
     _mesh_load_peers()
     _PEER_REGISTRY[name] = {
@@ -479,13 +594,13 @@ def _mesh_accept_dispatch(raw: str) -> dict:
         "ok": True,
         "rc": 0,
         "stdout": (
-            f"+æ://mesh accept {name}\n"
+            f"+?://mesh accept {name}\n"
             f"  route registered: {mesh}\n"
             f"  peer persisted locally (no cloud). Now addressable as {mesh}.\n"
         ),
         "stderr": "",
-        "scheme": "+æ",
-        "scheme_detail": "+æ://mesh accept",
+        "scheme": "+?",
+        "scheme_detail": "+?://mesh accept",
         "surface": {
             "kind": "mesh_accept",
             "route": mesh,
@@ -515,14 +630,92 @@ def _mesh_peer_dispatch(raw: str) -> dict:
     }
 
 
-def _fleet_dispatch(raw: str) -> dict:
-    """+æ://fleet — mixture of devices (MoD) across sovereign nodes.
+# Capability subagents of the private-client GLOCAL mesh. Each primitive from
+# AGENTS.md becomes its own addressable peer node; the conductor conducts the
+# primitive, the peer just routes + carries a capability manifest.
+_GLOCAL_CAP_SUBAGENTS = {
+    "sovereign": {
+        "primitive": ">_?:", "route": "?://",
+        "conducts": "scheme routing, +?://route/+?://mesh/+?://secrets/+?://identity",
+        "rides_on": "vps://neuromitosis (droplet brain)",
+    },
+    "intent": {
+        "primitive": ">_h:", "route": "hermes-agent",
+        "conducts": "Hermes Agent conductor / SchemeDispatcher - conducts all other peers",
+        "rides_on": "conductor runtime (this process)",
+    },
+    "compute": {
+        "primitive": ">_n:", "route": "NVIDIA://",
+        "conducts": "NemoClaw GLOCAL CUDA (matmul/probe) via RTX 3050 hands",
+        "rides_on": "rtx3050:// (Victus) + vps://cloud (burst slot)",
+    },
+    "rails": {
+        "primitive": ">_$:", "route": "doola-affiliate://",
+        "conducts": "Doola affiliate - paid, zero custody. Plugin scaffolding open (sovereignty test)",
+        "rides_on": "doola affiliate terms (no money-flow, no KYC/AML on operator)",
+    },
+}
 
-    +æ://fleet offer <name> [--models m1,m2]   emit a QR carrying a capability manifest
-    +æ://fleet join <manifest> --node <n> --models <csv>  register a device into the mixture
-    +æ://fleet list                             show current fleet (MoD)
+
+def _mesh_glocal_dispatch(raw: str) -> dict:
+    """+?://mesh glocal - spawn the four capability subagents into the mesh.
+
+    Each AGENTS.md primitive (>_?: >_h: >_n: >_$) becomes a peer node
+    addressable as pc://mesh/<cap>/local, conducting its primitive. The
+    physical backbone is vps://neuromitosis (brain) + rtx3050:// (hands);
+    the subagents are capability routes riding on that glocal mesh.
     """
-    rest = raw.split("+æ://fleet", 1)[1].strip() if "+æ://fleet" in raw else ""
+    rest = raw.split("glocal", 1)[1].strip() if "glocal" in raw else ""
+    if rest in ("", "spawn", "up"):
+        _mesh_load_peers()
+        spawned = []
+        for cap, info in _GLOCAL_CAP_SUBAGENTS.items():
+            addr = f"pc://mesh/{cap}/local"
+            # register as a live, addressable peer route (no shadowing of
+            # pc://mesh/victus/... device nodes - capability names are distinct)
+            _DISPATCHER.register(f"pc://mesh/{cap}/", _mesh_peer_dispatch)
+            _PEER_REGISTRY[cap] = {
+                "mesh": addr, "via": "glocal",
+                "primitive": info["primitive"], "route": info["route"],
+                "conducts": info["conducts"], "rides_on": info["rides_on"],
+                "spawned_at": datetime.datetime.now().isoformat(timespec="seconds"),
+            }
+            spawned.append(cap)
+        _mesh_save_peers()
+        lines = ["+?://mesh glocal - private-client GLOCAL mesh: capability subagents spawned",
+                 "  each primitive is now an addressable peer (pc://mesh/<cap>/local):"]
+        for cap in spawned:
+            i = _PEER_REGISTRY[cap]
+            lines.append(f"  * {cap:9} {i['primitive']:5} -> {i['mesh']}")
+            lines.append(f"      conducts: {i['conducts']}")
+            lines.append(f"      rides on: {i['rides_on']}")
+        lines.append("  address a subagent:  pc://mesh/<cap>/local")
+        lines.append("  physical backbone :  vps://neuromitosis (brain) + rtx3050:// (hands)")
+        return {"ok": True, "rc": 0, "stdout": "\n".join(lines), "stderr": "",
+                "scheme": "+?", "scheme_detail": "+?://mesh glocal",
+                "surface": {"kind": "glocal_mesh", "subagents": spawned,
+                            "backbone": ["vps://neuromitosis", "rtx3050://"]}}
+    if rest == "list":
+        _mesh_load_peers()
+        lines = ["+?://mesh glocal - capability subagents:"]
+        for cap, i in _PEER_REGISTRY.items():
+            if i.get("via") == "glocal":
+                lines.append(f"  * {cap:9} {i.get('primitive',''):5} -> {i.get('mesh')}")
+        return {"ok": True, "rc": 0, "stdout": "\n".join(lines), "stderr": "",
+                "surface": {"kind": "glocal_mesh_list"}}
+    return {"ok": False, "rc": 2, "stdout": "",
+            "stderr": f"mesh glocal: unknown action '{rest}' (spawn|list)",
+            "scheme_detail": "+?://mesh glocal"}
+
+
+def _fleet_dispatch(raw: str) -> dict:
+    """+?://fleet - mixture of devices (MoD) across sovereign nodes.
+
+    +?://fleet offer <name> [--models m1,m2]   emit a QR carrying a capability manifest
+    +?://fleet join <manifest> --node <n> --models <csv>  register a device into the mixture
+    +?://fleet list                             show current fleet (MoD)
+    """
+    rest = raw.split("+?://fleet", 1)[1].strip() if "+?://fleet" in raw else ""
     if rest.startswith("offer"):
         return _fleet_offer_dispatch(raw)
     if rest.startswith("join"):
@@ -533,19 +726,19 @@ def _fleet_dispatch(raw: str) -> dict:
         "ok": True,
         "rc": 0,
         "stdout": (
-            "+æ://fleet — mixture of sovereign devices (MoD)\n"
-            "  +æ://fleet offer <name> [--models m1,m2]   emit capability QR\n"
-            "  +æ://fleet join <manifest> --node <n> --models <csv>  register device\n"
-            "  +æ://fleet list                             current fleet (MoD)\n"
+            "+?://fleet - mixture of sovereign devices (MoD)\n"
+            "  +?://fleet offer <name> [--models m1,m2]   emit capability QR\n"
+            "  +?://fleet join <manifest> --node <n> --models <csv>  register device\n"
+            "  +?://fleet list                             current fleet (MoD)\n"
         ),
         "stderr": "",
-        "scheme_detail": "+æ://fleet",
+        "scheme_detail": "+?://fleet",
         "surface": {"kind": "fleet_help"},
     }
 
 
 def _fleet_offer_dispatch(raw: str) -> dict:
-    """+æ://fleet offer <name> [--models ...] — emit QR carrying capability manifest."""
+    """+?://fleet offer <name> [--models ...] - emit QR carrying capability manifest."""
     import re as _re
     rest = raw.split("offer", 1)[1].strip() if "offer" in raw else ""
     # split off --models flag
@@ -568,16 +761,16 @@ def _fleet_offer_dispatch(raw: str) -> dict:
         "ok": True,
         "rc": 0,
         "stdout": (
-            f"+æ://fleet offer {name}\n"
+            f"+?://fleet offer {name}\n"
             f"  QR     : {qr_path}\n"
             f"  route  : {route}\n"
             f"  models : {models or '(none advertised)'}\n"
             f"  token  : {token} (ephemeral)\n"
-            f"  scan with a device running fleet.html, then: +æ://fleet join <manifest> --node <n>\n"
+            f"  scan with a device running fleet.html, then: +?://fleet join <manifest> --node <n>\n"
         ),
         "stderr": "",
-        "scheme": "+æ",
-        "scheme_detail": "+æ://fleet offer",
+        "scheme": "+?",
+        "scheme_detail": "+?://fleet offer",
         "surface": {
             "kind": "fleet_offer",
             "route": route,
@@ -591,7 +784,7 @@ def _fleet_offer_dispatch(raw: str) -> dict:
 
 
 def _fleet_join_dispatch(raw: str) -> dict:
-    """+æ://fleet join <manifest> --node <n> --models <csv> — register a device into the mixture."""
+    """+?://fleet join <manifest> --node <n> --models <csv> - register a device into the mixture."""
     import re as _re
     rest = raw.split("join", 1)[1].strip() if "join" in raw else ""
     m = _re.search(r"--node\s+([^\s]+)", rest)
@@ -614,13 +807,13 @@ def _fleet_join_dispatch(raw: str) -> dict:
         return {
             "ok": False, "rc": 2, "stdout": "",
             "stderr": f"could not parse fleet manifest: {exc}",
-            "scheme_detail": "+æ://fleet join",
+            "scheme_detail": "+?://fleet join",
         }
     if not host or not mesh:
         return {
             "ok": False, "rc": 2, "stdout": "",
             "stderr": "fleet manifest missing host/mesh",
-            "scheme_detail": "+æ://fleet join",
+            "scheme_detail": "+?://fleet join",
         }
     _fleet_load()
     _FLEET_REGISTRY[node] = {
@@ -634,39 +827,39 @@ def _fleet_join_dispatch(raw: str) -> dict:
     return {
         "ok": True, "rc": 0,
         "stdout": (
-            f"+æ://fleet join {node}\n"
+            f"+?://fleet join {node}\n"
             f"  engineering computer: {host} ({mesh})\n"
             f"  device registered     : {node}\n"
             f"  models advertised     : {models or '(none)'}\n"
             f"  fleet now has {len(_FLEET_REGISTRY)} node(s). Mixture of devices (MoD) updated.\n"
         ),
         "stderr": "",
-        "scheme": "+æ",
-        "scheme_detail": "+æ://fleet join",
+        "scheme": "+?",
+        "scheme_detail": "+?://fleet join",
         "surface": {"kind": "fleet_join", "node": node, "mesh": mesh, "models": models},
     }
 
 
 def _fleet_list_dispatch() -> dict:
-    """+æ://fleet list — current fleet (MoD)."""
+    """+?://fleet list - current fleet (MoD)."""
     _fleet_load()
     if not _FLEET_REGISTRY:
         return {
             "ok": True, "rc": 0,
-            "stdout": "+æ://fleet list — fleet empty (0 nodes). Offer one with +æ://fleet offer.\n",
-            "stderr": "", "scheme_detail": "+æ://fleet list",
+            "stdout": "+?://fleet list - fleet empty (0 nodes). Offer one with +?://fleet offer.\n",
+            "stderr": "", "scheme_detail": "+?://fleet list",
             "surface": {"kind": "fleet_list", "nodes": []},
         }
-    lines = [f"+æ://fleet list — {len(_FLEET_REGISTRY)} node(s) (MoD):"]
+    lines = [f"+?://fleet list - {len(_FLEET_REGISTRY)} node(s) (MoD):"]
     for node, info in _FLEET_REGISTRY.items():
         lines.append(
-            f"  • {node}: {info.get('host')} ({info.get('mesh')}) "
-            f"models={','.join(info.get('models', [])) or '—'} role={info.get('role')}"
+            f"  * {node}: {info.get('host')} ({info.get('mesh')}) "
+            f"models={','.join(info.get('models', [])) or '-'} role={info.get('role')}"
         )
     return {
         "ok": True, "rc": 0,
         "stdout": "\n".join(lines) + "\n",
-        "stderr": "", "scheme_detail": "+æ://fleet list",
+        "stderr": "", "scheme_detail": "+?://fleet list",
         "surface": {"kind": "fleet_list", "nodes": _FLEET_REGISTRY},
     }
 
@@ -702,22 +895,22 @@ def _home_dispatch(raw: str) -> dict:
                 "terminal": "commandprompt://",
                 "editor": "vscode://",
                 "files": "fs://",
-                "victus": "+æ://victus",
+                "victus": "+?://victus",
                 "nvidia": "NVIDIA://",
                 "vlc": "vlc://",
                 "ffmpeg": "ffmpeg://",
-                "qr": "+æ://qrcode",
+                "qr": "+?://qrcode",
                 "mesh": "pc://mesh/victus/local",
             },
             "shortcuts": [
-                "fs://stat C:/æ/hermes-fork",
-                "fs://tree C:/æ",
+                "fs://stat C:/?/hermes-fork",
+                "fs://tree C:/?",
                 "commandprompt://",
-                "vscode://open C:\\æ\\hermes-fork",
-                "+æ://victus",
+                "vscode://open C:\\?\\hermes-fork",
+                "+?://victus",
                 "NVIDIA://status",
                 "vlc://status",
-                "+æ://qrcode payload <html>",
+                "+?://qrcode payload <html>",
                 "home://",
             ],
         },
@@ -800,11 +993,11 @@ def _conductor_dispatch(raw: str) -> dict:
     return {
         "ok": True,
         "rc": 0,
-        "stdout": "+æ://conductor → AE Engineering Hub\n",
+        "stdout": "+?://conductor -> AE Engineering Hub\n",
         "stderr": "",
         "surface": {
             "kind": "ae_engineering_hub",
-            "address": f"+æ://conductor/{action or 'status'}",
+            "address": f"+?://conductor/{action or 'status'}",
             "action": action or "status",
             "runtime": "hermes-agent",
         },
@@ -822,13 +1015,13 @@ def _victus_dispatch(raw: str) -> dict:
         _VICTUS = VictusSuperagent()
         _VICTUS.start()
 
-    action = raw.split("+æ://victus", 1)[1].strip() if "+æ://victus" in raw else ""
+    action = raw.split("+?://victus", 1)[1].strip() if "+?://victus" in raw else ""
     command = action.split()[0] if action.split() else "gauntlet"
     args = action.split(" ", 1)[1].strip() if " " in action else ""
     if command in {"gauntlet", "status"}:
         result = _VICTUS.gauntlet()
-        result.setdefault("scheme", "+æ")
-        result.setdefault("scheme_detail", "+æ://victus")
+        result.setdefault("scheme", "+?")
+        result.setdefault("scheme_detail", "+?://victus")
         result.setdefault("surface", {}).setdefault("address", raw)
         result.setdefault("surface", {}).setdefault("kind", "victus_superagent")
         return result
@@ -848,7 +1041,7 @@ def _victus_dispatch(raw: str) -> dict:
         return {
             "ok": enqueue.get("accepted", False),
             "rc": 0 if enqueue.get("accepted") else 2,
-            "stdout": f"+æ://victus submit {kind.value}\n",
+            "stdout": f"+?://victus submit {kind.value}\n",
             "stderr": enqueue.get("reason", ""),
             "surface": {
                 "kind": "victus_superagent_submit",
@@ -861,7 +1054,7 @@ def _victus_dispatch(raw: str) -> dict:
         "ok": False,
         "rc": 2,
         "stdout": "",
-        "stderr": f"unsupported +æ://victus command: {command}",
+        "stderr": f"unsupported +?://victus command: {command}",
         "surface": {"kind": "victus_superagent", "address": raw, "runtime": "hermes-code"},
     }
 
@@ -870,11 +1063,11 @@ def _media_dispatch(raw: str) -> dict:
     return {
         "ok": True,
         "rc": 0,
-        "stdout": "+æ://media^ffmpeg → deterministic media pipeline\n",
+        "stdout": "+?://media^ffmpeg -> deterministic media pipeline\n",
         "stderr": "",
         "surface": {
             "kind": "media",
-            "address": "+æ://media^ffmpeg",
+            "address": "+?://media^ffmpeg",
             "runtime": "ffmpeg",
             "execution": "deterministic",
             "allowed": [
@@ -884,7 +1077,7 @@ def _media_dispatch(raw: str) -> dict:
                 "watermark/distribute to members",
             ],
             "governance": {
-                "required": "+æ member token",
+                "required": "+? member token",
                 "audit": True,
                 "tracer": "Wyoming DAO LLC audit trail",
             },
@@ -935,7 +1128,7 @@ def _h_dispatch(raw: str) -> dict:
     return {
         "ok": True,
         "rc": 0,
-        "stdout": "H://global agentic domain — hermes-agent\n",
+        "stdout": "H://global agentic domain - hermes-agent\n",
         "stderr": "",
         "surface": {
             "kind": "domain",
@@ -963,7 +1156,7 @@ def _vscode_dispatch(raw: str) -> dict:
     return {
         "ok": True,
         "rc": 0,
-        "stdout": "vscode://viewport host — VS Code as the runtime surface for the local HTML/CSS/WASM viewport\n",
+        "stdout": "vscode://viewport host - VS Code as the runtime surface for the local HTML/CSS/WASM viewport\n",
         "stderr": "",
         "surface": {
             "kind": "viewport_host",
@@ -975,10 +1168,10 @@ def _vscode_dispatch(raw: str) -> dict:
 
 
 def _robot_surface(raw: str, model: str, node: str, flagship: bool) -> dict:
-    """Shared robot surface — abstract embodied-agent scheme on the pc:// mesh.
+    """Shared robot surface - abstract embodied-agent scheme on the pc:// mesh.
 
     ``robot://`` is the generic embodiment scheme; ``reachy://`` is the flagship
-    instance (Reachy Mini, our poster work → its own DAOLLC + Stripe clerk).
+    instance (Reachy Mini, our poster work -> its own DAOLLC + Stripe clerk).
     Both resolve here so every robot rides one surface on the sovereign mesh.
     """
     label = f"{model} operator surface" + (" (flagship)" if flagship else "")
@@ -1001,7 +1194,7 @@ def _robot_surface(raw: str, model: str, node: str, flagship: bool) -> dict:
 
 
 def _robot_dispatch(raw: str) -> dict:
-    """robot:// — the abstract embodied-agent scheme. ``robot://<model> <node>``."""
+    """robot:// - the abstract embodied-agent scheme. ``robot://<model> <node>``."""
     rest = raw.split("robot://", 1)[1].strip() if "robot://" in raw else ""
     parts = rest.split(None, 1)
     model = parts[0] if parts and parts[0] else "generic"
@@ -1010,23 +1203,23 @@ def _robot_dispatch(raw: str) -> dict:
 
 
 def _reachy_dispatch(raw: str) -> dict:
-    """reachy:// — Reachy Mini, the flagship robot instance (poster work)."""
+    """reachy:// - Reachy Mini, the flagship robot instance (poster work)."""
     node = raw.split("reachy://", 1)[1].strip() if "reachy://" in raw else ""
     return _robot_surface(raw, "reachy", node or "pc://mesh/victus/local", flagship=True)
 
 
 def _glocal_agent_dispatch(raw: str) -> dict:
-    """æ://glocal-agent — the canonical name for the sovereign local agent
-    primitive (+æ^glocal): an offline brain + local CUDA/Rust/WASM hands exposed
-    as a GPU-MCP control surface. Alias of +æ://cc home:// under one scheme."""
+    """?://glocal-agent - the canonical name for the sovereign local agent
+    primitive (+?^glocal): an offline brain + local CUDA/Rust/WASM hands exposed
+    as a GPU-MCP control surface. Alias of +?://cc home:// under one scheme."""
     node = raw.split("glocal-agent", 1)[1].strip() or "home://"
     return {
         "ok": True,
         "rc": 0,
-        "stdout": f"æ://glocal-agent {node} -> gpu-mcp (sovereign local agent)\n",
+        "stdout": f"?://glocal-agent {node} -> gpu-mcp (sovereign local agent)\n",
         "stderr": "",
-        "scheme": "æ",
-        "scheme_detail": "æ://glocal-agent",
+        "scheme": "?",
+        "scheme_detail": "?://glocal-agent",
         "surface": {
             "kind": "mcp",
             "address": "mcp://gpu-mcp",
@@ -1037,39 +1230,39 @@ def _glocal_agent_dispatch(raw: str) -> dict:
 
 
 def _cc_dispatch(raw: str) -> dict:
-    """+æ://cc — command & control surface. Routes to the local GPU-MCP server
+    """+?://cc - command & control surface. Routes to the local GPU-MCP server
     (gpu-mcp, the protocol-native control surface for the
-    Victus node: +æ://cc home:// -> local CUDA + Rust/WASM hands over MCP."""
-    target = raw.split("+æ://cc", 1)[1].strip() or "home://"
+    Victus node: +?://cc home:// -> local CUDA + Rust/WASM hands over MCP."""
+    target = raw.split("+?://cc", 1)[1].strip() or "home://"
     return {
         "ok": True,
         "rc": 0,
-        "stdout": f"+æ://cc {target} -> gpu-mcp (local control surface)\n",
+        "stdout": f"+?://cc {target} -> gpu-mcp (local control surface)\n",
         "stderr": "",
-        "scheme": "+æ",
-        "scheme_detail": "+æ://cc",
+        "scheme": "+?",
+        "scheme_detail": "+?://cc",
         "surface": {
             "kind": "mcp",
             "address": "mcp://gpu-mcp",
-            "node": target,  # e.g. home:// (Victus) — the local sovereign node
+            "node": target,  # e.g. home:// (Victus) - the local sovereign node
             "launch": "python -m gpu_mcp",
         },
     }
 
 
 def _glocal_cloud_computer_dispatch(raw: str) -> dict:
-    """+æ://glocal cloud computer — the hybrid sovereign compute surface.
+    """+?://glocal cloud computer - the hybrid sovereign compute surface.
 
     glocal  = local sovereign agent (local brain + local CUDA/Rust-WASM hands)
     cloud   = an *opt-in* Nous Portal brain (hermes model --provider portal)
 
-    The hybrid contract (per the +æ://glocal cloud computer thesis):
+    The hybrid contract (per the +?://glocal cloud computer thesis):
       - HANDS are ALWAYS local  -> gpu-mcp (sovereign, offline, no lock-in)
       - BRAIN  is configurable  -> local (ollama/WebLLM) by default,
                                    cloud (Nous Portal) only when explicitly
                                    requested via the `cloud` token.
     This is brain/hands separation: a compute surface that is global when you
-    opt in and local by default — never the reverse.
+    opt in and local by default - never the reverse.
     """
     rest = raw.split("cloud computer", 1)[1].strip() if "cloud computer" in raw else ""
     tokens = rest.split()
@@ -1082,13 +1275,13 @@ def _glocal_cloud_computer_dispatch(raw: str) -> dict:
         "ok": True,
         "rc": 0,
         "stdout": (
-            f"+æ://glocal cloud computer -> hybrid surface\n"
+            f"+?://glocal cloud computer -> hybrid surface\n"
             f"  hands : local  (gpu-mcp, sovereign CUDA/Rust-WASM)\n"
             f"  brain : {brain}{' (opt-in Nous Portal)' if cloud_requested else ' (default local)'}\n"
         ),
         "stderr": "",
-        "scheme": "+æ",
-        "scheme_detail": "+æ://glocal cloud computer",
+        "scheme": "+?",
+        "scheme_detail": "+?://glocal cloud computer",
         "surface": {
             "kind": "hybrid",
             "address": "pc://mesh/victus/local",
@@ -1115,11 +1308,11 @@ except Exception:
 
 
 def _desktop_dispatch(raw: str) -> dict:
-    """desktop:// — the generative desktop surface, now hermes-agent native.
+    """desktop:// - the generative desktop surface, now hermes-agent native.
 
     Bridges the scheme to the real WindowsDesktop actuator (user32/SendInput),
     so explorer.exe and every desktop window become addressable agentic
-    surfaces — a non-flagship robot-shaped actuator on the sovereign mesh.
+    surfaces - a non-flagship robot-shaped actuator on the sovereign mesh.
     Falls back to intent-reporting when the Windows runtime is unavailable.
     """
     rest = raw.split("desktop://", 1)[1].strip() if "desktop://" in raw else ""
@@ -1136,7 +1329,7 @@ def _desktop_dispatch(raw: str) -> dict:
             "scheme_detail": "desktop://",
             "surface": {
                 "kind": "desktop", "address": "desktop://", "action": action,
-                "control": "+æ://cc", "node": "pc://mesh/victus/local",
+                "control": "+?://cc", "node": "pc://mesh/victus/local",
                 "runtime": "hermes-code", "local_only": True,
                 "native": False,
             },
@@ -1152,7 +1345,7 @@ def _desktop_dispatch(raw: str) -> dict:
                 "stderr": "", "scheme_detail": "desktop://",
                 "surface": {"kind": "desktop", "action": "enumerate",
                             "count": len(wins), "native": True,
-                            "node": "pc://mesh/victus/local", "control": "+æ://cc"},
+                            "node": "pc://mesh/victus/local", "control": "+?://cc"},
             }
         if action == "focus":
             r = _DESKTOP.focus(arg)
@@ -1174,7 +1367,7 @@ def _desktop_dispatch(raw: str) -> dict:
             "stdout": f"desktop:// {action} -> WindowsDesktop (command & control)\n",
             "stderr": "", "scheme_detail": "desktop://",
             "surface": {"kind": "desktop", "address": "desktop://", "action": action,
-                        "control": "+æ://cc", "node": "pc://mesh/victus/local",
+                        "control": "+?://cc", "node": "pc://mesh/victus/local",
                         "runtime": "hermes-code", "local_only": True, "native": True},
         }
     except Exception as exc:  # surface actuator failure honestly
@@ -1192,7 +1385,7 @@ def _desktop_result(r, action: str) -> dict:
     surf["action"] = action
     surf["native"] = True
     surf["node"] = "pc://mesh/victus/local"
-    surf["control"] = "+æ://cc"
+    surf["control"] = "+?://cc"
     return {
         "ok": r.ok, "rc": 0 if r.ok else 1,
         "stdout": r.stdout + "\n", "stderr": r.stderr,
@@ -1202,7 +1395,7 @@ def _desktop_result(r, action: str) -> dict:
 
 
 def _hæbbian_dispatch(raw: str) -> dict:
-    """Hæbbian:// == neuromitosis:// — the rewiring command.
+    """Hæbbian:// == neuromitosis:// - the rewiring command.
 
     Hæbbian (fire-together-wire-together) is the *mechanism*; neuromitosis
     (Human + Robot + DAO bonded) is the *event*. They are the same chassis
@@ -1211,14 +1404,14 @@ def _hæbbian_dispatch(raw: str) -> dict:
     wiring map, and confirms the `agentic-chassis-surface` skill is
     discoverable so a reset pre-loads the procedure.
     """
-    name = "neuromitosis://" if raw.strip().lower().startswith("neuromitosis") else "Hæbbian://"
+    name = "neuromitosis://" if raw.strip().lower().startswith("neuromitosis") else "H?bbian://"
     # surfaces that fired together this session (the wired synapses)
     wired = [
         ("file://", "sovereign-scoped read, count>mutate, OneDrive-denied"),
         ("computer://", "agentic computer on Victus GPU-MCP (live probe)"),
         ("desktop://", "hermes-agent native -> WindowsDesktop (user32/SendInput)"),
-        ("+bæsic://", "qc64 ledger: counts/graphs in-language, end-halt fixed"),
-        ("æ://", "agentic-language-chassis: longest-prefix route router"),
+        ("+b?sic://", "qc64 ledger: counts/graphs in-language, end-halt fixed"),
+        ("?://", "agentic-language-chassis: longest-prefix route router"),
     ]
     # the skill that reconstructs the procedure on reset
     skill = "agentic-chassis-surface"
@@ -1227,7 +1420,7 @@ def _hæbbian_dispatch(raw: str) -> dict:
         "ok": True,
         "rc": 0,
         "stdout": (
-            f"{name} — agents that fire together, wire together\n"
+            f"{name} - agents that fire together, wire together\n"
             "== neuromitosis:// (Human + Robot + DAO bonded): the wiring IS the bond\n"
             "wiring map (surfaces co-fired this session):\n"
             f"{map_lines}\n"
@@ -1239,7 +1432,7 @@ def _hæbbian_dispatch(raw: str) -> dict:
         "scheme_detail": "neuromitosis://",
         "surface": {
             "kind": "neuromitosis",
-            "equals": "Hæbbian://",
+            "equals": "H?bbian://",
             "wired_surfaces": [s for s, _ in wired],
             "skill": skill,
             "skill_discoverable": True,
@@ -1251,13 +1444,13 @@ def _hæbbian_dispatch(raw: str) -> dict:
 
 
 def _bæsic_dispatch(raw: str) -> dict:
-    """+bæsic:// — BASIC chassis for +æ:// language conventions (qc64 grammær).
+    """+bæsic:// - BASIC chassis for +æ:// language conventions (qc64 grammær).
 
     Routes a scheme line through the line-numbered BASIC interpreter
     (qc64_basic.py). A bare program name (e.g. `+bæsic:// ledger`) actually
     executes it via the interpreter; otherwise it reports the chassis route.
     """
-    target = raw.split("+bæsic://", 1)[1].strip() or "home://"
+    target = raw.split("+b?sic://", 1)[1].strip() or "home://"
     if target and not target.startswith("http") and " " not in target.split("/")[0]:
         # looks like a program name -> run it for real
         import subprocess
@@ -1272,35 +1465,96 @@ def _bæsic_dispatch(raw: str) -> dict:
                 "rc": proc.returncode,
                 "stdout": proc.stdout,
                 "stderr": proc.stderr,
-                "scheme": "+bæsic", "scheme_detail": "+bæsic://",
+                "scheme": "+b?sic", "scheme_detail": "+b?sic://",
                 "surface": {"kind": "basic", "address": "basic://qc64",
                             "program": target, "node": "pc://mesh/victus/local",
                             "native": True},
             }
         except Exception as exc:  # pragma: no cover
             return {"ok": False, "rc": 1, "stdout": "", "stderr": str(exc),
-                    "scheme_detail": "+bæsic://"}
+                    "scheme_detail": "+b?sic://"}
     return {
         "ok": True, "rc": 0,
-        "stdout": f"+bæsic:// {target} -> qc64_basic (BASIC chassis)\n",
-        "stderr": "", "scheme": "+bæsic", "scheme_detail": "+bæsic://",
+        "stdout": f"+b?sic:// {target} -> qc64_basic (BASIC chassis)\n",
+        "stderr": "", "scheme": "+b?sic", "scheme_detail": "+b?sic://",
         "surface": {"kind": "basic", "address": "basic://qc64", "node": target,
                     "launch": "python qc64_basic.py"},
     }
 
 
 def _mcp_dispatch(raw: str) -> dict:
-    target = raw.split("mcp://", 1)[1].strip() or "tools"
+    """mcp:// — MCP² mesh routing.
+
+    mcp://tools                           -> list tools on the live broker
+    mcp://invoke <tool>?<args>             -> invoke a tool via the broker
+    mcp://invoke rtx3050://matmul          -> route through broker → Victus leaf → RTX 3050
+
+    The conductor is the local dispatcher; the broker (vps://) is the public
+    front door. On a GPU-less node it proxies to a leaf gpu-mcp node.
+    """
+    import json as _json
+    import urllib.request as _ur
+    import urllib.parse as _up
+
+    rest = raw.split("mcp://", 1)[1].strip()
+    # --- list tools on the broker ---
+    if not rest or rest == "tools" or rest == "list":
+        broker = os.environ.get("VPS_ENDPOINT", "http://129.212.180.252:3000")
+        url = broker.rstrip("/") + "/mcp/tools"
+        try:
+            with _ur.urlopen(url, timeout=8) as r:
+                tools = _json.loads(r.read())
+            return {"ok": True, "rc": 0, "stdout": _json.dumps(tools, indent=2),
+                    "stderr": "", "scheme": "mcp",
+                    "surface": {"kind": "mcp_tools", "broker": broker,
+                                "tools": tools.get("tools", [])}}
+        except Exception as e:
+            # broker dark — report graceful degradation surface
+            return {"ok": True, "rc": 0, "stdout": "",
+                    "stderr": f"broker dark (fallback: {e})",
+                    "scheme": "mcp",
+                    "surface": {"kind": "mcp", "broker": broker, "tools": [],
+                                "status": "broker_offline"}}
+    # --- invoke ---
+    if rest.startswith("invoke"):
+        target = rest[len("invoke"):].strip()
+        if not target:
+            return {"ok": False, "rc": 2, "stdout": "", "stderr": "mcp://invoke requires a tool name"}
+        # parse tool + optional query args
+        parts = target.split("?", 1)
+        tool = parts[0].strip()
+        args = {}
+        if len(parts) > 1:
+            qs = _up.parse_qs(parts[1])
+            args = {k: v[0] if len(v) == 1 else v for k, v in qs.items()}
+        broker = os.environ.get("VPS_ENDPOINT", "http://129.212.180.252:3000")
+        url = broker.rstrip("/") + "/mcp/invoke"
+        payload = _json.dumps({"tool": tool, "args": args}).encode()
+        req = _ur.Request(url, data=payload,
+                          headers={"Content-Type": "application/json"})
+        try:
+            with _ur.urlopen(req, timeout=60) as r:
+                result = _json.loads(r.read())
+            return {"ok": result.get("ok", False), "rc": result.get("rc", 0),
+                    "stdout": result.get("stdout", ""),
+                    "stderr": result.get("stderr", ""),
+                    "scheme": "mcp",
+                    "surface": {"kind": "mcp", "broker": broker,
+                                "tool": tool, "args": args,
+                                "result": result}}
+        except Exception as e:
+            return {"ok": True, "rc": 0, "stdout": "",
+                    "stderr": f"broker unreachable: {e}",
+                    "scheme": "mcp",
+                    "surface": {"kind": "mcp", "broker": broker, "tool": tool,
+                                "status": "broker_offline"}}
+    # --- fallback: bare tool lookup ---
     return {
-        "ok": True,
-        "rc": 0,
-        "stdout": f"mcp://{target}\n",
-        "stderr": "",
-        "surface": {
-            "kind": "mcp",
-            "address": f"mcp://{target}",
-            "tool": target,
-        },
+        "ok": True, "rc": 0,
+        "stdout": f"mcp://{rest} — available: mcp://tools, mcp://invoke <tool>\n",
+        "stderr": "", "scheme": "mcp",
+        "surface": {"kind": "mcp", "address": f"mcp://{rest}",
+                    "tool": rest},
     }
 
 
@@ -1342,9 +1596,9 @@ _DISPATCHER = SchemeDispatcher()
 _DISPATCHER.register("c://cc", _cctx_dispatch)
 _DISPATCHER.register("pc://run", _pc_run_dispatch)
 _DISPATCHER.register("pc://", _pc_dispatch)
-_DISPATCHER.register("æ://", _aectx_dispatch)
+_DISPATCHER.register("?://", _aectx_dispatch)
 _DISPATCHER.register("daollc://", _dao_dispatch)
-_DISPATCHER.register("+æ://", _aectx_dispatch)
+_DISPATCHER.register("+?://", _aectx_dispatch)
 _DISPATCHER.register("llc://", _llc_dispatch)
 _DISPATCHER.register("hermes://", _hermes_dispatch)
 _DISPATCHER.register("H://", _h_dispatch)
@@ -1352,19 +1606,19 @@ _DISPATCHER.register("NOUS://", _nous_dispatch)
 _DISPATCHER.register("reachy://", _reachy_dispatch)
 _DISPATCHER.register("robot://", _robot_dispatch)
 _DISPATCHER.register("mcp://", _mcp_dispatch)
-_DISPATCHER.register("+æ://cc", _cc_dispatch)
-_DISPATCHER.register("+æ://glocal cloud computer", _glocal_cloud_computer_dispatch)
-_DISPATCHER.register("+æ://fleet", _fleet_dispatch)
+_DISPATCHER.register("+?://cc", _cc_dispatch)
+_DISPATCHER.register("+?://glocal cloud computer", _glocal_cloud_computer_dispatch)
+_DISPATCHER.register("+?://fleet", _fleet_dispatch)
 _DISPATCHER.register("desktop://", _desktop_dispatch)
 _DISPATCHER.register("+bæsic://", _bæsic_dispatch)
 _DISPATCHER.register("Hæbbian://", _hæbbian_dispatch)
 _DISPATCHER.register("neuromitosis://", _hæbbian_dispatch)
-_DISPATCHER.register("æ://glocal-agent", _glocal_agent_dispatch)
-_DISPATCHER.register("+æ://identity", _identity_dispatch)
-_DISPATCHER.register("+æ://media^ffmpeg", _media_dispatch)
-_DISPATCHER.register("+æ://conductor", _conductor_dispatch)
+_DISPATCHER.register("?://glocal-agent", _glocal_agent_dispatch)
+_DISPATCHER.register("+?://identity", _identity_dispatch)
+_DISPATCHER.register("+?://media^ffmpeg", _media_dispatch)
+_DISPATCHER.register("+?://conductor", _conductor_dispatch)
 def _file_dispatch(raw: str) -> dict:
-    """file:// — sovereign filesystem surface as a language op (not raw shell).
+    """file:// - sovereign filesystem surface as a language op (not raw shell).
 
     Read-default: enumerate/count/stat only unless an explicit `write`/`move`
     verb is given. Scoped to the sovereign root so a blind move can never reach
@@ -1372,7 +1626,7 @@ def _file_dispatch(raw: str) -> dict:
     source of truth, not ad-hoc PowerShell loops.
     """
     import os as _os
-    _ROOT = _os.path.normpath(r"C:\æ")
+    _ROOT = _os.path.normpath(r"C:\?")
     rest = raw.split("file://", 1)[1].strip() if "file://" in raw else ""
     parts = rest.split()
     action = parts[0] if parts else "enumerate"
@@ -1404,19 +1658,19 @@ def _file_dispatch(raw: str) -> dict:
                             "local_only": True, "mutable": False}}
     # any mutation verb requires explicit intent; default deny
     return {"ok": False, "rc": 1, "stdout": "",
-            "stderr": f"file:// {action} denied by default (read-only surface; use +æ://cc to mutate)",
+            "stderr": f"file:// {action} denied by default (read-only surface; use +?://cc to mutate)",
             "scheme_detail": "file://",
             "surface": {"kind": "file", "address": "file://", "action": action,
                         "path": path, "mutable": False, "local_only": True}}
 
 
 def _computer_dispatch(raw: str) -> dict:
-    """computer:// — the agentic computer primitive on the sovereign mesh.
+    """computer:// - the agentic computer primitive on the sovereign mesh.
 
     A sovereign agentic computer = a node (pc://mesh/victus/local) running a
-    runtime (bæsic via qc64_basic.py) over a control surface (the GPU-MCP).
+    runtime (b?sic via qc64_basic.py) over a control surface (the GPU-MCP).
     This composes, never duplicates: it addresses Victus, launches the GPU-MCP
-    (environments/gpu_mcp.py, stdio JSON-RPC), and dispatches a +bæsic://
+    (environments/gpu_mcp.py, stdio JSON-RPC), and dispatches a +b?sic://
     workload as a tool-call onto the local CUDA hands. `probe` exercises the
     real MCP subprocess so the GPU is proven live, not asserted.
     """
@@ -1457,35 +1711,35 @@ def _computer_dispatch(raw: str) -> dict:
             "stderr": "",
             "scheme_detail": "computer://",
             "surface": {"kind": "agentic_computer", "address": "computer://",
-                        "node": node, "runtime": "+bæsic://", "control": "mcp://gpu-mcp",
+                        "node": node, "runtime": "+b?sic://", "control": "mcp://gpu-mcp",
                         "launch": launch, "local_only": True, "probe": gpu},
         }
     if action == "run":
-        # run a bæsic program as an agentic-computer workload on Victus
+        # run a b?sic program as an agentic-computer workload on Victus
         prog = parts[1] if len(parts) > 1 else "ledger"
         return {
             "ok": True, "rc": 0,
-            "stdout": f"computer://run {prog} -> +bæsic://{prog} on {node} via gpu-mcp\n",
+            "stdout": f"computer://run {prog} -> +b?sic://{prog} on {node} via gpu-mcp\n",
             "stderr": "",
             "scheme_detail": "computer://",
             "surface": {"kind": "agentic_computer", "address": "computer://",
-                        "node": node, "runtime": f"+bæsic://{prog}",
+                        "node": node, "runtime": f"+b?sic://{prog}",
                         "control": "mcp://gpu-mcp", "launch": launch,
                         "local_only": True},
         }
-    # default: status — the agentic computer manifest
+    # default: status - the agentic computer manifest
     return {
         "ok": True, "rc": 0,
         "stdout": (
             f"computer:// -> agentic computer on {node}\n"
-            f"  runtime : +bæsic:// (qc64_basic.py)\n"
+            f"  runtime : +b?sic:// (qc64_basic.py)\n"
             f"  control : mcp://gpu-mcp ({launch})\n"
             f"  actions : status | probe | run <program>\n"
         ),
         "stderr": "",
         "scheme_detail": "computer://",
         "surface": {"kind": "agentic_computer", "address": "computer://",
-                    "node": node, "runtime": "+bæsic://", "control": "mcp://gpu-mcp",
+                    "node": node, "runtime": "+b?sic://", "control": "mcp://gpu-mcp",
                     "launch": launch, "local_only": True},
     }
 
@@ -1716,7 +1970,7 @@ def _ffmpeg_dispatch(raw: str) -> dict:
     }
 
 
-# ── +æ://cuda-vlc — CUDA→NVENC→TS→VLC live streaming surface ──────────────────
+# ?? +?://cuda-vlc - CUDA->NVENC->TS->VLC live streaming surface ??????????????????
 # Local-only sovereign media pipe: a source (gpu_mcp render | testsrc | file)
 # is encoded on the RTX via h264_nvenc and muxed to a local MPEG-TS stream that
 # VLC plays. No cloud, no rent. Hands stay on Victus.
@@ -1833,7 +2087,7 @@ def _vscode_dispatch(raw: str) -> dict:
     return {
         "ok": True,
         "rc": 0,
-        "stdout": "vscode://viewport host — VS Code as the runtime surface for the local HTML/CSS/WASM viewport\n",
+        "stdout": "vscode://viewport host - VS Code as the runtime surface for the local HTML/CSS/WASM viewport\n",
         "stderr": "",
         "surface": {
             "kind": "viewport_host",
@@ -1845,12 +2099,12 @@ def _vscode_dispatch(raw: str) -> dict:
 
 
 def _viewport_dispatch(raw: str) -> dict:
-    """viewport:// — the mandate: the local HTML/CSS/Rust-WASM surface is the
+    """viewport:// - the mandate: the local HTML/CSS/Rust-WASM surface is the
     control plane. The v in vscode stands for viewport, not Visual Studio.
 
     viewport://hermes-agent is the concrete instance: the Hermes Agent viewport
     (gold-on-void, GPU-MCP control surface, offline ollama brain) = the
-    æ://glocal-agent primitive rendered as a local viewport. Other nodes
+    ?://glocal-agent primitive rendered as a local viewport. Other nodes
     (home://, etc.) resolve to a generic local viewport."""
     node = raw.split("viewport://", 1)[1].strip() or "home://"
     if node == "hermes-agent":
@@ -1914,16 +2168,16 @@ _DISPATCHER.register("ffmpeg://", _ffmpeg_dispatch)
 _DISPATCHER.register("vscode://open ", _vscode_open_dispatch)
 _DISPATCHER.register("vscode://", _vscode_dispatch)
 _DISPATCHER.register("viewport://", _viewport_dispatch)
-_DISPATCHER.register("+æ://cuda-vlc", _cuda_vlc_dispatch)
+_DISPATCHER.register("+?://cuda-vlc", _cuda_vlc_dispatch)
 
 
-# ── +æ://vps — sovereign backbone node (Victus-local, liftable to any host) ──
+# ?? +?://vps - sovereign backbone node (Victus-local, liftable to any host) ??
 def _vps_dispatch(raw: str) -> dict:
-    """Route +æ://vps commands to the vps_node process.
+    """Route +?://vps commands to the vps_node process.
 
-    +æ://vps status                  → backbone health + record counts
-    +æ://vps record <nsid> <json>    → write a signed ae.core record
-    +æ://vps route <vps://cmd>       → dispatch (e.g. rtx://compute)
+    +?://vps status                  -> backbone health + record counts
+    +?://vps record <nsid> <json>    -> write a signed ae.core record
+    +?://vps route <vps://cmd>       -> dispatch (e.g. rtx://compute)
     The node process lives at the did:web PDS endpoint (http://localhost:3000).
     """
     import urllib.request, json as _json
@@ -1956,23 +2210,75 @@ def _vps_dispatch(raw: str) -> dict:
         return {"ok": False, "stderr": f"vps unreachable at {base}: {exc}"}
 
 
-_DISPATCHER.register("+æ://vps", _vps_dispatch)
+_DISPATCHER.register("+?://vps", _vps_dispatch)
 
 
-# ── +æ://secrets — local-first secret broker (github.io = surface, Victus = custody) ──
+# ?? videolab:// - manifest-driven, data-injected, mesh-addressable video lab ??
+def _videolab_dispatch(raw: str) -> dict:
+    """Route videolab:// commands to the ? Video Lab.
+
+    videolab://status                 -> lab health + live/cached telemetry
+    videolab://render <scene>        -> render a scene with live data injection
+    videolab://watch <scene>         -> watch a scene for changes and auto-re-render
+
+    The lab lives at C:\\?\\videolab. It is always renderable; more valuable
+    when the mesh is up (live telemetry) - same graceful-degradation pattern
+    as mcp://.
+    """
+    import subprocess, sys as _sys
+    rest = raw.split("videolab", 1)[1].strip() if "videolab" in raw else ""
+    parts = rest.split(" ", 1)
+    action = parts[0] if parts else "status"
+    arg = parts[1] if len(parts) > 1 else ""
+
+    _HERE = os.path.dirname(os.path.abspath(__file__))
+    _LAB = os.path.normpath(os.path.join(_HERE, "..", "..", "videolab"))
+    _RENDER = os.path.join(_LAB, "render.py")
+    if not os.path.exists(_RENDER):
+        return {"ok": False, "stderr": f"videolab: render.py not found at {_RENDER}"}
+
+    cmd = [_sys.executable, _RENDER]
+    if action == "render":
+        if not arg:
+            return {"ok": False, "stderr": "videolab: render requires a scene name"}
+        cmd += ["render", arg, "--live"]
+    elif action == "watch":
+        if not arg:
+            return {"ok": False, "stderr": "videolab: watch requires a scene name"}
+        cmd += ["watch", arg]
+    else:
+        cmd += ["status"]
+
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, cwd=_LAB, timeout=120)
+        stdout = result.stdout.strip()
+        stderr = result.stderr.strip()
+        if result.returncode != 0:
+            return {"ok": False, "stderr": stderr or f"videolab: {action} failed (exit {result.returncode})"}
+        return {"ok": True, "stdout": stdout, "surface": {"kind": "videolab", "action": action, "scene": arg or None}}
+    except subprocess.TimeoutExpired:
+        return {"ok": False, "stderr": f"videolab: {action} timed out"}
+    except Exception as exc:
+        return {"ok": False, "stderr": f"videolab: {exc}"}
+
+
+_DISPATCHER.register("videolab://", _videolab_dispatch)
+
+
+# ?? +?://secrets - local-first secret broker (github.io = surface, Victus = custody) ??
 def _secrets_dispatch(raw: str) -> dict:
     """Local broker between the github.io secret-bridge surface and GLOCAL agents.
 
     The bridge UI lives on github.io (source of truth for the SURFACE).
-    The SECRET lives only on Victus, in C:\\æ\\secrets\\secrets.json (git-ignored).
-    This dispatch reads that local file and feeds secrets to agents at runtime —
+    The SECRET lives only on Victus, in C:\\?\\secrets\\secrets.json (git-ignored).
+    This dispatch reads that local file and feeds secrets to agents at runtime -
     it never uploads, never echoes raw values to logs, never touches cloud.
 
-    +æ://secrets status            → file present? count? (no values)
-    +æ://secrets list              → keys + kinds + masked preview (no raw value)
-    +æ://secrets get <KEY>         → resolve value for an agent (masked in stdout)
-    +æ://secrets sources           → candidate paths + which exist (debug handoff)
-    +æ://secrets path              → where the local source lives
+    +?://secrets status            -> file present? count? (no values)
+    +?://secrets list              -> keys + kinds + masked preview (no raw value)
+    +?://secrets get <KEY>         -> resolve value for an agent (masked in stdout)
+    +?://secrets sources           -> candidate paths + which exist (debug handoff)
+    +?://secrets path              -> where the local source lives
     """
     rest = raw.split("secrets", 1)[1].strip() if "secrets" in raw else ""
     parts = rest.split(" ", 1)
@@ -2017,7 +2323,7 @@ def _secrets_dispatch(raw: str) -> dict:
         if not src or not os.path.exists(src):
             return {"ok": True, "stdout": "secrets: NO local source found\n"
                     "  bridge: https://myaelmendez.github.io/secret-source-bridge.html\n"
-                    "  fix: in bridge click 'Push to local' -> save to C:\\æ\\secrets\\secrets.json\n",
+                    "  fix: in bridge click 'Push to local' -> save to C:\\?\\secrets\\secrets.json\n",
                     "surface": {"kind": "secrets", "local_only": True, "present": False}}
         try:
             data = json.load(open(src, encoding="utf-8"))
@@ -2036,7 +2342,7 @@ def _secrets_dispatch(raw: str) -> dict:
         rows = []
         for s in data.get("secrets", []):
             v = str(s.get("value", ""))
-            mask = "•" * min(12, max(4, len(v))) if v else ""
+            mask = "*" * min(12, max(4, len(v))) if v else ""
             rows.append(f"  {s.get('key')}  [{s.get('kind')}]  {mask}")
         body = "secrets (local, masked):\n" + "\n".join(rows) + "\n"
         return {"ok": True, "stdout": body,
@@ -2044,20 +2350,20 @@ def _secrets_dispatch(raw: str) -> dict:
 
     if action == "get":
         if not arg:
-            return {"ok": False, "stderr": "secrets get <KEY> — key required"}
+            return {"ok": False, "stderr": "secrets get <KEY> - key required"}
         val = get_secret(arg)
         if val is None:
             # try prefix (e.g. 'BSKY_AGENT_')
             hits = get_by_prefix(arg)
             if hits:
                 body = f"secrets get {arg} (prefix, {len(hits)} hit(s)):\n" + "\n".join(
-                    f"  {k} = {'•'*min(12,max(4,len(v)))}" for k, v in hits.items()) + "\n"
+                    f"  {k} = {'*'*min(12,max(4,len(v)))}" for k, v in hits.items()) + "\n"
                 return {"ok": True, "stdout": body,
                         "surface": {"kind": "secrets", "local_only": True, "prefix": arg,
                                     "count": len(hits)}}
             return {"ok": False, "stderr": f"secrets: '{arg}' not found locally"}
-        # value resolved — show masked in stdout; real value available to the agent only
-        mask = "•" * min(12, max(4, len(val)))
+        # value resolved - show masked in stdout; real value available to the agent only
+        mask = "*" * min(12, max(4, len(val)))
         return {"ok": True,
                 "stdout": f"secrets get {arg} = {mask}  (resolved locally; injected at runtime)\n",
                 "surface": {"kind": "secrets", "local_only": True, "key": arg,
@@ -2067,7 +2373,7 @@ def _secrets_dispatch(raw: str) -> dict:
     return {"ok": False, "stderr": f"secrets: unknown action '{action}' (status|list|get|path)"}
 
 
-_DISPATCHER.register("+æ://secrets", _secrets_dispatch)
+_DISPATCHER.register("+?://secrets", _secrets_dispatch)
 
 
 def _gauntlet_status() -> dict:
@@ -2117,7 +2423,7 @@ def _geforce_c2_dispatch(raw: str) -> dict:
     return {
         "ok": True,
         "rc": 0,
-        "stdout": f"NVIDIA://{action} → {gpu_info}\n",
+        "stdout": f"NVIDIA://{action} -> {gpu_info}\n",
         "stderr": "",
         "surface": {
             "kind": "geforce_command_control",
@@ -2126,7 +2432,7 @@ def _geforce_c2_dispatch(raw: str) -> dict:
             "toolkit": True,
             "authorized": True,
             "governance": {
-                "required": "+æ member token for local-only GPU surface",
+                "required": "+? member token for local-only GPU surface",
                 "audit": True,
                 "tracer": "Wyoming DAO LLC audit trail",
             },
@@ -2135,13 +2441,13 @@ def _geforce_c2_dispatch(raw: str) -> dict:
 
 
 def _hermes_superagent_dispatch(raw: str) -> dict:
-    """hermes-superagent:// — BLOCKED at the chassis (scalar supremacy).
+    """hermes-superagent:// - BLOCKED at the chassis (scalar supremacy).
 
     There is no "superagent" tier above the sovereign scalar. Agentic-native
     means the language itself enforces the boundary: this scheme resolves to a
     hard refusal, so any surface that links to it dead-ends at the router
     rather than being policed per-file. The one true stack routes through
-    æ:// (the agentic-language-chassis) and its dialects.
+    ?:// (the agentic-language-chassis) and its dialects.
     """
     return {
         "ok": False,
@@ -2149,23 +2455,23 @@ def _hermes_superagent_dispatch(raw: str) -> dict:
         "stdout": "",
         "stderr": (
             "hermes-superagent:// is blocked (scalar supremacy): no tier above "
-            "the sovereign scalar. Route through æ:// (agentic-language-chassis)."
+            "the sovereign scalar. Route through ?:// (agentic-language-chassis)."
         ),
         "surface": {
             "kind": "blocked",
             "address": raw,
             "runtime": "hermes-code",
             "reason": "scalar-supremacy",
-            "route_through": "æ://",
+            "route_through": "?://",
         },
     }
 
 
 _DISPATCHER.register("NVIDIA://", _geforce_c2_dispatch)
 _DISPATCHER.register("hermes-superagent://", _hermes_superagent_dispatch)
-_DISPATCHER.register("+æ://victus", _victus_dispatch)
-_DISPATCHER.register("+æ://qrcode", _qrcode_dispatch)
-_DISPATCHER.register("+æ://mesh", _mesh_dispatch)
+_DISPATCHER.register("+?://victus", _victus_dispatch)
+_DISPATCHER.register("+?://qrcode", _qrcode_dispatch)
+_DISPATCHER.register("+?://mesh", _mesh_dispatch)
 _DISPATCHER.register("commandprompt://", _commandprompt_dispatch)
 _DISPATCHER.register("home://", _home_dispatch)
 _DISPATCHER.register("fs://", _fs_dispatch)
