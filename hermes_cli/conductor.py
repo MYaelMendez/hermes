@@ -1482,6 +1482,52 @@ def _bæsic_dispatch(raw: str) -> dict:
     }
 
 
+def _local_mcp_invoke(tool: str, args: dict) -> dict | None:
+    """Local-first MCP invoke: drive gpu-mcp directly on a GPU-bearing node.
+
+    On a node with local CUDA (Victus RTX 3050) this bypasses the broker
+    entirely — the GPU is the local surface. Returns None if gpu-mcp is
+    not available (falls back to broker proxy in _mcp_dispatch).
+    """
+    op = tool.split("rtx3050://", 1)[1].split("?")[0] or "matmul"
+    try:
+        from gpu_mcp.gpu_agent import GPUAgent
+    except Exception:
+        return None  # gpu-mcp not installed locally → broker fallback
+    try:
+        gpu = GPUAgent()
+        if op == "probe" or op == "probe_gpu":
+            probe = gpu.probe_gpu()
+            return {"ok": bool(probe.get("name")), "rc": 0,
+                    "stdout": json.dumps(probe),
+                    "stderr": "", "scheme": "mcp",
+                    "surface": {"kind": "mcp", "tool": tool, "broker": "local",
+                                "result": probe}}
+        if op == "matmul":
+            probe = gpu.probe_gpu()
+            compile_r = gpu.compile_kernel("matmul")
+            if not compile_r.get("ok", False):
+                return {"ok": False, "rc": 1,
+                        "stdout": "",
+                        "stderr": "compile failed", "scheme": "mcp",
+                        "surface": {"kind": "mcp", "tool": tool, "broker": "local",
+                                    "result": compile_r}}
+            run_r = gpu.run_kernel("matmul")
+            return {"ok": run_r.get("ok", False), "rc": 0,
+                    "stdout": json.dumps({"probe": probe,
+                                          "compile": compile_r,
+                                          "run": run_r}),
+                    "stderr": "", "scheme": "mcp",
+                    "surface": {"kind": "mcp", "tool": tool, "broker": "local",
+                                "gpu": probe.get("name"),
+                                "matmul_ms": run_r.get("host_ms"),
+                                "result": {"probe": probe,
+                                           "compile": compile_r,
+                                           "run": run_r}}}
+    except Exception as e:
+        return None  # any local failure → broker proxy
+
+
 def _mcp_dispatch(raw: str) -> dict:
     """mcp:// — MCP² mesh routing.
 
@@ -1527,6 +1573,12 @@ def _mcp_dispatch(raw: str) -> dict:
         if len(parts) > 1:
             qs = _up.parse_qs(parts[1])
             args = {k: v[0] if len(v) == 1 else v for k, v in qs.items()}
+        # --- LOCAL-FIRST: if tool is rtx3050://, try local gpu-mcp first ---
+        if tool.startswith("rtx3050://"):
+            local_result = _local_mcp_invoke(tool, args)
+            if local_result is not None:
+                return local_result
+        # --- broker proxy fallback ---
         broker = os.environ.get("VPS_ENDPOINT", "http://129.212.180.252:3000")
         url = broker.rstrip("/") + "/mcp/invoke"
         payload = _json.dumps({"tool": tool, "args": args}).encode()
