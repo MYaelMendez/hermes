@@ -1544,7 +1544,11 @@ def _keeper_dispatch(raw: str) -> dict:
       keeper://reconcile  report drift between mirrors of the same repo
       keeper://ledger     what is committed vs what is loose
       keeper://handoff    what a successor must know to continue safely
+      keeper://remember   append a fact to the on-disk ledger
+      keeper://recall     search the ledger (real matches or an honest empty)
     """
+    import os as _os
+    _store = "C:\\æ\\hermes-fork\\keeper_store.py"
     rest = raw.split("keeper://", 1)[1].strip().strip("/") if "keeper://" in raw else ""
 
     def _ok(payload, stdout):
@@ -1555,7 +1559,6 @@ def _keeper_dispatch(raw: str) -> dict:
     if rest in ("", "status", "audit"):
         checks = []
         # custody: secrets stay local, never in a published surface
-        import os as _os
         secret_dir = _os.path.join("C:\\", "æ", "secrets")
         checks.append({"check": "custody_local",
                        "ok": _os.path.isdir(secret_dir),
@@ -1634,10 +1637,66 @@ def _keeper_dispatch(raw: str) -> dict:
                    "  fetch before reading origin/*; a stale ref lies.\n")
 
     if rest == "ledger":
-        return _ok({"note": "commit vs loose state per repo"},
-                   "keeper://ledger — inspect each repo with 'git status --short'\n"
-                   "  a clean institution has 0 tracked-but-uncommitted and no "
-                   "abandoned merge/rebase residue.\n")
+        # The ledger is the on-disk memory substrate: append-only, greppable,
+        # grows with the disk rather than the context window. Report REAL counts.
+        try:
+            import importlib.util as _ilu
+            _sp = _ilu.spec_from_file_location(
+                "keeper_store",
+                _store)
+            _ks = _ilu.module_from_spec(_sp)
+            _sp.loader.exec_module(_ks)
+            st = _ks.stats()
+            return _ok({"stats": st},
+                       f"keeper://ledger — the on-disk memory substrate\n"
+                       f"  file:    {st['ledger']}\n"
+                       f"  entries: {st['entries']}  ·  {st['bytes']:,} bytes\n"
+                       f"  kinds:   {st['kinds'] or '(none yet)'}\n"
+                       f"  append-only · greppable · survives process death\n")
+        except Exception as e:
+            return _ok({"error": f"keeper_store unavailable: {e}"},
+                       f"keeper://ledger — substrate unavailable: {e}\n"
+                       f"  (an honest failure beats a fabricated count)\n")
+
+    if rest.startswith("remember"):
+        payload = rest[len("remember"):].strip().lstrip(":").strip()
+        if not payload:
+            return _ok({"usage": "keeper://remember <text>"},
+                       "keeper://remember — needs text: keeper://remember <fact>\n")
+        try:
+            import importlib.util as _ilu
+            _sp = _ilu.spec_from_file_location(
+                "keeper_store",
+                _store)
+            _ks = _ilu.module_from_spec(_sp)
+            _sp.loader.exec_module(_ks)
+            r = _ks.remember(payload, kind="fact", source="keeper://")
+            _ks.write_index()
+            return _ok({"stored": r.get("stored")},
+                       f"keeper://remember — stored ({_ks.stats()['entries']} entries now)\n"
+                       f"  {payload[:120]}\n")
+        except Exception as e:
+            return {"ok": False, "rc": 1, "stdout": "", "stderr": f"keeper://remember failed: {e}"}
+
+    if rest.startswith("recall"):
+        q = rest[len("recall"):].strip().lstrip(":").strip()
+        try:
+            import importlib.util as _ilu
+            _sp = _ilu.spec_from_file_location(
+                "keeper_store",
+                _store)
+            _ks = _ilu.module_from_spec(_sp)
+            _sp.loader.exec_module(_ks)
+            r = _ks.recall(q)
+            if not r["count"]:
+                return _ok({"count": 0, "query": q},
+                           f"keeper://recall — no entry matches {q!r} ({_ks.stats()['entries']} in ledger)\n"
+                           f"  nothing found is a real answer, not a failure.\n")
+            body = "\n".join(f"  {m['iso']}  {m['text'][:150]}" for m in r["matches"][:12])
+            return _ok({"count": r["count"], "matches": r["matches"][:12]},
+                       f"keeper://recall — {r['count']} match(es) for {q!r}\n{body}\n")
+        except Exception as e:
+            return {"ok": False, "rc": 1, "stdout": "", "stderr": f"keeper://recall failed: {e}"}
 
     if rest == "handoff":
         return _ok({"carries": ["what is broken", "what was rescued and where",
@@ -1647,8 +1706,8 @@ def _keeper_dispatch(raw: str) -> dict:
                    "  2. what was rescued, and where it lives\n"
                    "  3. what is verified by real output vs what is only claimed\n")
 
-    return _ok({"available": ["keeper://audit", "keeper://reconcile",
-                              "keeper://ledger", "keeper://handoff"]},
+    return _ok({"available": ["keeper://audit", "keeper://reconcile", "keeper://ledger",
+                              "keeper://handoff", "keeper://remember", "keeper://recall"]},
                "keeper:// — available: audit, reconcile, ledger, handoff\n")
 
 
