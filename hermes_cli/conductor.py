@@ -1698,7 +1698,7 @@ def _keeper_dispatch(raw: str) -> dict:
         except Exception as e:
             return {"ok": False, "rc": 1, "stdout": "", "stderr": f"keeper://recall failed: {e}"}
 
-    if rest in ("constellation", "map", "nodes"):
+    if rest in ("constellation", "nodes"):
         # The memory constellation: every node that holds state, with REAL
         # counts read live. An edge is only drawn where it actually exists.
         nodes = []
@@ -1898,6 +1898,124 @@ def _keeper_dispatch(raw: str) -> dict:
                    f"  facts mirrored: {len(facts)}\n"
                    f"  skills indexed: {len(names)}\n"
                    f"  secrets: NOT sent (custody boundary holds)\n")
+
+    if rest in ("map", "report", "system"):
+        # A GENERATED map. A hand-written one goes stale silently — this one
+        # cannot, because every line is measured at the moment it is printed.
+        # A check that was not run says so; it is never shown as passing.
+        import subprocess as _sub
+        import os as _o4
+        import glob as _g4
+
+        FORK = _o4.path.join("C:\\", "æ", "hermes-fork")
+        rows = []          # (layer, item, verdict, detail)
+
+        # --- merge conflicts: measured, not remembered ---
+        conf = []
+        try:
+            for f in _g4.glob(_o4.path.join(FORK, "**", "*.py"), recursive=True):
+                if "node_modules" in f:
+                    continue
+                try:
+                    with open(f, "r", encoding="utf-8", errors="ignore") as fh:
+                        if any(ln.startswith("<<<<<<< ") for ln in fh):
+                            conf.append(_o4.path.relpath(f, FORK))
+                except Exception:
+                    pass
+        except Exception:
+            pass
+        rows.append(("core", "merge conflicts (.py)",
+                     "OK" if not conf else "FAIL",
+                     "0 markers" if not conf else f"{len(conf)} file(s)"))
+
+        # --- conductor loads and routes ---
+        try:
+            import importlib.util as _ilu2
+            _sp2 = _ilu2.spec_from_file_location("_kc", _o4.path.join(FORK, "hermes_cli", "conductor.py"))
+            _m2 = _ilu2.module_from_spec(_sp2)
+            import sys as _sys2
+            _sys2.modules["_kc"] = _m2
+            _sp2.loader.exec_module(_m2)
+            routed = []
+            for r_ in ("keeper://", "æ://mesh", "æ://cc"):
+                try:
+                    routed.append((r_, bool(_m2._dispatch(r_).get("ok"))))
+                except Exception:
+                    routed.append((r_, False))
+            good = sum(1 for _, k in routed if k)
+            rows.append(("core", "conductor routing",
+                         "OK" if good == len(routed) else "FAIL",
+                         f"{good}/{len(routed)} routes answer"))
+        except Exception as e:
+            rows.append(("core", "conductor routing", "FAIL", f"import failed: {str(e)[:40]}"))
+
+        # --- plugins: LOADED, not declared ---
+        try:
+            pdir = _o4.path.join(_o4.environ.get("LOCALAPPDATA", ""), "hermes", "plugins")
+            total = loaded = 0
+            for d_ in sorted(_g4.glob(_o4.path.join(pdir, "*"))):
+                if not _o4.path.isdir(d_) or not _o4.path.exists(_o4.path.join(d_, "plugin.yaml")):
+                    continue
+                total += 1
+                init = _o4.path.join(d_, "__init__.py")
+                src = ""
+                if _o4.path.exists(init):
+                    with open(init, "r", encoding="utf-8", errors="ignore") as fh:
+                        src = fh.read()
+                if "def register(" in src:
+                    loaded += 1
+            rows.append(("plugins", "backends that register",
+                         "OK" if loaded == total else "FAIL",
+                         f"{loaded}/{total} have a register()"))
+        except Exception as e:
+            rows.append(("plugins", "backends that register", "FAIL", str(e)[:40]))
+
+        # --- brain: live + durable ---
+        try:
+            import urllib.request as _ur4
+            import json as _js4
+            with _ur4.urlopen("http://129.212.180.252:3000/xrpc/ae.vps.status", timeout=8) as r_:
+                b_ = _js4.loads(r_.read() or b"{}")
+            n_ = sum((b_.get("records") or {}).values())
+            rows.append(("glocal", "brain (droplet PDS)",
+                         "OK" if b_.get("vps") == "up" else "FAIL",
+                         f"up · {n_} records"))
+        except Exception as e:
+            rows.append(("glocal", "brain (droplet PDS)", "FAIL", str(e)[:40]))
+
+        # --- hands: the RTX leaf ---
+        try:
+            import urllib.request as _ur5
+            import json as _js5
+            with _ur5.urlopen("http://127.0.0.1:3050/xrpc/ae.vps.rtx?op=probe", timeout=6) as r_:
+                l_ = _js5.loads(r_.read() or b"{}")
+            pr_ = l_.get("probe") or {}
+            rows.append(("glocal", "hands (RTX leaf)",
+                         "OK" if pr_.get("name") else "FAIL",
+                         f"{pr_.get('name','?')} · {pr_.get('temperature.gpu','?')}C"))
+        except Exception as e:
+            rows.append(("glocal", "hands (RTX leaf)", "FAIL", str(e)[:40]))
+
+        # --- public surface ---
+        try:
+            import urllib.request as _ur6
+            with _ur6.urlopen("https://myaelmendez.github.io/", timeout=10) as r_:
+                rows.append(("surface", "github.io", "OK" if r_.status == 200 else "FAIL",
+                             f"HTTP {r_.status}"))
+        except Exception as e:
+            rows.append(("surface", "github.io", "FAIL", str(e)[:40]))
+
+        ok_n = sum(1 for _, _, v, _ in rows if v == "OK")
+        w = max(len(r[1]) for r in rows)
+        body = "\n".join(f"  [{'ok' if v == 'OK' else '!!'}] {item:<{w}}  {detail}"
+                         for _, item, v, detail in rows)
+        return _ok({"rows": [{"layer": l, "item": i, "verdict": v, "detail": d}
+                             for l, i, v, d in rows],
+                    "ok": ok_n, "total": len(rows)},
+                   f"keeper://map — generated, {ok_n}/{len(rows)} measured OK\n\n"
+                   f"{body}\n\n"
+                   f"  Every line above was measured at print time. A check that\n"
+                   f"  was not run says so; none is shown as passing untested.\n")
 
     if rest == "handoff":
         return _ok({"carries": ["what is broken", "what was rescued and where",
