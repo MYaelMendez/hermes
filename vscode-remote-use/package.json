@@ -2,23 +2,49 @@
   "name": "hermes-agent",
   "displayName": "Hermes Agent",
   "description": "Hermes Agent — sovereign local AI: offline brain (ollama), CUDA + Rust/WASM command & control, and a local GPU-MCP server. Gold-on-void +æ^glocal runtime.",
-  "version": "0.2.0",
+  "version": "0.3.1",
   "publisher": "hermes-agent",
   "engines": {
     "vscode": "^1.85.0"
   },
-  "categories": ["Other", "AI", "Machine Learning"],
-  "keywords": ["hermes", "agent", "ollama", "cuda", "wasm", "rust", "mcp", "offline", "sovereign", "local", "gpu", "nvidia", "glocal", "ae"],
+  "categories": [
+    "Other",
+    "AI",
+    "Machine Learning"
+  ],
+  "keywords": [
+    "hermes",
+    "agent",
+    "ollama",
+    "cuda",
+    "wasm",
+    "rust",
+    "mcp",
+    "offline",
+    "sovereign",
+    "local",
+    "gpu",
+    "nvidia",
+    "glocal",
+    "ae"
+  ],
   "main": "./out/extension.js",
   "activationEvents": [
+    "onUri",
     "onStartupFinished",
     "onCommand:remoteUse.surfaces",
     "onCommand:remoteUse.nvidia",
     "onCommand:remoteUse.mediaWindow",
-    "onCommand:remoteUse.brain"
+    "onCommand:remoteUse.brain",
+    "onCommand:remoteUse.humanLoop"
   ],
   "contributes": {
     "commands": [
+      {"command": "remoteUse.previewBridge", "title": "Human Loop: Start VS Code Preview Bridge"},
+      {
+        "command": "remoteUse.humanLoop",
+        "title": "Human Loop: Open Agentic Terminal (WebMCP Required)"
+      },
       {
         "command": "remoteUse.capture",
         "title": "Remote Use: Capture Terminal Output"
@@ -104,7 +130,10 @@
       "servers": {
         "gpu-mcp": {
           "command": "python",
-          "args": ["-m", "gpu_mcp"]
+          "args": [
+            "-m",
+            "gpu_mcp"
+          ]
         }
       }
     },
@@ -118,6 +147,12 @@
     "configuration": {
       "title": "Remote Use",
       "properties": {
+        "remoteUse.webmcpBrowserPath": {
+          "type": "string",
+          "default": "",
+          "scope": "machine",
+          "description": "Chromium executable for the mandatory native WebMCP companion. Empty uses platform browser discovery. Launch uses a separate profile and experimental WebMCP feature; no unsupported-browser execution fallback."
+        },
         "remoteUse.hermesRepoPath": {
           "type": "string",
           "default": "",
@@ -150,6 +185,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "@types/vscode": "^1.85.0",
     "@vscode/vsce": "^3.9.2",
     "typescript": "^5.6.0"
   }
