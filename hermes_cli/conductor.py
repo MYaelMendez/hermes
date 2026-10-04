@@ -1698,6 +1698,207 @@ def _keeper_dispatch(raw: str) -> dict:
         except Exception as e:
             return {"ok": False, "rc": 1, "stdout": "", "stderr": f"keeper://recall failed: {e}"}
 
+    if rest in ("constellation", "map", "nodes"):
+        # The memory constellation: every node that holds state, with REAL
+        # counts read live. An edge is only drawn where it actually exists.
+        nodes = []
+
+        # --- LOCAL CACHE: the small always-in-context layer ---
+        import os as _o2
+        mem = _o2.path.join(_o2.environ.get("LOCALAPPDATA", ""), "hermes", "memories")
+        cache_chars = 0
+        for f in ("MEMORY.md", "USER.md"):
+            p = _o2.path.join(mem, f)
+            if _o2.path.exists(p):
+                cache_chars += _o2.path.getsize(p)
+        nodes.append({"id": "cache", "layer": "local", "kind": "context-cache",
+                      "path": mem, "chars": cache_chars,
+                      "note": "injected into every turn; small and always true",
+                      "status": "live" if cache_chars else "absent"})
+
+        # --- LOCAL LEDGER: the unbounded append-only store ---
+        led = _o2.path.join("C:\\", "æ", "keeper", "ledger.jsonl")
+        led_n = led_b = 0
+        if _o2.path.exists(led):
+            led_b = _o2.path.getsize(led)
+            with open(led, "r", encoding="utf-8", errors="ignore") as fh:
+                led_n = sum(1 for ln in fh if ln.strip())
+        nodes.append({"id": "ledger", "layer": "local", "kind": "append-only",
+                      "path": led, "entries": led_n, "bytes": led_b,
+                      "note": "grows with the disk, greppable without this module",
+                      "status": "live" if led_n else "empty"})
+
+        # --- SKILLS: procedural memory ---
+        sk_root = _o2.path.join(_o2.environ.get("LOCALAPPDATA", ""), "hermes", "skills")
+        sk = 0
+        for root_, dirs_, files_ in _o2.walk(sk_root):
+            if "SKILL.md" in files_:
+                sk += 1
+        nodes.append({"id": "skills", "layer": "local", "kind": "procedural",
+                      "path": sk_root, "count": sk,
+                      "note": "loaded only when the task matches",
+                      "status": "live" if sk else "absent"})
+
+        # --- SESSIONS: episodic memory ---
+        se_root = _o2.path.join(_o2.environ.get("LOCALAPPDATA", ""), "hermes", "sessions")
+        se = 0
+        se_b = 0
+        if _o2.path.isdir(se_root):
+            for f in _o2.listdir(se_root):
+                fp = _o2.path.join(se_root, f)
+                if _o2.path.isfile(fp):
+                    se += 1
+                    se_b += _o2.path.getsize(fp)
+        nodes.append({"id": "sessions", "layer": "local", "kind": "episodic",
+                      "path": se_root, "count": se, "bytes": se_b,
+                      "note": "searchable via session_search",
+                      "status": "live" if se else "absent"})
+
+        # --- SECRETS: custody, LOCAL ONLY ---
+        sec = _o2.path.join("C:\\", "æ", "secrets")
+        sec_n = len(_o2.listdir(sec)) if _o2.path.isdir(sec) else 0
+        nodes.append({"id": "secrets", "layer": "local", "kind": "custody",
+                      "path": sec, "count": sec_n,
+                      "note": "NEVER syncs. The edge to the brain must not exist.",
+                      "sync": False, "status": "live" if sec_n else "absent"})
+
+        # --- BRAIN: the droplet PDS (glocal node) ---
+        brain = {"id": "brain", "layer": "glocal", "kind": "sovereign-pds",
+                 "endpoint": "http://129.212.180.252:3000", "status": "unreachable",
+                 "records": {}, "note": "durable mirror for blueprints + skills"}
+        try:
+            import urllib.request as _ur
+            import json as _js
+            with _ur.urlopen("http://129.212.180.252:3000/xrpc/ae.vps.status", timeout=8) as r:
+                st = _js.loads(r.read() or b"{}")
+            brain["status"] = "live" if st.get("vps") == "up" else "degraded"
+            brain["records"] = st.get("records", {})
+            brain["compute"] = st.get("compute")
+        except Exception as e:
+            brain["error"] = str(e)[:80]
+        nodes.append(brain)
+
+        # --- HANDS: compute, no memory of its own ---
+        hands = {"id": "hands", "layer": "glocal", "kind": "compute",
+                 "endpoint": "http://127.0.0.1:3050", "status": "unreachable",
+                 "note": "silicon. executes, remembers nothing."}
+        try:
+            import urllib.request as _ur
+            import json as _js
+            with _ur.urlopen("http://127.0.0.1:3050/xrpc/ae.vps.rtx?op=probe", timeout=5) as r:
+                hp = _js.loads(r.read() or b"{}")
+            hands["status"] = "live"
+            hands["gpu"] = (hp.get("probe") or {}).get("name")
+        except Exception:
+            pass
+        nodes.append(hands)
+
+        # --- EDGES: only where they actually exist ---
+        brain_records = sum((brain.get("records") or {}).values())
+        edges = [
+            {"from": "human", "to": "cache", "carries": "identity + standing facts"},
+            {"from": "cache", "to": "ledger", "carries": "overflow beyond the cache limit"},
+            {"from": "skills", "to": "cache", "carries": "procedures promoted to standing facts"},
+            {"from": "sessions", "to": "ledger", "carries": "episodes worth keeping"},
+            {"from": "ledger", "to": "brain", "carries": "durable mirror",
+             "live": brain_records > 0},
+        ]
+        severed = [
+            {"from": "secrets", "to": "brain", "carries": "(nothing)",
+             "why": "custody boundary — secrets stay on this node by design"},
+        ]
+
+        drawn = sum(1 for e in edges if e.get("live", True))
+        verdict = ("connected" if brain_records else
+                   "constellation drawn, but NO edge reaches the brain yet")
+        return _ok({"nodes": nodes, "edges": edges, "severed": severed,
+                    "verdict": verdict, "brain_records": brain_records},
+                   "keeper://constellation — the glocal memory constellation\n\n"
+                   + "\n".join(
+                       f"  [{'ok' if n['status']=='live' else '..'}] {n['id']:10} {n['layer']:6} "
+                       f"{n['kind']:14} " + (
+                           f"{n.get('count', n.get('entries', n.get('chars', '?')))}"
+                           + (" items" if 'count' in n or 'entries' in n else " chars"))
+                       for n in nodes)
+                   + f"\n\n  edges drawn: {drawn}/{len(edges)}"
+                   + (f"  ·  brain holds {brain_records} records"
+                      if brain_records else "  ·  brain holds 0 records")
+                   + "\n  severed by design: secrets -/-> brain\n"
+                   + f"\n  {verdict}\n")
+
+    if rest in ("sync", "push"):
+        # Push the local memory constellation to the brain. Only the durable,
+        # non-secret nodes travel: the ledger (facts) and the skill index
+        # (procedures). Secrets NEVER cross this edge — that is the custody
+        # boundary, and it is the whole point of the design.
+        import urllib.request as _ur
+        import json as _js
+
+        BRAIN = "http://129.212.180.252:3000/xrpc/ae.vps.record"
+        pushed, failed = [], []
+
+        def _post(nsid, value):
+            body = _js.dumps({"nsid": nsid, "value": value}).encode()
+            req = _ur.Request(BRAIN, data=body,
+                              headers={"Content-Type": "application/json"},
+                              method="POST")
+            try:
+                with _ur.urlopen(req, timeout=25) as r:
+                    out = _js.loads(r.read() or b"{}")
+                return {"ok": True, "sig": out.get("sig", "")[:16]}
+            except Exception as e:
+                return {"ok": False, "error": f"{type(e).__name__}: {e}"[:120]}
+
+        # 1. the manifest
+        st = {}
+        try:
+            import importlib.util as _ilu
+            _sp = _ilu.spec_from_file_location("keeper_store", _store)
+            _ks = _ilu.module_from_spec(_sp); _sp.loader.exec_module(_ks)
+            st = _ks.stats()
+        except Exception:
+            pass
+        r1 = _post("ae.core#sovereignState",
+                   {"kind": "sync-manifest", "source": "keeper://sync",
+                    "ledger_entries": st.get("entries", 0),
+                    "ledger_bytes": st.get("bytes", 0)})
+        (pushed if r1["ok"] else failed).append(("ae.core#sovereignState", r1))
+
+        # 2. each ledger fact -> a ledgerEvent
+        facts = []
+        try:
+            _sp = _ilu.spec_from_file_location("keeper_store", _store)
+            _ks = _ilu.module_from_spec(_sp); _sp.loader.exec_module(_ks)
+            facts = _ks.recall("", limit=500).get("matches", [])
+        except Exception:
+            pass
+        for rec in facts:
+            rr = _post("ae.core#ledgerEvent",
+                       {"kind": "memory-fact", "ts": rec.get("ts"),
+                        "tags": rec.get("tags", []), "text": rec.get("text", "")})
+            (pushed if rr["ok"] else failed).append(("ae.core#ledgerEvent", rr))
+
+        # 3. the skill index -> meshPeer (paths+titles only, bodies stay local)
+        import os as _o3
+        sk_root = _o3.path.join(_o3.environ.get("LOCALAPPDATA", ""), "hermes", "skills")
+        names = []
+        for root_, dirs_, files_ in _o3.walk(sk_root):
+            if "SKILL.md" in files_:
+                names.append(_o3.path.basename(root_))
+        if names:
+            r3 = _post("ae.core#meshPeer",
+                       {"kind": "skill-index", "count": len(names),
+                        "skills": sorted(names)[:200]})
+            (pushed if r3["ok"] else failed).append(("ae.core#meshPeer", r3))
+
+        return _ok({"pushed": len(pushed), "failed": len(failed),
+                    "details": [{"nsid": n, **d} for n, d in pushed + failed]},
+                   f"keeper://sync — constellation -> brain\n"
+                   f"  pushed: {len(pushed)}   failed: {len(failed)}\n"
+                   f"  facts mirrored: {len(facts)}\n"
+                   f"  skills indexed: {len(names)}\n"
+                   f"  secrets: NOT sent (custody boundary holds)\n")
+
     if rest == "handoff":
         return _ok({"carries": ["what is broken", "what was rescued and where",
                                 "what is verified vs merely claimed"]},
