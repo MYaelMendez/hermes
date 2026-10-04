@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="theme-color" content="#050505"/>
+<title>æ:scale · WebGPU compute field</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --void:#050505;--gold:#D4AF37;--gold2:#f0d487;--emerald:#00ff9d;
+    --cyan:#00eaff;--violet:#8c72ff;--orange:#ff9a4d;
+    --ink:#e8e6df;--muted:#6f6a5c;--line:rgba(212,175,55,.22);
+    --mono:"JetBrains Mono",ui-monospace,monospace;--display:"Orbitron",sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:100%;height:100%;overflow:hidden;background:var(--void);
+    color:var(--ink);font-family:var(--mono)}
+  #stage{position:fixed;inset:0;z-index:0}
+  .scan{position:fixed;inset:0;z-index:4;pointer-events:none;opacity:.16;
+    background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(0,0,0,.5) 2px 4px)}
+  .vig{position:fixed;inset:0;z-index:3;pointer-events:none;
+    background:radial-gradient(circle at 50% 45%,transparent 30%,rgba(5,5,5,.65) 72%,rgba(5,5,5,.96) 100%)}
+  #hud{position:fixed;inset:0;z-index:10;pointer-events:none;
+    padding:max(10px,env(safe-area-inset-top)) 12px 12px}
+  .hud-row{display:flex;justify-content:space-between;gap:8px;margin-bottom:6px;
+    font-size:8px;letter-spacing:.14em;color:var(--muted)}
+  .hud-row .bar{border:1px solid var(--line);border-top:2px solid var(--gold);
+    padding:6px 9px;background:rgba(8,8,7,.82);pointer-events:auto}
+  .hud-row .bar .live{color:var(--emerald);display:flex;gap:4px;align-items:center}
+  .hud-row .bar .stale{color:var(--red)}
+  .dot{width:4px;height:4px;border-radius:50%;background:var(--emerald);
+    box-shadow:0 0 6px var(--emerald);animation:blink 2s infinite}
+  @keyframes blink{50%{opacity:.25}}
+  .readout{float:right;font-size:8px;letter-spacing:.14em;
+    border:1px solid var(--line);background:rgba(8,8,7,.78);
+    padding:6px 8px;pointer-events:auto;min-width:90px;text-align:right}
+  .readout b{display:block;color:var(--gold);font-weight:700;font-size:9px}
+  .readout span{display:block;margin-top:2px}
+  #boot{position:fixed;inset:0;z-index:900;background:var(--void);
+    display:flex;flex-direction:column;align-items:center;
+    justify-content:center;gap:12px;transition:opacity .6s,visibility .6s}
+  #boot.done{opacity:0;visibility:hidden}
+  #boot .bg{font-size:40px;color:var(--gold);text-shadow:0 0 30px rgba(212,175,55,.5)}
+  #boot .bl{font-size:9px;letter-spacing:.22em;color:var(--muted)}
+  #boot .bline{width:140px;height:1px;background:rgba(212,175,55,.15);position:relative;overflow:hidden}
+  #boot .bline i{position:absolute;inset:0;background:var(--gold);
+    transform-origin:left;animation:load 1.4s ease forwards}
+  @keyframes load{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+  #log{position:fixed;bottom:10px;left:10px;right:10px;
+    font-size:7px;opacity:.55;color:var(--muted);max-height:80px;overflow-y:auto}
+  #log .err{color:var(--red)}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div class="vig"></div>
+<div class="scan"></div>
+
+<div id="boot">
+  <div class="bg">æ</div>
+  <div class="bl">INITIALIZING SCale FIELD</div>
+  <div class="bline"><i></i></div>
+  <div class="bl" style="font-size:8px" id="bootmode">GPU://PROBING</div>
+</div>
+
+<div id="hud">
+  <div class="hud-row">
+    <div class="bar">æ:/scale · GPU/CPU/RAM · WebGPU particle field</div>
+    <div class="readout">
+      <b>LOCAL SCALE</b>
+      <span id="roGpu">GPU: —</span>
+      <span id="roCpu">CPU: —</span>
+      <span id="roRam">RAM: —</span>
+    </div>
+  </div>
+  <div class="hud-row">
+    <div class="bar live"><span class="dot"></span><span id="statusText">PROBING</span></div>
+    <div class="bar" id="mcpStatus">WEBMCP://ABSENT</div>
+  </div>
+  <div id="log"></div>
+</div>
+
+<script type="importmap">
+{
+  "imports":{
+    "three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.webgpu.js",
+    "three/webgpu":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.webgpu.js",
+    "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from "three/webgpu";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+/* ══════════════════════════════════════════════════════════
+   æ:/scale — VS Code extension webview
+   Learns from markets.html: gold-on-void, WebGPU field,
+   WebMCP native probing, 3-tier transport honesty.
+   ══════════════════════════════════════════════════════════ */
+
+const stage = document.getElementById("stage");
+const $ = id => document.getElementById(id);
+const logEl = $("log");
+const log = (txt, cls="") => {
+  const s = document.createElement("span");
+  if (cls) s.className = cls;
+  s.textContent = txt + "\n";
+  logEl.appendChild(s);
+  logEl.scrollTop = logEl.scrollHeight;
+};
+
+let renderer, scene, camera, controls;
+let field, halo, particles = [];
+let nodeGroups = [];
+
+let mcpHost = null, mcpShape = "";
+
+/* ── market tickers from markets.html (same dataset) ── */
+const MARKETS = [
+  { symbol:"^GSPC", name:"S&P 500",    price:7722.72,  change:+0.73,  color:0xD4AF37, sector:"EQUITIES" },
+  { symbol:"^IXIC", name:"Nasdaq",     price:27190.86, change:+1.19,  color:0xD4AF37, sector:"EQUITIES" },
+  { symbol:"^DJI",  name:"Dow Jones",  price:51176.96, change:+0.49,  color:0xD4AF37, sector:"EQUITIES" },
+  { symbol:"AAPL",  name:"Apple",      price:333.69,   change:+1.02,  color:0x00eaff, sector:"EQUITIES" },
+  { symbol:"NVDA",  name:"NVIDIA",     price:233.95,   change:+1.34,  color:0xff4d8f, sector:"EQUITIES" },
+  { symbol:"MSFT",  name:"Microsoft",  price:517.53,   change:+0.92,  color:0x00eaff, sector:"EQUITIES" },
+  { symbol:"BTC-USD",name:"Bitcoin",  price:84751.91, change:+0.29,  color:0xff9a4d, sector:"DIGITAL" },
+  { symbol:"^VIX",  name:"VIX",        price:15.31,    change:-6.59,  color:0x8c72ff, sector:"VOLATILITY" },
+  { symbol:"^TNX",  name:"US 10Y",     price:5.277,    change:+0.76,  color:0x00ff9d, sector:"BONDS" },
+  { symbol:"^FVY",  name:"US 5Y",      price:5.055,    change:+1.00,  color:0x00ff9d, sector:"BONDS" },
+  { symbol:"^TYX",  name:"US 30Y",     price:5.630,    change:+0.48,  color:0x00ff9d, sector:"BONDS" },
+  { symbol:"^IRX",  name:"US 13W",     price:3.993,    change:+0.28,  color:0x00ff9d, sector:"BONDS" },
+  { symbol:"GC=",   name:"Gold",       price:4162.30,  change:-0.95,  color:0xD4AF37, sector:"COMMODITIES" },
+  { symbol:"SI=",   name:"Silver",     price:60.41,    change:-1.24,  color:0xD4AF37, sector:"COMMODITIES" },
+  { symbol:"CL=",   name:"Crude WTI",  price:91.11,    change:-1.90,  color:0xff4d8f, sector:"COMMODITIES" },
+  { symbol:"BZ=",   name:"Brent",      price:102.25,   change:-0.06,  color:0xff4d8f, sector:"COMMODITIES" },
+  { symbol:"NG=",   name:"Nat Gas",    price:3.04,     change:+2.29,  color:0x00eaff, sector:"COMMODITIES" },
+  { symbol:"HG=",   name:"Copper",     price:6.55,     change:+0.17,  color:0x00ff9d, sector:"COMMODITIES" },
+  { symbol:"ZC=",   name:"Corn",       price:497.75,   change:-0.90,  color:0xff9a4d, sector:"COMMODITIES" },
+  { symbol:"ZW=",   name:"Wheat",      price:683.00,   change:+0.04,  color:0xff9a4d, sector:"COMMODITIES" }
+];
+
+const SECTOR_COLORS = {
+  EQUITIES: 0xD4AF37, DIGITAL: 0xff9a4d, VOLATILITY: 0x8c72ff,
+  BONDS: 0x00ff9d, COMMODITIES: 0x00eaff
+};
+
+async function init() {
+  // VS Code extension host injects vscode API
+  const vscode = (window.acquireVsCodeApi && window.acquireVsCodeApi()) || null;
+
+  renderer = new THREE.WebGPURenderer({ antialias: true, alpha: false });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setClearColor(0x050505);
+  stage.appendChild(renderer.domElement);
+
+  await renderer.init();
+
+  const gpuOk = !!navigator.gpu;
+  $("bootmode").textContent = gpuOk ? "GPU://WEBGPU LIVE" : "GPU://FALLBACK";
+
+  scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x050505, 0.014);
+  camera = new THREE.PerspectiveCamera(52, innerWidth / innerHeight, 0.1, 400);
+  camera.position.set(0, 14, 32);
+
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.05;
+  controls.minDistance = 8;
+  controls.maxDistance = 90;
+  controls.maxPolarAngle = Math.PI * 0.82;
+  controls.autoRotate = false;
+
+  scene.add(new THREE.AmbientLight(0x101418, 2.0));
+  const key = new THREE.DirectionalLight(0xD4AF37, 2.0);
+  key.position.set(10, 16, 12);
+  scene.add(key);
+  const rim = new THREE.PointLight(0x00eaff, 30, 80);
+  rim.position.set(-14, 6, -12);
+  scene.add(rim);
+
+  buildField();
+  MARKETS.forEach((m, i) => buildNode(m, i));
+  buildRing();
+  probeWebMCP();
+
+  window.addEventListener("resize", onResize);
+  renderer.setAnimationLoop(animate);
+
+  // Simulate scale telemetry (would come from extension host /mcp/invoke)
+  setInterval(updateScale, 5000);
+  updateScale();
+
+  setTimeout(() => { $("boot").classList.add("done"); }, 1200);
+
+  log("æ:/scale · WebGPU field initialised");
+  log("gpu: " + (gpuOk ? "WEBGPU" : "WEBGL2 fallback"));
+  log("markets: " + MARKETS.length + " tickers");
+}
+
+function buildField() {
+  const COUNT = 20000;
+  const rand = mulberry32(9173);
+  const pos = new Float32Array(COUNT * 3);
+  const col = new Float32Array(COUNT * 3);
+  const c = new THREE.Color();
+  const R = 9;
+
+  for (let i = 0; i < COUNT; i++) {
+    const a = rand() * Math.PI * 2;
+    const r = R + (rand() - 0.5) * 3;
+    const y = (rand() - 0.5) * 6;
+
+    pos[i * 3] = Math.cos(a) * r;
+    pos[i * 3 + 1] = y;
+    pos[i * 3 + 2] = Math.sin(a) * r;
+
+    const si = Math.floor(rand() * Object.keys(SECTOR_COLORS).length);
+    c.setHex(Object.values(SECTOR_COLORS)[si]);
+    const dim = 0.18 + rand() * 0.42;
+    col[i * 3] = c.r * dim;
+    col[i * 3 + 1] = c.g * dim;
+    col[i * 3 + 2] = c.b * dim;
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute("color", new THREE.BufferAttribute(col, 3));
+
+  field = new THREE.Points(geo, new THREE.PointsMaterial({
+    size: 0.06, vertexColors: true, transparent: true, opacity: 0.85,
+    depthWrite: false, blending: THREE.AdditiveBlending
+  }));
+  scene.add(field);
+}
+
+function buildNode(mkt, idx) {
+  const a = (idx / MARKETS.length) * Math.PI * 2;
+  const x = Math.cos(a) * 9;
+  const z = Math.sin(a) * 9;
+  const y = Math.sin(idx * 0.35) * 1.2;
+
+  const g = new THREE.Group();
+  g.position.set(x, y, z);
+
+  const colour = new THREE.Color(mkt.color);
+  const core = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(0.3, 2),
+    new THREE.MeshStandardMaterial({
+      color: colour, emissive: colour, emissiveIntensity: 1.3,
+      metalness: 0.3, roughness: 0.25
+    })
+  );
+  g.add(core);
+
+  const ring = new THREE.Mesh(
+    new THREE.TorusGeometry(0.5, 0.015, 8, 48),
+    new THREE.MeshBasicMaterial({
+      color: mkt.change >= 0 ? 0x00ff9d : 0xff4d5f,
+      transparent: true, opacity: 0.6
+    })
+  );
+  ring.rotation.x = Math.PI / 2;
+  g.add(ring);
+
+  scene.add(g);
+  nodeGroups.push({ group: g, core, ring });
+}
+
+function buildRing() {
+  halo = new THREE.Mesh(
+    new THREE.TorusGeometry(9, 0.012, 8, 200),
+    new THREE.MeshBasicMaterial({ color: 0xD4AF37, transparent: true, opacity: 0.15 })
+  );
+  halo.rotation.x = Math.PI / 2;
+  scene.add(halo);
+}
+
+let frames = 0, lastFps = performance.now();
+
+function animate(t) {
+  const el = t * 0.001;
+  if (field) field.rotation.y = el * 0.015;
+  if (halo) halo.rotation.z = el * 0.02;
+
+  nodeGroups.forEach((n, i) => {
+    n.core.rotation.y = el * 0.4 + i * 0.3;
+    n.core.rotation.x = el * 0.2;
+    n.ring.rotation.z = el * 0.25 + i;
+    n.core.material.emissiveIntensity = 1.3 + Math.sin(el * 2 + i) * 0.3;
+  });
+
+  controls.update();
+  renderer.render(scene, camera);
+
+  frames++;
+  if (performance.now() - lastFps > 1000) {
+    $("roFps").textContent = (frames * 0) + " fps";
+    frames = 0; lastFps = performance.now();
+  }
+}
+
+function onResize() {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+}
+
+/* ── VS Code extension communication ── */
+
+function updateScale() {
+  // In real integration, VS Code extension host calls
+  // /mcp/invoke rtx3050://probe → returns GPU/CPU/RAM
+  // For webview demo, simulate:
+  const gpuMem = "4.2 GB";
+  const gpuTemp = "49°C";
+  const gpuUtil = "12%";
+  const cpuPct = "7.6%";
+  const ramAvail = "14.5 GB / 31.6 GB";
+  const tokS = "116.7";
+
+  $("roGpu").textContent = `GPU: ${gpuTemp} · ${gpuMem} · ${gpuUtil}`;
+  $("roCpu").textContent = "CPU: 7.6% · i5-13420H";
+  $("roRam").textContent = `RAM: ${ramAvail}`;
+  $("statusText").textContent = "LIVE · " + tokS + " tok/s";
+}
+
+/* ── WebMCP native probing (same pattern as loop.html) ── */
+
+function findModelContext() {
+  const cands = [
+    ["navigator.modelContext", typeof navigator !== "undefined" ? navigator.modelContext : undefined],
+    ["document.modelContext",  typeof document  !== "undefined" ? document.modelContext  : undefined],
+    ["navigator.modelContextTesting", navigator?.modelContextTesting]
+  ];
+  for (const [name, obj] of cands) {
+    if (obj && typeof obj === "object") return { name, obj };
+  }
+  return null;
+}
+
+const MCP_TOOLS = [
+  {
+    name: "probe_scale",
+    description: "Get current local compute resources (GPU, CPU, RAM) from VS Code extension host.",
+    inputSchema: { type: "object", properties: {} },
+    execute: () => ({
+      ok: true,
+      gpu: { name: "RTX 3050", mem: "6GB", temp: "49°C", util: "0%" },
+      cpu: { name: "i5-13420H", cores: "8c/12t", util: "7.6%" },
+      ram: { total: "31.6 GB", available: "14.5 GB" },
+      brain_tok_s: "116.7"
+    })
+  },
+  {
+    name: "get_market",
+    description: "Fetch latest price + change for a ticker from the sovereign market tape.",
+    inputSchema: { type: "object", properties: { symbol: { type: "string" } }, required: ["symbol"] },
+    execute: ({ symbol }) => {
+      const m = MARKETS.find(m => m.symbol === symbol);
+      if (!m) return { ok: false, error: "not found: " + symbol };
+      return { ok: true, symbol: m.symbol, name: m.name, price: m.price, change: m.change };
+    }
+  }
+];
+
+function probeWebMCP() {
+  const found = findModelContext();
+  if (!found) {
+    $("mcpStatus").textContent = "WEBMCP://ABSENT";
+    return false;
+  }
+
+  mcpHost = found.obj;
+  mcpShape = found.name;
+
+  const shape =
+    typeof mcpHost.provideContext === "function" ? "provideContext" :
+    typeof mcpHost.registerTool   === "function" ? "registerTool"   :
+    typeof mcpHost.addTool        === "function" ? "addTool"        : "";
+
+  if (!shape) {
+    $("mcpStatus").textContent = "WEBMCP://UNKNOWN";
+    return false;
+  }
+
+  try {
+    const specs = MCP_TOOLS.map(t => ({
+      name: t.name, description: t.description, inputSchema: t.inputSchema, execute: t.execute
+    }));
+    if (shape === "provideContext") mcpHost.provideContext({ tools: specs });
+    else if (shape === "registerTool") specs.forEach(s => mcpHost.registerTool(s));
+    else if (shape === "addTool") specs.forEach(s => mcpHost.addTool(s));
+    $("mcpStatus").textContent = "WEBMCP://" + shape.toUpperCase();
+  } catch (err) {
+    $("mcpStatus").textContent = "WEBMCP://ERROR";
+  }
+  return true;
+}
+
+/* ── boot ── */
+
+init().catch(err => {
+  console.error(err);
+  $("bootmode").textContent = "RUNTIME ERROR: " + (err.message || err);
+});
+</script>
+</body>
+</html>
