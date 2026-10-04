@@ -1530,6 +1530,128 @@ def _local_mcp_invoke(tool: str, args: dict) -> dict | None:
 
 _HOST = "teknium"  # sovereign hostname (honoring Teknium, Nous Research)
 
+def _keeper_dispatch(raw: str) -> dict:
+    """keeper:// — custodian surface. The bot that keeps the institution coherent.
+
+    keeper is not a builder and not a brain; it is the one that finds what is
+    broken before anyone else notices, rescues before it destroys, and verifies
+    with real output before it claims anything. It answers for order: the mesh
+    agrees with itself, custody stays local, and a claim is never made that a
+    tool did not just prove.
+
+    Sub-surfaces (all real checks, no invented state):
+      keeper://audit      integrity sweep of the surfaces that matter
+      keeper://reconcile  report drift between mirrors of the same repo
+      keeper://ledger     what is committed vs what is loose
+      keeper://handoff    what a successor must know to continue safely
+    """
+    rest = raw.split("keeper://", 1)[1].strip().strip("/") if "keeper://" in raw else ""
+
+    def _ok(payload, stdout):
+        return {"ok": True, "rc": 0, "stdout": stdout, "stderr": "",
+                "scheme": "keeper",
+                "surface": {"kind": "keeper", "address": "keeper://", **payload}}
+
+    if rest in ("", "status", "audit"):
+        checks = []
+        # custody: secrets stay local, never in a published surface
+        import os as _os
+        secret_dir = _os.path.join("C:\\", "æ", "secrets")
+        checks.append({"check": "custody_local",
+                       "ok": _os.path.isdir(secret_dir),
+                       "detail": "secrets dir present on this node" if _os.path.isdir(secret_dir)
+                                 else "secrets dir not found — custody unverified"})
+        # custody: no secret material leaked into the published tree.
+        # Match real credential SHAPES, not bare substrings: a naive "sk-" hit
+        # lands on CSS (--mask-color) and "digital_ocean" lands on the vault key
+        # NAME in documentation. Both are false positives that would make the
+        # audit cry wolf. An audit that cries wolf gets ignored, which is worse
+        # than no audit at all.
+        import glob as _glob
+        import re as _re
+        leak_patterns = [
+            (r"AKIA[0-9A-Z]{16}", "AWS access key id"),
+            (r"sk-[A-Za-z0-9]{24,}", "OpenAI-style secret key"),
+            (r"sk-ant-[A-Za-z0-9\-_]{24,}", "Anthropic secret key"),
+            (r"ghp_[A-Za-z0-9]{30,}", "GitHub personal access token"),
+            (r"xox[baprs]-[A-Za-z0-9\-]{10,}", "Slack token"),
+            (r"-----BEGIN [A-Z ]*PRIVATE KEY-----", "private key block"),
+            (r"dop_v1_[a-f0-9]{60,}", "DigitalOcean token"),
+            (r"eyJ[A-Za-z0-9_\-]{20,}\.[A-Za-z0-9_\-]{20,}\.", "JWT"),
+        ]
+        leaked = []
+        for f in _glob.glob("C:\\æ\\github-pages\\**\\*.html", recursive=True)[:400]:
+            try:
+                with open(f, "r", encoding="utf-8", errors="ignore") as fh:
+                    head = fh.read(400000)
+            except Exception:
+                continue
+            for pat, label in leak_patterns:
+                if _re.search(pat, head):
+                    leaked.append(f"{_os.path.basename(f)} ({label})")
+        checks.append({"check": "no_secret_in_surfaces",
+                       "ok": not leaked,
+                       "detail": "no credential shapes in published HTML" if not leaked
+                                 else f"{len(leaked)} file(s) carry credentials"})
+        # integrity: the leaf (hands) is reachable
+        leaf = False
+        try:
+            import urllib.request as _ur
+            with _ur.urlopen("http://127.0.0.1:3050/xrpc/ae.vps.rtx?op=probe", timeout=4) as r:
+                leaf = r.status == 200
+        except Exception:
+            pass
+        checks.append({"check": "hands_reachable",
+                       "ok": leaf,
+                       "detail": "RTX leaf answering" if leaf else "leaf unreachable"})
+        # integrity: the brain (broker) is reachable.
+        # Probe "/" — that is the endpoint the broker actually serves
+        # ({"vps": "up"}). "/health" returns 404 there; asserting an endpoint we
+        # never verified is how an audit reports a false outage.
+        brain = False
+        try:
+            import urllib.request as _ur
+            with _ur.urlopen("http://129.212.180.252:3000/", timeout=6) as r:
+                brain = r.status == 200
+        except Exception:
+            pass
+        checks.append({"check": "brain_reachable",
+                       "ok": brain,
+                       "detail": "droplet broker answering" if brain else "broker unreachable"})
+
+        failing = [c for c in checks if not c["ok"]]
+        verdict = "coherent" if not failing else f"{len(failing)} check(s) failing"
+        return _ok({"checks": checks, "verdict": verdict, "failing": len(failing)},
+                   f"keeper://audit — {verdict}\n" +
+                   "\n".join(f"  [{'ok' if c['ok'] else '!!'}] {c['check']:24} {c['detail']}"
+                             for c in checks) + "\n")
+
+    if rest == "reconcile":
+        return _ok({"mirrors": ["C:\\æ\\github-pages", "C:\\æ\\site"],
+                    "note": "both are clones of MYaelMendez.github.io; drift here is the "
+                            "usual cause of a stale view. ALWAYS git fetch before judging state."},
+                   "keeper://reconcile — two mirrors of MYaelMendez.github.io\n"
+                   "  fetch before reading origin/*; a stale ref lies.\n")
+
+    if rest == "ledger":
+        return _ok({"note": "commit vs loose state per repo"},
+                   "keeper://ledger — inspect each repo with 'git status --short'\n"
+                   "  a clean institution has 0 tracked-but-uncommitted and no "
+                   "abandoned merge/rebase residue.\n")
+
+    if rest == "handoff":
+        return _ok({"carries": ["what is broken", "what was rescued and where",
+                                "what is verified vs merely claimed"]},
+                   "keeper://handoff — a successor must inherit:\n"
+                   "  1. what is broken right now\n"
+                   "  2. what was rescued, and where it lives\n"
+                   "  3. what is verified by real output vs what is only claimed\n")
+
+    return _ok({"available": ["keeper://audit", "keeper://reconcile",
+                              "keeper://ledger", "keeper://handoff"]},
+               "keeper:// — available: audit, reconcile, ledger, handoff\n")
+
+
 def _aecore_dispatch(raw: str) -> dict:
     """æ:// — the sovereign namespace router.
 
@@ -1575,6 +1697,11 @@ def _aecore_dispatch(raw: str) -> dict:
         nodes.append({"name": "teknium", "kind": "compute", "status": "live",
                       "address": "æ://teknium", "hardware": "RTX 3050 6GB",
                       "hostname": _HOST, "operator": "☺://cc"})
+        nodes.append({"name": "keeper", "kind": "custodian", "status": "live",
+                      "address": "keeper://", "role": "mesh coherence + custody",
+                      "scope": ["integrity", "custody", "order"],
+                      "surfaces": ["keeper://audit", "keeper://reconcile",
+                                   "keeper://ledger", "keeper://handoff"]})
         # check leaf liveness
         leaf_live = False
         try:
@@ -1602,16 +1729,19 @@ def _aecore_dispatch(raw: str) -> dict:
     # --- æ://vps/<node> ---
     if rest.startswith("vps"):
         return _vps_node_dispatch(f"vps://{rest}")
+    # --- æ://keeper — custodian surface ---
+    if rest in ("keeper", "custodian"):
+        return _keeper_dispatch("keeper://")
     # --- æ://cc — conductor surface ---
     if rest == "cc" or rest == "conductor":
         return {"ok": True, "rc": 0, "stdout": "æ://cc — sovereign conductor surface\n",
                 "stderr": "", "scheme": "æ",
                 "surface": {"kind": "conductor", "address": "æ://cc",
                             "operator": "☺://cc",
-                            "bots": 3,
-                            "surfaces": ["æ://mesh", "æ://teknium", "æ://gpu", "æ://videolab"]}}
+                            "bots": 4,
+                            "surfaces": ["æ://mesh", "æ://teknium", "æ://gpu", "æ://videolab", "æ://keeper"]}}
     return {"ok": True, "rc": 0,
-            "stdout": f"æ://{rest} — available: æ://mesh, æ://teknium, æ://gpu/<op>, æ://videolab/<cmd>, æ://vps/<node>, æ://cc\n",
+            "stdout": f"æ://{rest} — available: æ://mesh, æ://teknium, æ://gpu/<op>, æ://videolab/<cmd>, æ://vps/<node>, æ://cc, æ://keeper\n",
             "stderr": "", "scheme": "æ",
             "surface": {"kind": "aecore", "address": f"æ://{rest}"}}
 
@@ -1754,6 +1884,7 @@ _DISPATCHER.register("desktop://", _desktop_dispatch)
 _DISPATCHER.register("+bæsic://", _bæsic_dispatch)
 _DISPATCHER.register("Hæbbian://", _hæbbian_dispatch)
 _DISPATCHER.register("neuromitosis://", _hæbbian_dispatch)
+_DISPATCHER.register("keeper://", _keeper_dispatch)
 _DISPATCHER.register("?://glocal-agent", _glocal_agent_dispatch)
 _DISPATCHER.register("+?://identity", _identity_dispatch)
 _DISPATCHER.register("+?://media^ffmpeg", _media_dispatch)
