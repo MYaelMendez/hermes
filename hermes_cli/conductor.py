@@ -46,6 +46,14 @@ def _make_run_pc_name(raw: str) -> Tuple[str, str | None]:
 def _normalize_cc(raw: str) -> str:
     if raw.startswith("H://cc") or raw.startswith("hermes://cc"):
         return "c://cc" + raw.split("cc", 1)[1]
+    # a:// — the ASCII alias for æ://. The glyph æ is not on every keyboard, so
+    # the namespace needs a typable entry point. `?` was the de-facto stand-in
+    # (a terminal artifact when æ would not render), but `?` is the URL query
+    # separator — a terrible alias. `a` is the letter; use it.
+    if raw.startswith("+a://"):
+        return "+æ://" + raw[len("+a://"):]
+    if raw.startswith("a://"):
+        return "æ://" + raw[len("a://"):]
     return raw
 
 
@@ -2572,6 +2580,10 @@ class SchemeDispatcher:
         return sorted(self._handlers, key=lambda item: len(item[0]), reverse=True)
 
     def is_scheme_cmd(self, raw: str) -> bool:
+        # a:// is the ASCII alias for æ:// (normalized in dispatch); recognize it
+        # here too so the router accepts it as a scheme before normalization.
+        if raw.startswith("a://") or raw.startswith("+a://"):
+            return True
         return any(
             raw.startswith(prefix) for prefix, _ in self._sorted_handlers()
         )
