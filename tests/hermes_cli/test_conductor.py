@@ -367,3 +367,87 @@ def test_cuda_vlc_surface_routing() -> None:
     unknown = _dispatch("+æ://cuda-vlc frobnicate")
     assert unknown["ok"] is False
     assert "unknown action" in unknown["stderr"]
+
+
+# ── the schemes added this session: a:// · vidæo:// · video:// ──
+# All hermetic: no GPU, no render, no network. The live render path is covered
+# by ad-hoc verification (video://dji 5 → PASS), not the suite.
+
+
+def test_a_ascii_alias_of_ae() -> None:
+    """a:// is the typable ASCII alias for æ:// — same routes, no glyph needed.
+
+    The glyph æ is not on every keyboard; `?` was the de-facto stand-in but is
+    the URL query separator. `a` is the letter.
+    """
+    # recognized as a scheme BEFORE normalization
+    assert _is_scheme_cmd("a://mesh") is True
+    assert _is_scheme_cmd("+a://secrets") is True
+
+    # a:// and æ:// dispatch identically
+    a_mesh = _dispatch("a://mesh")
+    ae_mesh = _dispatch("æ://mesh")
+    assert a_mesh["ok"] is True
+    assert ae_mesh["ok"] is True
+    assert a_mesh["stdout"] == ae_mesh["stdout"]
+
+    # the +a:// superset maps to +æ://
+    a_secrets = _dispatch("+a://secrets")
+    ae_secrets = _dispatch("+æ://secrets")
+    assert a_secrets["ok"] == ae_secrets["ok"]
+    assert (a_secrets.get("stderr") or a_secrets.get("stdout")) == \
+           (ae_secrets.get("stderr") or ae_secrets.get("stdout"))
+
+
+def test_vidaeo_brand_production_surface() -> None:
+    """vidæo://<brand> resolves a brand to its surface + manifest."""
+    assert _is_scheme_cmd("vidæo://aipodcast.me") is True
+
+    index = _dispatch("vidæo://")
+    assert index["ok"] is True
+    assert index["scheme"] == "vidæo://"
+    brands = {b["brand"] for b in index["surfaces"] if False} if False else \
+             {b["brand"] for b in index.get("brands", [])}
+    assert "aipodcast.me" in brands
+
+    brand = _dispatch("vidæo://aipodcast.me")
+    assert brand["ok"] is True
+    assert brand["brand"] == "aipodcast.me"
+    assert "aipodcast_me" in brand["surface"]
+
+    # an unknown brand fails honestly, naming a known one
+    bogus = _dispatch("vidæo://notabrand")
+    assert bogus["ok"] is False
+    assert "unknown action" in bogus["stderr"]
+
+
+def test_video_render_request_surface() -> None:
+    """video://<subject> is the render request surface over æRTXrender."""
+    assert _is_scheme_cmd("video://dji") is True
+
+    index = _dispatch("video://")
+    assert index["ok"] is True
+    assert index["scheme"] == "video://"
+    assert index["default_seconds"] == 5
+    subjects = {s["subject"] for s in index["surfaces"]}
+    assert "dji" in subjects
+    assert "zeitgeist" in subjects
+    # the harness is named — this is æRTXrender, deterministically driven
+    assert "æRTXrender" in index["harness"]
+
+    # an unknown subject fails honestly, listing the known ones
+    bogus = _dispatch("video://notasubject")
+    assert bogus["ok"] is False
+    assert "unknown subject" in bogus["stderr"]
+    assert "dji" in bogus["stderr"]
+
+
+def test_video_and_vidaeo_are_distinct_surfaces() -> None:
+    """video:// is the ASK; vidæo:// is the BRAND/pipeline. Different verbs."""
+    video = _dispatch("video://")
+    vidaeo = _dispatch("vidæo://")
+    assert video["scheme"] == "video://"
+    assert vidaeo["scheme"] == "vidæo://"
+    # video:// carries a harness + subjects; vidæo:// carries brands
+    assert "harness" in video
+    assert "brands" in vidaeo
