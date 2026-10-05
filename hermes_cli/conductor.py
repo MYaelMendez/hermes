@@ -3704,4 +3704,137 @@ def _vidaeo_dispatch(raw: str) -> dict:
 
 _DISPATCHER.register("vidæo://", _vidaeo_dispatch)
 
+# ── video:// — the render request surface (æRTXrender) ──────────────────────
+# video://<what>  — ask for a video; the harness renders it deterministically.
+#
+# This is the REQUEST surface. `vidæo://` is the BRAND/pipeline surface (AEE
+# cycle, corpus, brands); `video://` is the ask — "give me N seconds of X".
+#
+#   video://                          -> the surface index (known subjects)
+#   video://status                    -> toolchain: node, ffmpeg, chrome, GPU
+#   video://<subject> [seconds]       -> render <subject> for N seconds (default 5)
+#   video://list                      -> surfaces available to render
+#
+# A subject is a scene in C:\æ\threejs-curriculo. The 5-second default matches
+# the "summary" ask: a short, portable clip. Rendering runs the real pipeline:
+# node render.mjs → CDP → NVENC → SupervisorVideo gate.
+
+_VIDEO_SURFACES = {
+    "dji": {"file": "dji-5s.html", "label": "Dow Jones Industrial Average",
+            "note": "the DJI tape, drawn from the droplet broker's real quote"},
+    "storyboards": {"file": "storyboards.html", "label": "Hollywood Golden Age Storyboards",
+                    "note": "3 films noir, animatic panels"},
+    "zeitgeist": {"file": "zeitgeist.html", "label": "@yaelmendez #zeitgeist",
+                  "note": "9 real X posts on a timeline"},
+    "video-vision": {"file": "video-vision.html", "label": "VIDEO VISION",
+                     "note": "the pipeline seeing its own output"},
+    "inside-compute": {"file": "inside-compute.html", "label": "INSIDE COMPUTE",
+                       "note": "6-layer chip interior"},
+    "aertx-demo": {"file": "aertx-demo.html", "label": "æRTXrender demo",
+                   "note": "80k particles, deterministic hook"},
+    "demo-9x16": {"file": "demo-9x16.html", "label": "9:16 capability demo",
+                  "note": "5 scenes, Python · AEE · QR chip"},
+}
+
+
+def _video_dispatch(raw: str) -> dict:
+    """Route video:// — the render request surface over æRTXrender."""
+    import json as _json
+    import os as _os
+    import subprocess as _sp
+
+    rest = raw.split("video://", 1)[1].strip() if "video://" in raw else ""
+    parts = rest.split()
+    subject = parts[0].lower() if parts else ""
+    seconds = 5
+    if len(parts) > 1:
+        try:
+            seconds = max(1, min(30, int(float(parts[1]))))
+        except (TypeError, ValueError):
+            pass
+
+    _HERE = _os.path.dirname(_os.path.abspath(__file__))
+    _ROOT = _os.path.normpath(_os.path.join(_HERE, "..", ".."))
+    _THREEJS = _os.path.join(_ROOT, "threejs-curriculo")
+    _RENDER = _os.path.join(_THREEJS, "render.mjs")
+    _NODE = r"C:\Users\yaelm\AppData\Local\hermes\tools\node-26.7.0-win32-x64\node.exe"
+    _GPU_PY = r"C:\gpu\Scripts\python.exe"
+    _FFMPEG = r"C:\Users\yaelm\AppData\Local\hermes\tools\ffmpeg-7.1-nvenc\bin\ffmpeg.exe"
+
+    # ── index / status / list ──
+    if subject in ("", "status", "list"):
+        surfaces = [{"subject": k, "label": v["label"], "note": v["note"]}
+                    for k, v in _VIDEO_SURFACES.items()]
+        return {
+            "ok": True,
+            "scheme": "video://",
+            "role": "render request surface — ask for N seconds of a subject",
+            "harness": "æRTXrender (deterministic: frame i → time i/FPS)",
+            "default_seconds": 5,
+            "surfaces": surfaces,
+            "toolchain": {
+                "node": _NODE if _os.path.exists(_NODE) else None,
+                "render_mjs": _RENDER if _os.path.exists(_RENDER) else None,
+                "ffmpeg_nvenc": _FFMPEG if _os.path.exists(_FFMPEG) else None,
+            },
+            "stdout": ("video:// — render request surface\n"
+                       + "".join(f"  video://{s['subject']:16} {s['label'][:44]}\n" for s in surfaces)
+                       + f"\n  usage: video://<subject> [seconds]   (default 5)\n"),
+        }
+
+    if subject not in _VIDEO_SURFACES:
+        return {"ok": False,
+                "stderr": f"video:// unknown subject '{subject}' — try: "
+                          + ", ".join(sorted(_VIDEO_SURFACES))}
+
+    spec = _VIDEO_SURFACES[subject]
+    src = _os.path.join(_THREEJS, spec["file"])
+    if not _os.path.exists(src):
+        return {"ok": False, "stderr": f"video://{subject} — surface not found: {src}"}
+    if not _os.path.exists(_RENDER):
+        return {"ok": False, "stderr": f"video://{subject} — render.mjs not found: {_RENDER}"}
+    if not _os.path.exists(_NODE):
+        return {"ok": False, "stderr": f"video://{subject} — bundled node not found: {_NODE}"}
+
+    out = _os.path.join(_THREEJS, f"{subject}-{seconds}s.mp4")
+    frames = seconds * 30
+    cmd = [_NODE, _RENDER, f"--url=http://127.0.0.1:8123/{spec['file']}",
+           f"--out={out}", f"--frames={frames}", "--fps=30",
+           "--w=720", "--h=1280", "--encoder=nvenc"]
+    try:
+        r = _sp.run(cmd, capture_output=True, text=True, timeout=900, cwd=_THREEJS)
+    except _sp.TimeoutExpired:
+        return {"ok": False, "stderr": f"video://{subject} — render timed out"}
+
+    if r.returncode != 0 or not _os.path.exists(out):
+        return {"ok": False, "stderr": (r.stderr or r.stdout or "render failed")[-400:],
+                "surface": {"kind": "video", "subject": subject, "seconds": seconds}}
+
+    # the gate — supervise what we just rendered
+    gate = None
+    try:
+        import sys as _sys
+        _sys.path.insert(0, _os.path.join(_ROOT, "supervisionvidaeo"))
+        from supervisionvidaeo import verify as _verify
+        rep = _verify(out, sample_every=15)
+        gate = {"calidad": rep.get("calidad"), "receipt": rep.get("receipt"),
+                "luminancia": rep.get("luminancia_media"),
+                "frames_negros": rep.get("frames_negros")}
+    except Exception as exc:
+        gate = {"error": str(exc)[:120]}
+
+    size_mb = round(_os.path.getsize(out) / 1048576, 2)
+    return {
+        "ok": True,
+        "stdout": (f"video://{subject} — {seconds}s · {frames} frames · {size_mb} MB\n"
+                   f"  {spec['label']}\n"
+                   f"  gate: {gate.get('calidad')} · receipt {str(gate.get('receipt'))[:24]}\n"
+                   f"  out: {out}\n"),
+        "surface": {"kind": "video", "subject": subject, "seconds": seconds,
+                    "frames": frames, "out": out, "size_mb": size_mb, "gate": gate},
+    }
+
+
+_DISPATCHER.register("video://", _video_dispatch)
+
 _DISPATCHER.register("fs://", _fs_dispatch)
