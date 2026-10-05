@@ -1,7 +1,7 @@
 {
   "name": "hermes-agent",
   "displayName": "Hermes Agent",
-  "description": "Hermes Agent — sovereign local AI: offline brain (ollama), CUDA + Rust/WASM command & control, and a local GPU-MCP server. Gold-on-void +æ^glocal runtime.",
+  "description": "Hermes Agent \u2014 sovereign local AI: offline brain (ollama), CUDA + Rust/WASM command & control, and a local GPU-MCP server. Gold-on-void +\u00e6^glocal runtime.",
   "version": "0.3.1",
   "publisher": "hermes-agent",
   "engines": {
@@ -40,7 +40,10 @@
   ],
   "contributes": {
     "commands": [
-      {"command": "remoteUse.previewBridge", "title": "Human Loop: Start VS Code Preview Bridge"},
+      {
+        "command": "remoteUse.previewBridge",
+        "title": "Human Loop: Start VS Code Preview Bridge"
+      },
       {
         "command": "remoteUse.humanLoop",
         "title": "Human Loop: Open Agentic Terminal (WebMCP Required)"
@@ -95,7 +98,7 @@
       },
       {
         "command": "remoteUse.webLLM",
-        "title": "Remote Use: Open Hermes Native · WebLLM WebGPU Runtime"
+        "title": "Remote Use: Open Hermes Native \u00b7 WebLLM WebGPU Runtime"
       },
       {
         "command": "remoteUse.factory",
@@ -103,7 +106,7 @@
       },
       {
         "command": "remoteUse.computerUse",
-        "title": "Remote Use: Computer Use · Bounded Local Desktop Control"
+        "title": "Remote Use: Computer Use \u00b7 Bounded Local Desktop Control"
       },
       {
         "command": "remoteUse.htmlSurface",
@@ -127,7 +130,7 @@
       },
       {
         "command": "remoteUse.fleetWaves",
-        "title": "Remote Use: Fleet Waves C²"
+        "title": "Remote Use: Fleet Waves C\u00b2"
       }
     ],
     "mcp": {
@@ -143,7 +146,7 @@
     },
     "themes": [
       {
-        "label": "æ:// Gold-on-Void",
+        "label": "\u00e6:// Gold-on-Void",
         "uiTheme": "vs-dark",
         "path": "./themes/ae-gold-on-void-color-theme.json"
       }
@@ -183,6 +186,16 @@
       }
     }
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MYaelMendez/SOVEREIGN.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/MYaelMendez/SOVEREIGN/issues"
+  },
+  "homepage": "https://github.com/MYaelMendez/SOVEREIGN#readme",
+  "icon": "images/icon.svg",
   "scripts": {
     "compile": "tsc -p ./",
     "package": "vsce package"

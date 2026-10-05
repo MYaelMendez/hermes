@@ -14,7 +14,19 @@ type ManifestPayload = {
   cloud?: boolean;
   iterations?: number;
   max_iterations?: number;
+  manifest_sha256?: string;
+  input_sha256?: string;
 };
+
+/** Typed shape of webview postMessage payloads. */
+interface WebviewMessage {
+  type?: string;
+  action?: string;
+  command?: string;
+  path?: string;
+  id?: string | number;
+  [key: string]: unknown;
+}
 
 declare const require: (module: string) => any;
 
@@ -309,7 +321,7 @@ function buildPlayerManifestFromInput(inputPath: string, localAppData: string): 
   return { path: manifestPath, payload };
 }
 
-function renderMediaViewportHtml(manifest: any, manifestPath: string, previews: Array<{ label: string; kind: 'audio' | 'video'; uri: string }> = []): string {
+function renderMediaViewportHtml(manifest: Partial<ManifestPayload>, manifestPath: string, previews: Array<{ label: string; kind: 'audio' | 'video'; uri: string }> = []): string {
   const rawManifest = JSON.stringify(manifest, null, 2);
   const embeddedPreviewHtml = previews.length > 0
     ? previews.map((entry) => {
@@ -1190,7 +1202,7 @@ export function activate(context: vscode.ExtensionContext) {
       { enableScripts: true }
     );
     panel.webview.html = renderReachyPanelHtml(repo);
-    panel.webview.onDidReceiveMessage(async (message: any) => {
+    panel.webview.onDidReceiveMessage(async (message: WebviewMessage) => {
       if (message?.type === 'requestProbe') {
         await vscode.commands.executeCommand('remoteUse.reachyProbe');
       }
@@ -1264,7 +1276,7 @@ export function activate(context: vscode.ExtensionContext) {
       { enableScripts: true, retainContextWhenHidden: true }
     );
     panel.webview.html = renderFactoryHtml(repo);
-    panel.webview.onDidReceiveMessage(async (message: any) => {
+    panel.webview.onDidReceiveMessage(async (message: WebviewMessage) => {
       if (message?.command === 'remoteUse.factory.write') {
         const fs = require('fs');
         const path = require('path');
@@ -1290,7 +1302,7 @@ export function activate(context: vscode.ExtensionContext) {
       { enableScripts: true, retainContextWhenHidden: true }
     );
     panel.webview.html = renderComputerUseHtml();
-    panel.webview.onDidReceiveMessage(async (message: any) => {
+    panel.webview.onDidReceiveMessage(async (message: WebviewMessage) => {
       if (message?.command === 'remoteUse.computerUse.ready') {
         vscode.window.showInformationMessage('Remote Use: Computer Use surface ready (cua-driver drives desktop in background).');
       }
@@ -1310,7 +1322,7 @@ export function activate(context: vscode.ExtensionContext) {
     const fs = require('fs');
     let html = fs.readFileSync(hub, 'utf8').replace(/file:\/\/\//g, '').replace(/file:\/\//g, '');
     panel.webview.html = html;
-    panel.webview.onDidReceiveMessage(async (message: any) => {
+    panel.webview.onDidReceiveMessage(async (message: WebviewMessage) => {
       const cmd: string = message?.command || '';
       if (cmd === 'remoteUse.surfaces.uri') {
         const p = String(message.path || '').replace(/^file:\/\/\/?/, '').replace(/\\/g, '/');
@@ -1368,10 +1380,10 @@ export function activate(context: vscode.ExtensionContext) {
       { enableScripts: true, retainContextWhenHidden: true, localResourceRoots: [vscode.Uri.file(`${repo}/templates/surfaces`)] }
     );
     panel.webview.html = require('fs').readFileSync(hub, 'utf8');
-    panel.webview.onDidReceiveMessage(async (message: any) => {
+    panel.webview.onDidReceiveMessage(async (message: WebviewMessage) => {
       const action: string = message?.action || '';
       const { exec } = require('child_process');
-      const run = (cmd: string) => new Promise<string>((res) => exec(cmd, { maxBuffer: 1024 * 1024 }, (e: any, o: string, err: string) => res((e ? err : o) || '')));
+      const run = (cmd: string) => new Promise<string>((res) => exec(cmd, { maxBuffer: 1024 * 1024 }, (e: Error | null, o: string, err: string) => res((e ? err : o) || '')));
       if (action === 'smi') {
         const out = await run('nvidia-smi --query-gpu=name,driver_version,memory.used,memory.total,utilization.gpu,temperature.gpu --format=csv,noheader,nounits');
         const parts = out.split(',').map((s: string) => s.trim());
