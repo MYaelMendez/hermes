@@ -579,3 +579,76 @@ def test_two_stack_surfaces_are_distinct() -> None:
     # each has its own vocabulary — addons vs packages/registry/skills
     assert "counts" in three and "addons" in three["counts"]
     assert "counts" in hf and "packages" in hf["counts"]
+
+
+def test_supervisionvidaeo_contract_surface() -> None:
+    """supervisionvidaeo:// exposes the produce-and-verify contract.
+
+    Hermetic for the metadata actions (index/api/bounds/toolchain/check) — they
+    read the package, not a video. The live gate is covered by ad-hoc
+    verification (verify dji-5s.mp4 → PASS), not the suite.
+    """
+    assert _is_scheme_cmd("supervisionvidaeo://toolchain") is True
+
+    index = _dispatch("supervisionvidaeo://")
+    assert index["ok"] is True
+    assert index["scheme"] == "supervisionvidaeo://"
+    # the contract is the point: produce() → Receipt, or refuse
+    assert "SupervisionRefused" in index["stdout"]
+    assert "Receipt" in index["stdout"]
+    assert set(index["actions"]) == {"toolchain", "bounds", "api", "verify <mp4>", "check"}
+
+    api = _dispatch("supervisionvidaeo://api")
+    assert api["ok"] is True
+    assert "produce" in api["api"]
+    assert "verify" in api["api"]
+    # the refusal is named, not hidden
+    assert "SupervisionRefused" in api["api"]
+    # SceneSpec.bounded clamps — it must not raise
+    assert "bounded" in "".join(api["api"].keys()) or \
+           any("bounded" in k for k in api["api"])
+
+    bounds = _dispatch("supervisionvidaeo://bounds")
+    assert bounds["ok"] is True
+    assert "particles" in bounds["bounds"]
+    assert "duration" in bounds["bounds"]
+    assert isinstance(bounds["bounds"]["particles"], list)
+
+    check = _dispatch("supervisionvidaeo://check")
+    # check mirrors the real importable+usable state
+    assert "usable:" in check["stdout"]
+
+
+def test_supervisionvidaeo_verify_fails_honestly() -> None:
+    """A verify with no path, or a missing file, returns ok=False — never a fake PASS.
+
+    The whole contract is 'never return a path to a broken file'. A verify that
+    says PASS on a file it never opened would break that.
+    """
+    no_path = _dispatch("supervisionvidaeo://verify")
+    assert no_path["ok"] is False
+    assert "no path" in no_path["stderr"]
+
+    missing = _dispatch("supervisionvidaeo://verify C:/definitely/not/here.mp4")
+    assert missing["ok"] is False
+    assert "not found" in missing["stderr"]
+
+
+def test_six_scheme_verbs_are_distinct() -> None:
+    """Six surfaces, six questions — ASK · BRAND · RENDERER · FRAMEWORK · CONTRACT · ALIAS."""
+    schemes = {
+        "video://": "video://",
+        "vidæo://": "vidæo://",
+        "three.js://": "three.js://",
+        "hyperframes://": "hyperframes://",
+        "supervisionvidaeo://": "supervisionvidaeo://",
+    }
+    for probe, expected in schemes.items():
+        r = _dispatch(probe)
+        assert r["scheme"] == expected, probe
+    # each carries a distinct vocabulary
+    assert "harness" in _dispatch("video://")
+    assert "brands" in _dispatch("vidæo://")
+    assert "revision" in _dispatch("three.js://")
+    assert "version" in _dispatch("hyperframes://")
+    assert "bounds" in _dispatch("supervisionvidaeo://")

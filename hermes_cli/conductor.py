@@ -4161,4 +4161,164 @@ def _hf_dispatch(raw: str) -> dict:
 
 _DISPATCHER.register("hyperframes://", _hf_dispatch)
 
+# ── supervisionvidaeo:// — the produce-and-verify contract surface ──────────
+# supervisionvidaeo://<what> — inspect and invoke the supervision gate.
+#
+# The CONTRACT surface. Six verbs now, six questions:
+#   video://              the ASK        — render N seconds of a subject
+#   vidæo://              the BRAND      — a brand's surface + manifest
+#   three.js://           the RENDERER   — the vendored Three.js
+#   hyperframes://        the FRAMEWORK  — the composition monorepo
+#   supervisionvidaeo://  the CONTRACT   — produce→Receipt or SupervisionRefused
+#   a://                  the ALIAS      — the typable entry
+#
+#   supervisionvidaeo://            -> the contract index (API · bounds · toolchain)
+#   supervisionvidaeo://toolchain   -> can it produce? (never assume)
+#   supervisionvidaeo://bounds      -> the SceneSpec clamp ranges
+#   supervisionvidaeo://api         -> the public surface (produce · verify · …)
+#   supervisionvidaeo://verify <mp4> -> run the gate on an existing video
+#   supervisionvidaeo://check       -> is the package importable + usable?
+
+_SVD_DIR = r"C:\æ\supervisionvidaeo"
+
+
+def _svd_dispatch(raw: str) -> dict:
+    """Route supervisionvidaeo:// — the produce-and-verify contract surface."""
+    import importlib as _il
+    import os as _os
+    import sys as _sys
+
+    rest = raw.split("supervisionvidaeo://", 1)[1].strip() if "supervisionvidaeo://" in raw else ""
+    parts = rest.split()
+    action = (parts[0].lower() if parts else "status")
+    arg = parts[1] if len(parts) > 1 else ""
+
+    _D = _SVD_DIR
+    if not _os.path.isdir(_D):
+        return {"ok": False, "stderr": f"supervisionvidaeo:// — package not found: {_D}"}
+    if _D not in _sys.path:
+        _sys.path.insert(0, _D)
+
+    try:
+        svd = _il.import_module("supervisionvidaeo")
+    except Exception as exc:
+        return {"ok": False, "stderr": f"supervisionvidaeo:// — import failed: {exc}"}
+
+    # ── toolchain ──
+    if action == "toolchain":
+        try:
+            ts = svd.toolchain_status()
+        except Exception as exc:
+            return {"ok": False, "stderr": f"toolchain_status failed: {exc}"}
+        prod = ts.get("producer", {})
+        ver = ts.get("verifier", {})
+        avail = bool(prod.get("available"))
+        return {"ok": avail, "scheme": "supervisionvidaeo://", "toolchain": ts,
+                "stdout": (f"supervisionvidaeo toolchain — {ts.get('package')} v{ts.get('version')}\n"
+                           f"  producer   vidaeo_cli={prod.get('vidaeo_cli')}\n"
+                           f"             gpu_python={prod.get('gpu_python')}  available={avail}\n"
+                           f"  verifier   opencv={ver.get('opencv')}  ml_required={ver.get('ml_required')}\n")}
+
+    # ── bounds ──
+    if action == "bounds":
+        try:
+            b = svd.toolchain_status().get("bounds", {})
+        except Exception as exc:
+            return {"ok": False, "stderr": f"bounds failed: {exc}"}
+        return {"ok": True, "scheme": "supervisionvidaeo://", "bounds": b,
+                "stdout": ("SceneSpec.bounded() clamps — never raises:\n"
+                           + "".join(f"  {k:12} {v}\n" for k, v in b.items()))}
+
+    # ── api ──
+    if action == "api":
+        api = {
+            "produce": "produce(raw_spec, out_path, *, producer=None) → Receipt | raises SupervisionRefused",
+            "verify": "verify(mp4_path, sample_every=20) → dict (the gate, without the producer)",
+            "toolchain_status": "toolchain_status() → dict (can it produce? never assume)",
+            "SceneSpec.bounded": "SceneSpec.bounded(raw=None, **overrides) → SceneSpec (clamps bad input)",
+            "Receipt": "the evidence: H(prev ∥ intent ∥ ops ∥ result ∥ state ∥ evidence)",
+            "SupervisionRefused": "raised on FAIL — never returns a path to a broken file",
+        }
+        return {"ok": True, "scheme": "supervisionvidaeo://", "api": api,
+                "stdout": ("supervisionvidaeo — public surface\n"
+                           + "".join(f"  {k:22} {v}\n" for k, v in api.items()))}
+
+    # ── verify <mp4> ──
+    if action == "verify":
+        if not arg:
+            return {"ok": False, "stderr": "supervisionvidaeo://verify <mp4> — no path given"}
+        path = arg if _os.path.isabs(arg) else _os.path.join(_D, arg)
+        if not _os.path.exists(path):
+            return {"ok": False, "stderr": f"supervisionvidaeo://verify — not found: {path}"}
+        try:
+            rep = svd.verify(path, sample_every=20)
+        except Exception as exc:
+            return {"ok": False, "stderr": f"verify failed: {exc}"}
+        cal = rep.get("calidad")
+        return {
+            "ok": cal == "PASS",
+            "scheme": "supervisionvidaeo://",
+            "report": rep,
+            "stdout": (f"supervisionvidaeo://verify — {_os.path.basename(path)}\n"
+                       f"  {cal} · lum {rep.get('luminancia_media')} · "
+                       f"con {rep.get('contraste_medio')} · mov {rep.get('movimiento_medio')}\n"
+                       f"  black frames {rep.get('frames_negros')}\n"
+                       f"  receipt {rep.get('receipt')}\n"),
+        }
+
+    # ── check ──
+    if action == "check":
+        ok = True
+        notes = []
+        try:
+            ts = svd.toolchain_status()
+            notes.append(f"toolchain: {ts.get('package')} v{ts.get('version')}")
+            if not ts.get("producer", {}).get("available"):
+                ok = False
+                notes.append("producer UNAVAILABLE")
+        except Exception as exc:
+            ok = False
+            notes.append(f"toolchain failed: {exc}")
+        for attr in ("produce", "verify", "toolchain_status", "SceneSpec", "Receipt", "SupervisionRefused"):
+            if not hasattr(svd, attr):
+                ok = False
+                notes.append(f"missing: {attr}")
+        return {"ok": ok, "scheme": "supervisionvidaeo://", "notes": notes,
+                "stdout": ("supervisionvidaeo check\n"
+                           + "".join(f"  {n}\n" for n in notes)
+                           + f"  usable: {ok}\n")}
+
+    # ── index ──
+    try:
+        ts = svd.toolchain_status()
+        version = ts.get("version", "?")
+        avail = ts.get("producer", {}).get("available")
+        bounds = ts.get("bounds", {})
+    except Exception:
+        version, avail, bounds = "?", None, {}
+    tests = []
+    tdir = _os.path.join(_D, "tests")
+    if _os.path.isdir(tdir):
+        tests = sorted(f for f in _os.listdir(tdir) if f.startswith("test_") and f.endswith(".py"))
+    return {
+        "ok": True,
+        "scheme": "supervisionvidaeo://",
+        "role": "the produce-and-verify contract — a render either passes its gate or refuses",
+        "version": version,
+        "dir": _D,
+        "producer_available": avail,
+        "bounds": bounds,
+        "tests": tests,
+        "actions": ["toolchain", "bounds", "api", "verify <mp4>", "check"],
+        "stdout": (f"supervisionvidaeo:// — v{version} · {_D}\n"
+                   f"  contract   produce() → Receipt  |  SupervisionRefused on FAIL\n"
+                   f"  producer   {'available' if avail else 'UNAVAILABLE'}\n"
+                   f"  bounds     particles {bounds.get('particles')} · duration {bounds.get('duration')}\n"
+                   f"  tests      {len(tests)} files\n"
+                   f"\n  actions: toolchain · bounds · api · verify <mp4> · check\n"),
+    }
+
+
+_DISPATCHER.register("supervisionvidaeo://", _svd_dispatch)
+
 _DISPATCHER.register("fs://", _fs_dispatch)
