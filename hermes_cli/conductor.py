@@ -3987,4 +3987,178 @@ def _threejs_dispatch(raw: str) -> dict:
 
 _DISPATCHER.register("three.js://", _threejs_dispatch)
 
+# ── hyperframes:// — the HyperFrames stack surface ──────────────────────────
+# hyperframes://<what> — inspect and address the HyperFrames monorepo.
+#
+# The SIBLING surface to three.js://. Both expose a stack; they answer different
+# questions:
+#   three.js://      the RENDERER   — the vendored Three.js the scenes draw with
+#   hyperframes://   the FRAMEWORK  — the composition/capture/encode monorepo
+#
+#   hyperframes://              -> the monorepo index (packages · registry · skills)
+#   hyperframes://packages      -> the 7 workspace packages
+#   hyperframes://registry      -> blocks · components · examples
+#   hyperframes://skills        -> the 6 agent skills the repo ships
+#   hyperframes://check         -> is it built? bun present? node_modules?
+#   hyperframes://relation      -> how it relates to æRTXrender (the fork)
+
+_HF_DIR = r"C:\æ\htmlvideo"
+
+
+def _hf_dispatch(raw: str) -> dict:
+    """Route hyperframes:// — the HyperFrames monorepo surface."""
+    import json as _json
+    import os as _os
+    import shutil as _shutil
+
+    rest = raw.split("hyperframes://", 1)[1].strip() if "hyperframes://" in raw else ""
+    action = (rest.split()[0].lower() if rest else "status")
+
+    _D = _HF_DIR
+    if not _os.path.isdir(_D):
+        return {"ok": False, "stderr": f"hyperframes:// — monorepo not found: {_D}"}
+
+    def _pkg_version() -> str:
+        try:
+            d = _json.load(open(_os.path.join(_D, "package.json"), encoding="utf-8"))
+            return d.get("version") or "unversioned (monorepo root)"
+        except Exception:
+            return "unknown"
+
+    def _packages() -> list:
+        p = _os.path.join(_D, "packages")
+        if not _os.path.isdir(p):
+            return []
+        out = []
+        for name in sorted(_os.listdir(p)):
+            full = _os.path.join(p, name)
+            if not _os.path.isdir(full):
+                continue
+            pj = _os.path.join(full, "package.json")
+            ver = "?"
+            if _os.path.exists(pj):
+                try:
+                    ver = _json.load(open(pj, encoding="utf-8")).get("version") or "?"
+                except Exception:
+                    pass
+            out.append({"name": name, "version": ver,
+                        "has_dist": _os.path.isdir(_os.path.join(full, "dist")),
+                        "has_src": _os.path.isdir(_os.path.join(full, "src"))})
+        return out
+
+    def _registry() -> dict:
+        r = _os.path.join(_D, "registry")
+        out = {}
+        for kind in ("blocks", "components", "examples"):
+            d = _os.path.join(r, kind)
+            out[kind] = sorted(_os.listdir(d)) if _os.path.isdir(d) else []
+        return out
+
+    def _skills() -> list:
+        s = _os.path.join(_D, "skills")
+        if not _os.path.isdir(s):
+            return []
+        out = []
+        for name in sorted(_os.listdir(s)):
+            f = _os.path.join(s, name, "SKILL.md")
+            desc = ""
+            if _os.path.exists(f):
+                for line in open(f, encoding="utf-8", errors="replace").read(1200).splitlines():
+                    if line.startswith("description:"):
+                        desc = line.split(":", 1)[1].strip()[:80]
+                        break
+            out.append({"name": name, "description": desc})
+        return out
+
+    # ── packages ──
+    if action == "packages":
+        p = _packages()
+        return {"ok": True, "scheme": "hyperframes://", "packages": p, "count": len(p),
+                "stdout": (f"hyperframes packages — {len(p)}\n"
+                           + "".join(f"  {x['name']:20} v{x['version']:12}"
+                                     f"{'  dist✓' if x['has_dist'] else '  (no dist)'}\n"
+                                     for x in p))}
+
+    # ── registry ──
+    if action == "registry":
+        r = _registry()
+        total = sum(len(v) for v in r.values())
+        return {"ok": True, "scheme": "hyperframes://", "registry": r, "count": total,
+                "stdout": (f"hyperframes registry — {total} entries\n"
+                           + "".join(f"  {k:12} {len(v):>3}  {', '.join(v[:6])}"
+                                     f"{'…' if len(v) > 6 else ''}\n" for k, v in r.items()))}
+
+    # ── skills ──
+    if action == "skills":
+        s = _skills()
+        return {"ok": True, "scheme": "hyperframes://", "skills": s, "count": len(s),
+                "stdout": (f"hyperframes skills — {len(s)}\n"
+                           + "".join(f"  {x['name']:26} {x['description'][:52]}\n" for x in s))}
+
+    # ── check ──
+    if action == "check":
+        p = _packages()
+        bun = _shutil.which("bun") or _shutil.which("bun.exe")
+        nm = _os.path.join(_D, "node_modules")
+        nm_present = _os.path.isdir(nm) and bool(_os.listdir(nm))
+        built = any(x["has_dist"] for x in p)
+        ok = bool(bun) and nm_present and built
+        return {"ok": ok, "scheme": "hyperframes://",
+                "bun": bun, "node_modules": nm_present,
+                "packages_with_dist": sum(1 for x in p if x["has_dist"]),
+                "packages_total": len(p),
+                "stdout": (f"hyperframes build check\n"
+                           f"  bun            {bun or 'NOT ON PATH'}\n"
+                           f"  node_modules   {'present' if nm_present else 'absent'}\n"
+                           f"  built dist     {sum(1 for x in p if x['has_dist'])}/{len(p)} packages\n"
+                           f"  runnable:      {ok}\n"
+                           f"  build: bun install && bun run build\n")}
+
+    # ── relation to æRTXrender ──
+    if action == "relation":
+        return {"ok": True, "scheme": "hyperframes://",
+                "fork": "C:/æ/htmlvideo (MYaelMendez/HTMLVIDEO ← heygen-com/hyperframes)",
+                "sibling": "æRTXrender (C:/æ/threejs-curriculo/render.mjs)",
+                "stdout": (
+                    "hyperframes:// vs æRTXrender\n"
+                    "  HyperFrames   declarative data-* DSL · clips · GSAP timelines\n"
+                    "                Studio NLE · sub-compositions · 39 registry blocks\n"
+                    "                Puppeteer + FFmpeg engine · bun workspace\n"
+                    "  æRTXrender    imperative __renderFrame(i,total) hook\n"
+                    "                single primitive · CDP capture + NVENC\n"
+                    "                zero npm deps (native fetch + WebSocket)\n"
+                    "  shared        deterministic rendering: frame i → time i/FPS\n"
+                    "                no Date.now(), no unseeded random, no render-time fetch\n"
+                    "  use HyperFrames for tracks/clips/Studio; æRTXrender for a pure\n"
+                    "  Three.js scene rendered deterministically on the local GPU.\n")}
+
+    # ── index ──
+    p = _packages()
+    r = _registry()
+    s = _skills()
+    return {
+        "ok": True,
+        "scheme": "hyperframes://",
+        "role": "the HyperFrames monorepo — the composition/capture/encode framework",
+        "version": _pkg_version(),
+        "dir": _D,
+        "counts": {
+            "packages": len(p),
+            "blocks": len(r["blocks"]),
+            "components": len(r["components"]),
+            "examples": len(r["examples"]),
+            "skills": len(s),
+        },
+        "actions": ["packages", "registry", "skills", "check", "relation"],
+        "stdout": (f"hyperframes:// — {_pkg_version()} · {_D}\n"
+                   f"  packages    {len(p)}\n"
+                   f"  registry    {len(r['blocks'])} blocks · {len(r['components'])} components · "
+                   f"{len(r['examples'])} examples\n"
+                   f"  skills      {len(s)}\n"
+                   f"\n  actions: packages · registry · skills · check · relation\n"),
+    }
+
+
+_DISPATCHER.register("hyperframes://", _hf_dispatch)
+
 _DISPATCHER.register("fs://", _fs_dispatch)

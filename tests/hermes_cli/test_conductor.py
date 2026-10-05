@@ -508,3 +508,74 @@ def test_the_four_scheme_verbs_are_distinct() -> None:
     assert "harness" in ask and "default_seconds" in ask
     assert "brands" in brand
     assert "revision" in stack and "counts" in stack
+
+
+def test_hyperframes_monorepo_surface() -> None:
+    """hyperframes:// inspects the HyperFrames monorepo — the framework, addressed.
+
+    Hermetic: reads the monorepo directory only (no bun, no build, no network).
+    """
+    assert _is_scheme_cmd("hyperframes://packages") is True
+
+    index = _dispatch("hyperframes://")
+    assert index["ok"] is True
+    assert index["scheme"] == "hyperframes://"
+    counts = index["counts"]
+    assert counts["packages"] >= 1
+    assert counts["blocks"] >= 1
+    assert counts["skills"] >= 1
+    assert set(index["actions"]) == {"packages", "registry", "skills", "check", "relation"}
+
+    packages = _dispatch("hyperframes://packages")
+    assert packages["ok"] is True
+    names = {p["name"] for p in packages["packages"]}
+    # the capture engine and the CLI are the load-bearing packages
+    assert "engine" in names
+    assert "cli" in names
+
+    registry = _dispatch("hyperframes://registry")
+    assert registry["ok"] is True
+    assert registry["registry"]["blocks"]
+    assert len(registry["registry"]["blocks"]) == registry["count"] - \
+        len(registry["registry"]["components"]) - len(registry["registry"]["examples"])
+
+    skills = _dispatch("hyperframes://skills")
+    assert skills["ok"] is True
+    assert any(s["name"] == "hyperframes" for s in skills["skills"])
+
+    # relation names its sibling — the two stacks are not the same thing
+    rel = _dispatch("hyperframes://relation")
+    assert rel["ok"] is True
+    assert "æRTXrender" in rel["stdout"]
+
+
+def test_hyperframes_check_is_honest() -> None:
+    """hyperframes://check reports ok=False when the monorepo is not runnable.
+
+    A build check that always says 'fine' is worse than none. This one names what
+    is missing (bun, node_modules, dist) and how to fix it.
+    """
+    check = _dispatch("hyperframes://check")
+    # ok mirrors the real runnable state — do not assert a value, assert the shape
+    assert "bun" in check
+    assert "node_modules" in check
+    assert "packages_with_dist" in check
+    assert "runnable:" in check["stdout"]
+    assert "bun install" in check["stdout"]
+    # ok must agree with its own evidence
+    evidence_ok = bool(check["bun"]) and check["node_modules"] and check["packages_with_dist"] > 0
+    assert check["ok"] == evidence_ok
+
+
+def test_two_stack_surfaces_are_distinct() -> None:
+    """three.js:// is the RENDERER; hyperframes:// is the FRAMEWORK."""
+    three = _dispatch("three.js://")
+    hf = _dispatch("hyperframes://")
+    assert three["scheme"] == "three.js://"
+    assert hf["scheme"] == "hyperframes://"
+    # the renderer carries a revision; the framework carries a package version
+    assert "revision" in three
+    assert "version" in hf
+    # each has its own vocabulary — addons vs packages/registry/skills
+    assert "counts" in three and "addons" in three["counts"]
+    assert "counts" in hf and "packages" in hf["counts"]
