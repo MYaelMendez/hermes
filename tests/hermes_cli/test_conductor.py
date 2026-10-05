@@ -451,3 +451,60 @@ def test_video_and_vidaeo_are_distinct_surfaces() -> None:
     # video:// carries a harness + subjects; vidæo:// carries brands
     assert "harness" in video
     assert "brands" in vidaeo
+
+
+def test_threejs_stack_surface() -> None:
+    """three.js:// inspects the vendored Three.js stack — the renderer, addressed.
+
+    Hermetic: reads the vendor directory only (no browser, no render, no GPU).
+    """
+    assert _is_scheme_cmd("three.js://addons") is True
+
+    index = _dispatch("three.js://")
+    assert index["ok"] is True
+    assert index["scheme"] == "three.js://"
+    assert index["revision"].isdigit()
+    counts = index["counts"]
+    assert counts["surfaces"] >= 1
+    assert counts["addons"] >= 1
+    # the four inspection verbs are advertised
+    assert set(index["actions"]) == {"version", "check", "addons", "surfaces", "curriculum"}
+
+    version = _dispatch("three.js://version")
+    assert version["ok"] is True
+    assert "three.core.js" in version["files"]
+    assert version["files"]["three.core.js"]["exists"] is True
+
+    check = _dispatch("three.js://check")
+    assert check["ok"] is True
+    assert check["intact"] is True
+
+    addons = _dispatch("three.js://addons")
+    assert addons["ok"] is True
+    assert "postprocessing" in addons["addons"]
+    # EffectComposer is the post chain the render harness depends on
+    assert "EffectComposer" in addons["addons"]["postprocessing"]
+
+    surfaces = _dispatch("three.js://surfaces")
+    assert surfaces["ok"] is True
+    assert surfaces["count"] >= 1
+    # renderable surfaces expose __renderFrame — the deterministic hook
+    assert surfaces["renderable"] >= 1
+
+
+def test_the_four_scheme_verbs_are_distinct() -> None:
+    """video:// ASK · vidæo:// BRAND · three.js:// STACK · a:// ALIAS.
+
+    Four surfaces answering four different questions. Collapsing them would lose
+    the distinction the mesh is built on.
+    """
+    ask = _dispatch("video://")
+    brand = _dispatch("vidæo://")
+    stack = _dispatch("three.js://")
+    assert ask["scheme"] == "video://"
+    assert brand["scheme"] == "vidæo://"
+    assert stack["scheme"] == "three.js://"
+    # each carries its own vocabulary
+    assert "harness" in ask and "default_seconds" in ask
+    assert "brands" in brand
+    assert "revision" in stack and "counts" in stack

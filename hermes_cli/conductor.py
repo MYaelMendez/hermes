@@ -3837,4 +3837,154 @@ def _video_dispatch(raw: str) -> dict:
 
 _DISPATCHER.register("video://", _video_dispatch)
 
+# ── three.js:// — the Three.js stack surface ────────────────────────────────
+# three.js://<what> — inspect and address the vendored Three.js stack.
+#
+# This is the LIBRARY/STACK surface. Three distinct verbs now:
+#   video://dji 5        the ASK      — render N seconds of a subject
+#   vidæo://aipodcast.me the BRAND    — a brand's surface + manifest
+#   three.js://addons    the STACK    — what the renderer is made of
+#
+#   three.js://                 -> the stack index (version, surfaces, addons)
+#   three.js://version          -> the vendored revision + file hashes
+#   three.js://addons           -> the addon inventory
+#   three.js://surfaces         -> every scene, and which are renderable
+#   three.js://curriculum       -> the teaching phases (fase1..fase12)
+#   three.js://check            -> verify the vendor is intact (files + REVISION)
+
+_THREEJS_DIR = r"C:\æ\threejs-curriculo"
+
+
+def _threejs_dispatch(raw: str) -> dict:
+    """Route three.js:// — the vendored Three.js stack surface."""
+    import hashlib as _hash
+    import os as _os
+    import re as _re
+
+    rest = raw.split("three.js://", 1)[1].strip() if "three.js://" in raw else ""
+    action = (rest.split()[0].lower() if rest else "status")
+
+    _D = _THREEJS_DIR
+    if not _os.path.isdir(_D):
+        return {"ok": False, "stderr": f"three.js:// — stack dir not found: {_D}"}
+
+    _VENDOR = _os.path.join(_D, "vendor")
+    _CORE = _os.path.join(_VENDOR, "three.core.js")
+    _MODULE = _os.path.join(_VENDOR, "three.module.js")
+    _ADDONS = _os.path.join(_VENDOR, "addons")
+
+    def _revision() -> str:
+        try:
+            txt = open(_CORE, encoding="utf-8", errors="replace").read(400000)
+            m = _re.search(r"REVISION\s*=\s*'([0-9]+)'", txt)
+            return m.group(1) if m else "unknown"
+        except Exception:
+            return "unknown"
+
+    def _sha(path: str) -> str:
+        try:
+            return _hash.sha256(open(path, "rb").read()).hexdigest()[:16]
+        except Exception:
+            return ""
+
+    def _addons() -> dict:
+        out = {}
+        if _os.path.isdir(_ADDONS):
+            for d in sorted(_os.listdir(_ADDONS)):
+                full = _os.path.join(_ADDONS, d)
+                if _os.path.isdir(full):
+                    out[d] = sorted(f[:-3] for f in _os.listdir(full) if f.endswith(".js"))
+        return out
+
+    def _surfaces() -> list:
+        out = []
+        for f in sorted(_os.listdir(_D)):
+            if not f.endswith(".html"):
+                continue
+            p = _os.path.join(_D, f)
+            try:
+                txt = open(p, encoding="utf-8", errors="replace").read()
+            except Exception:
+                continue
+            renderable = "__renderFrame" in txt
+            uses_three = "three.module.js" in txt or "import * as THREE" in txt
+            out.append({"file": f, "renderable": renderable, "three": uses_three,
+                        "kb": round(_os.path.getsize(p) / 1024, 1)})
+        return out
+
+    # ── version ──
+    if action in ("version", "check"):
+        files = {}
+        for name, p in (("three.core.js", _CORE), ("three.module.js", _MODULE)):
+            files[name] = {"exists": _os.path.exists(p),
+                           "sha256_16": _sha(p) if _os.path.exists(p) else None,
+                           "bytes": _os.path.getsize(p) if _os.path.exists(p) else 0}
+        rev = _revision()
+        payload = {"ok": True, "scheme": "three.js://", "revision": rev,
+                   "vendor": _VENDOR, "files": files,
+                   "stdout": (f"three.js r{rev}\n"
+                              + "".join(f"  {k:18} {v['bytes']:>9} B  sha256:{v['sha256_16']}\n"
+                                        for k, v in files.items()))}
+        if action == "check":
+            intact = all(v["exists"] and v["bytes"] > 0 for v in files.values()) and rev != "unknown"
+            payload["intact"] = intact
+            payload["ok"] = intact
+            payload["stdout"] += f"  intact: {intact}\n"
+        return payload
+
+    # ── addons ──
+    if action == "addons":
+        a = _addons()
+        total = sum(len(v) for v in a.values())
+        return {"ok": True, "scheme": "three.js://", "addons": a, "count": total,
+                "stdout": (f"three.js addons — {total} across {len(a)} groups\n"
+                           + "".join(f"  {k:16} {len(v):>2}  {', '.join(v[:6])}"
+                                     f"{'…' if len(v) > 6 else ''}\n" for k, v in a.items()))}
+
+    # ── surfaces ──
+    if action == "surfaces":
+        s = _surfaces()
+        rend = [x for x in s if x["renderable"]]
+        three = [x for x in s if x["three"]]
+        return {"ok": True, "scheme": "three.js://", "surfaces": s,
+                "count": len(s), "renderable": len(rend), "using_three": len(three),
+                "stdout": (f"three.js surfaces — {len(s)} html · {len(three)} use three · "
+                           f"{len(rend)} renderable (__renderFrame)\n"
+                           + "".join(f"  {x['file']:34} {x['kb']:>7} KB"
+                                     f"{'  ▶render' if x['renderable'] else ''}\n" for x in s))}
+
+    # ── curriculum ──
+    if action == "curriculum":
+        phases = sorted(f for f in _os.listdir(_D)
+                        if f.startswith("fase") and f.endswith(".html"))
+        return {"ok": True, "scheme": "three.js://", "phases": phases, "count": len(phases),
+                "stdout": (f"three.js curriculum — {len(phases)} phases\n"
+                           + "".join(f"  {p}\n" for p in phases))}
+
+    # ── index ──
+    s = _surfaces()
+    a = _addons()
+    return {
+        "ok": True,
+        "scheme": "three.js://",
+        "role": "the Three.js stack surface — the renderer, inspected",
+        "revision": _revision(),
+        "dir": _D,
+        "counts": {
+            "surfaces": len(s),
+            "renderable": sum(1 for x in s if x["renderable"]),
+            "addons": sum(len(v) for v in a.values()),
+            "phases": len([f for f in _os.listdir(_D) if f.startswith("fase") and f.endswith(".html")]),
+        },
+        "actions": ["version", "check", "addons", "surfaces", "curriculum"],
+        "stdout": (f"three.js:// — r{_revision()} · {_D}\n"
+                   f"  surfaces   {len(s)} html ({sum(1 for x in s if x['renderable'])} renderable)\n"
+                   f"  addons     {sum(len(v) for v in a.values())} across {len(a)} groups\n"
+                   f"  curriculum {len([f for f in _os.listdir(_D) if f.startswith('fase') and f.endswith('.html')])} phases\n"
+                   f"\n  actions: version · check · addons · surfaces · curriculum\n"),
+    }
+
+
+_DISPATCHER.register("three.js://", _threejs_dispatch)
+
 _DISPATCHER.register("fs://", _fs_dispatch)
