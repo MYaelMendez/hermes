@@ -1278,17 +1278,244 @@ def _nous_dispatch(raw: str) -> dict:
 
 
 def _vscode_dispatch(raw: str) -> dict:
+    """vscode:// — the VSCODER://BRIDGE surface.
+
+    VS Code is the human-controlled agentic terminal. The bridge exposes 6
+    TypeScript modules over localhost WebSocket + JSON-RPC. This scheme makes
+    those capabilities addressable from the conductor.
+
+    Actions:
+      vscode://              → bridge index (modules, capabilities, status)
+      vscode://bridge        → IPC + auth + session state
+      vscode://state         → IDEStateObserver (snapshot version, deltas)
+      vscode://resolver      → CommandResolver (effect classification)
+      vscode://plan          → PlanValidator (workspace hash, conflicts)
+      vscode://capabilities  → the 11 typed namespaces
+      vscode://events        → EventStream (delta chain, sanitize)
+    """
+    import json as _json
+    import os as _os
+
+    rest = raw.split("vscode://", 1)[1].strip() if "vscode://" in raw else ""
+    action = (rest.split()[0].lower() if rest else "status")
+
+    _BRIDGE_DIR = r"C:\æ\vscoder\src\bridge"
+    _MODULES = {
+        "ipc.ts": "JSON-RPC over WebSocket · localhost · authenticated · payload-capped",
+        "state.ts": "IDEStateObserver · VSCODER_IDE_STATE_V1 · versioned snapshots · compact deltas",
+        "resolver.ts": "CommandResolver · EffectClass (LOCAL/DURABLE/EXTERNAL) · known commands",
+        "plan.ts": "PlanBuilder · PlanValidator · workspace_hash · 409 PLAN_STATE_CONFLICT",
+        "capabilities.ts": "11 typed namespaces · CapabilityRegistry",
+        "events.ts": "EventStream · delta chain · sanitize",
+    }
+
+    def _read_bridge_file(name: str) -> str:
+        p = _os.path.join(_BRIDGE_DIR, name)
+        if not _os.path.exists(p):
+            return ""
+        return open(p, encoding="utf-8", errors="replace").read()
+
+    def _extract_exports(name: str) -> list:
+        """Extract top-level export signatures from a bridge module."""
+        src = _read_bridge_file(name)
+        if not src:
+            return []
+        out = []
+        for line in src.splitlines():
+            line = line.strip()
+            if line.startswith("export ") and ("function " in line or "class " in line or "const " in line or "interface " in line or "type " in line):
+                # Take first 100 chars
+                sig = line[:100]
+                if sig not in out:
+                    out.append(sig)
+        return out[:12]
+
+    def _extract_namespaces() -> list:
+        """Extract the 11 capability namespaces from capabilities.ts."""
+        src = _read_bridge_file("capabilities.ts")
+        if not src:
+            return []
+        # Look for registerNamespace or namespace patterns
+        import re as _re
+        ns = _re.findall(r'registerNamespace\(["\']([^"\']+)["\']', src)
+        if not ns:
+            ns = _re.findall(r'namespace\s*=\s*["\']([^"\']+)["\']', src)
+        if not ns:
+            # Fallback: look for const xxx = { patterns after "export const"
+            ns = _re.findall(r'export\s+const\s+(\w+)\s*=\s*\{', src)
+        return sorted(set(ns))[:15]
+
+    def _extract_jsonrpc_methods() -> list:
+        """Extract JSON-RPC method names from ipc.ts."""
+        src = _read_bridge_file("ipc.ts")
+        if not src:
+            return []
+        import re as _re
+        methods = _re.findall(r'["\']([a-z]+\.[a-z]+)["\']', src)
+        return sorted(set(methods))[:10]
+
+    def _extract_effect_classes() -> list:
+        """Extract effect classes from resolver.ts."""
+        src = _read_bridge_file("resolver.ts")
+        if not src:
+            return []
+        import re as _re
+        effects = _re.findall(r'"(LOCAL|DURABLE|EXTERNAL)"', src)
+        return sorted(set(effects))
+
+    def _extract_delta_kinds() -> list:
+        """Extract delta kinds from events.ts."""
+        src = _read_bridge_file("events.ts")
+        if not src:
+            return []
+        import re as _re
+        kinds = _re.findall(r'"([a-z_]+)"', src)
+        return sorted(set(kinds))[:15]
+
+    # ── bridge ──
+    if action == "bridge":
+        methods = _extract_jsonrpc_methods()
+        return {
+            "ok": True,
+            "scheme": "vscode://",
+            "action": "bridge",
+            "transport": "localhost WebSocket + JSON-RPC 2.0",
+            "auth": "session-authenticated · TTL 30min · revocable",
+            "payload_cap": "64 KB",
+            "jsonrpc_methods": methods,
+            "modules": _MODULES,
+            "stdout": (
+                "vscode://bridge — VSCODER://BRIDGE\n"
+                f"  transport   localhost WebSocket + JSON-RPC 2.0\n"
+                f"  auth        session-authenticated · TTL 30min · revocable\n"
+                f"  payload_cap 64 KB\n"
+                f"  methods     {', '.join(methods) if methods else '(none found)'}\n"
+                f"  modules     {len(_MODULES)}\n"
+            ),
+        }
+
+    # ── state ──
+    if action == "state":
+        exports = _extract_exports("state.ts")
+        return {
+            "ok": True,
+            "scheme": "vscode://",
+            "action": "state",
+            "observer": "IDEStateObserver",
+            "snapshot_version": "VSCODER_IDE_STATE_V1",
+            "deltas": "compact · only changed fields",
+            "exports": exports,
+            "stdout": (
+                "vscode://state — IDEStateObserver\n"
+                f"  snapshot_version  VSCODER_IDE_STATE_V1\n"
+                f"  deltas            compact · only changed fields\n"
+                f"  exports           {len(exports)}\n"
+                + "".join(f"    {e}\n" for e in exports[:8])
+            ),
+        }
+
+    # ── resolver ──
+    if action == "resolver":
+        effects = _extract_effect_classes()
+        exports = _extract_exports("resolver.ts")
+        return {
+            "ok": True,
+            "scheme": "vscode://",
+            "action": "resolver",
+            "resolver": "CommandResolver",
+            "effect_classes": effects,
+            "exports": exports,
+            "stdout": (
+                "vscode://resolver — CommandResolver\n"
+                f"  effect_classes  {', '.join(effects) if effects else '(none found)'}\n"
+                f"  exports         {len(exports)}\n"
+                + "".join(f"    {e}\n" for e in exports[:8])
+            ),
+        }
+
+    # ── plan ──
+    if action == "plan":
+        exports = _extract_exports("plan.ts")
+        return {
+            "ok": True,
+            "scheme": "vscode://",
+            "action": "plan",
+            "validator": "PlanValidator",
+            "conflict_code": "409 PLAN_STATE_CONFLICT",
+            "workspace_hash": "SHA-256 over canonical workspace snapshot",
+            "exports": exports,
+            "stdout": (
+                "vscode://plan — PlanValidator\n"
+                f"  conflict_code   409 PLAN_STATE_CONFLICT\n"
+                f"  workspace_hash  SHA-256 over canonical workspace snapshot\n"
+                f"  exports         {len(exports)}\n"
+                + "".join(f"    {e}\n" for e in exports[:8])
+            ),
+        }
+
+    # ── capabilities ──
+    if action == "capabilities":
+        ns = _extract_namespaces()
+        return {
+            "ok": True,
+            "scheme": "vscode://",
+            "action": "capabilities",
+            "namespaces": ns,
+            "count": len(ns),
+            "stdout": (
+                "vscode://capabilities — 11 typed namespaces\n"
+                f"  count  {len(ns)}\n"
+                + "".join(f"    {n}\n" for n in ns)
+            ),
+        }
+
+    # ── events ──
+    if action == "events":
+        kinds = _extract_delta_kinds()
+        exports = _extract_exports("events.ts")
+        return {
+            "ok": True,
+            "scheme": "vscode://",
+            "action": "events",
+            "stream": "EventStream",
+            "delta_kinds": kinds,
+            "sanitize": "excludes secrets from state/events/logs",
+            "exports": exports,
+            "stdout": (
+                "vscode://events — EventStream\n"
+                f"  delta_kinds  {len(kinds)}\n"
+                f"  sanitize     excludes secrets from state/events/logs\n"
+                f"  exports      {len(exports)}\n"
+                + "".join(f"    {e}\n" for e in exports[:8])
+            ),
+        }
+
+    # ── index ──
+    ns = _extract_namespaces()
+    methods = _extract_jsonrpc_methods()
     return {
         "ok": True,
-        "rc": 0,
-        "stdout": "vscode://viewport host - VS Code as the runtime surface for the local HTML/CSS/WASM viewport\n",
-        "stderr": "",
+        "scheme": "vscode://",
+        "role": "the VSCODER://BRIDGE — VS Code as the human-controlled agentic terminal",
+        "bridge_dir": _BRIDGE_DIR,
+        "modules": _MODULES,
+        "capabilities_count": len(ns),
+        "jsonrpc_methods": methods,
+        "actions": ["bridge", "state", "resolver", "plan", "capabilities", "events"],
         "surface": {
             "kind": "viewport_host",
             "address": raw,
             "v": "viewport",
             "compute": "local",
         },
+        "stdout": (
+            "vscode:// — VSCODER://BRIDGE\n"
+            f"  bridge_dir      {_BRIDGE_DIR}\n"
+            f"  modules         {len(_MODULES)}\n"
+            f"  capabilities    {len(ns)} namespaces\n"
+            f"  jsonrpc_methods {len(methods)}\n"
+            f"\n  actions: bridge · state · resolver · plan · capabilities · events\n"
+        ),
     }
 
 
@@ -2623,6 +2850,7 @@ _DISPATCHER.register("+bæsic://", _bæsic_dispatch)
 _DISPATCHER.register("Hæbbian://", _hæbbian_dispatch)
 _DISPATCHER.register("neuromitosis://", _hæbbian_dispatch)
 _DISPATCHER.register("keeper://", _keeper_dispatch)
+_DISPATCHER.register("conductor://", _conductor_dispatch)
 
 
 def _monaco_dispatch(raw: str) -> dict:
@@ -2665,6 +2893,56 @@ def _monaco_dispatch(raw: str) -> dict:
 
 
 _DISPATCHER.register("monaco://", _monaco_dispatch)
+
+
+def _cloud_dispatch(raw: str) -> dict:
+    """cloud:// - droplet cloud operations.
+
+    Routes cloud://<op> to the droplet API at 129.212.180.252:3000.
+    """
+    import urllib.request, json as _json
+    DROPLET = "http://129.212.180.252:3000"
+    rest = raw.split("cloud://", 1)[1].strip() if "cloud://" in raw else ""
+    op = rest.split("?", 1)[0].split()[0] if rest else ""
+    params = rest.split("?", 1)[1] if "?" in rest else ""
+
+    _CLOUD_OPS = {
+        "status": "Droplet status + VPS health",
+        "audit": "Keeper audit + ledger entry",
+        "ledger": "List ledger entries",
+        "posts": "List ae.social posts",
+        "deploy": "Deploy surface to droplet",
+        "record": "Write signed record",
+        "gateway": "Open droplet gateway",
+    }
+
+    if op in _CLOUD_OPS:
+        try:
+            url = f"{DROPLET}/xrpc/ae.vps.{op}"
+            with urllib.request.urlopen(url, timeout=5) as resp:
+                body = resp.read().decode()
+            return {
+                "ok": True, "rc": 0,
+                "stdout": f"cloud://{op} → droplet\n{body}\n",
+                "stderr": "", "scheme": "cloud", "op": op, "params": params,
+                "surface": {"kind": "cloud_dispatch", "op": op, "params": params},
+            }
+        except Exception as e:
+            return {
+                "ok": False, "rc": 1,
+                "stdout": "", "stderr": f"cloud://{op} error: {e}",
+                "scheme": "cloud", "op": op,
+            }
+
+    return {
+        "ok": False, "rc": 2,
+        "stdout": "",
+        "stderr": f"cloud:// unknown op: {op}. Ops: {', '.join(sorted(_CLOUD_OPS))}",
+        "scheme": "cloud", "op": op,
+    }
+
+
+_DISPATCHER.register("cloud://", _cloud_dispatch)
 _DISPATCHER.register("?://glocal-agent", _glocal_agent_dispatch)
 _DISPATCHER.register("+?://identity", _identity_dispatch)
 _DISPATCHER.register("+?://media^ffmpeg", _media_dispatch)
@@ -3133,21 +3411,7 @@ def _cuda_vlc_dispatch(raw: str) -> dict:
         }
 
 
-def _vscode_dispatch(raw: str) -> dict:
-    # VS Code is the HOST for the viewport (v = viewport, the mandate), not the
-    # mandate itself. The viewport (HTML/CSS/Rust-WASM surface) runs inside it.
-    return {
-        "ok": True,
-        "rc": 0,
-        "stdout": "vscode://viewport host - VS Code as the runtime surface for the local HTML/CSS/WASM viewport\n",
-        "stderr": "",
-        "surface": {
-            "kind": "viewport_host",
-            "address": raw,
-            "v": "viewport",
-            "compute": "local",
-        },
-    }
+
 
 
 def _viewport_dispatch(raw: str) -> dict:
@@ -3458,8 +3722,245 @@ def _secrets_dispatch(raw: str) -> dict:
     return {"ok": False, "stderr": f"secrets: unknown action '{action}' (status|list|get|path)"}
 
 
+def _vaeult_dispatch(raw: str) -> dict:
+    """væult:// — sovereign vault operations (status, list, get, unlock).
+
+    All values are masked in stdout. Raw values are carried in the result
+    dict only for the agent, never printed. The passphrase is read from
+    VAEULT_PASSPHRASE env var — never from the command line.
+    """
+    import sys as _sys
+    _HERE = os.path.dirname(os.path.abspath(__file__))
+    if _HERE not in _sys.path:
+        _sys.path.insert(0, _HERE)
+    _AGENTS = os.path.normpath(os.path.join(_HERE, "..", "..", "agents"))
+    if os.path.isdir(_AGENTS) and _AGENTS not in _sys.path:
+        _sys.path.insert(0, _AGENTS)
+    try:
+        from secret_source import get_secret, get_by_prefix, sources as _src_info
+    except Exception as exc:
+        return {"ok": False, "stderr": f"væult: cannot load secret_source ({exc})"}
+
+    rest = raw.split("væult://", 1)[1].strip() if "væult://" in raw else ""
+    parts = rest.split(" ", 1)
+    action = parts[0] if parts else "status"
+    arg = parts[1] if len(parts) > 1 else ""
+
+    info = _src_info()
+    v = info.get("væult", {})
+
+    if action == "status":
+        if not v.get("exists"):
+            return {"ok": True, "stdout": "væult: no vault found\n",
+                    "surface": {"kind": "væult", "exists": False, "path": v.get("path")}}
+        state = "unlocked" if v.get("unlocked") else "LOCKED"
+        entries = v.get("entries", [])
+        lines = [f"væult: {state}"]
+        lines.append(f"  path: {v.get('path')}")
+        lines.append(f"  entries: {len(entries)}")
+        if entries:
+            lines.append("  keys: " + ", ".join(entries))
+        return {"ok": True, "stdout": "\n".join(lines) + "\n",
+                "surface": {"kind": "væult", "exists": True, "unlocked": v.get("unlocked", False),
+                            "path": v.get("path"), "entries": entries}}
+
+    if action == "list":
+        if not v.get("exists"):
+            return {"ok": False, "stderr": "væult: no vault found"}
+        if not v.get("unlocked"):
+            return {"ok": False, "stderr": "væult: vault is locked (set VAEULT_PASSPHRASE)"}
+        entries = v.get("entries", [])
+        if not entries:
+            return {"ok": True, "stdout": "væult: vault is empty\n"}
+        lines = ["væult entries (masked):"]
+        for k in entries:
+            lines.append(f"  {k}  ************")
+        return {"ok": True, "stdout": "\n".join(lines) + "\n",
+                "surface": {"kind": "væult", "entries": entries}}
+
+    if action == "get":
+        if not arg:
+            return {"ok": False, "stderr": "væult get <KEY> — key required"}
+        if not v.get("exists"):
+            return {"ok": False, "stderr": "væult: no vault found"}
+        if not v.get("unlocked"):
+            return {"ok": False, "stderr": "væult: vault is locked (set VAEULT_PASSPHRASE)"}
+        val = get_secret(arg)
+        if val is None:
+            return {"ok": False, "stderr": f"væult: no entry '{arg}'"}
+        mask = "*" * min(12, max(4, len(val)))
+        return {"ok": True, "stdout": f"væult get {arg} = {mask}  (resolved locally; injected at runtime)\n",
+                "secret_value": val,
+                "surface": {"kind": "væult", "key": arg, "masked": True}}
+
+    if action == "unlock":
+        passphrase = os.environ.get("VAEULT_PASSPHRASE")
+        if not passphrase:
+            return {"ok": False, "stderr": "væult: VAEULT_PASSPHRASE not set"}
+        if not v.get("exists"):
+            return {"ok": False, "stderr": "væult: no vault found"}
+        try:
+            from secret_source import _vaeult_unlocked
+            mod, key = _vaeult_unlocked()
+            if mod is None:
+                return {"ok": False, "stderr": "væult: wrong passphrase"}
+            return {"ok": True, "stdout": "væult: unlocked ✓\n",
+                    "surface": {"kind": "væult", "unlocked": True}}
+        except Exception as exc:
+            return {"ok": False, "stderr": f"væult: unlock failed ({exc})"}
+
+    if action == "new":
+        # væult://new <KEY> <VALUE>
+        parts_new = arg.split(" ", 1)
+        if len(parts_new) < 2 or not parts_new[0].strip() or not parts_new[1].strip():
+            return {"ok": False, "stderr": "væult new <KEY> <VALUE> — key and value required"}
+        key = parts_new[0].strip()
+        value = parts_new[1].strip()
+        if not v.get("exists"):
+            return {"ok": False, "stderr": "væult: no vault found"}
+        if not v.get("unlocked"):
+            return {"ok": False, "stderr": "væult: vault is locked (set VAEULT_PASSPHRASE)"}
+        try:
+            from secret_source import _vaeult_unlocked, _vaeult_entries
+            mod, vault_key = _vaeult_unlocked()
+            if mod is None:
+                return {"ok": False, "stderr": "væult: wrong passphrase"}
+            import pathlib
+            vault_path = pathlib.Path(v.get("path"))
+            doc = mod.load_raw(vault_path)
+            blob = mod.seal(vault_key, key, value)
+            doc["entries"][key] = blob
+            doc["updated"] = __import__("time").strftime("%Y-%m-%dT%H:%M:%S%z")
+            mod.save_raw(vault_path, doc)
+            return {"ok": True, "stdout": f"væult: stored '{key}' ({len(value)} chars, encrypted)\n",
+                    "surface": {"kind": "væult", "action": "new", "key": key}}
+        except Exception as exc:
+            return {"ok": False, "stderr": f"væult: new failed ({exc})"}
+
+    if action == "qr-export":
+        # væult://qr-export <KEY> [--out PATH]
+        if not arg:
+            return {"ok": False, "stderr": "væult qr-export <KEY> [--out PATH]"}
+        parts_qr = arg.split(" ")
+        key = parts_qr[0]
+        out = None
+        if "--out" in parts_qr:
+            out = parts_qr[parts_qr.index("--out") + 1]
+        if not v.get("exists"):
+            return {"ok": False, "stderr": "væult: no vault found"}
+        if not v.get("unlocked"):
+            return {"ok": False, "stderr": "væult: vault is locked (set VAEULT_PASSPHRASE)"}
+        try:
+            from secret_source import _vaeult_unlocked
+            mod, vault_key = _vaeult_unlocked()
+            if mod is None:
+                return {"ok": False, "stderr": "væult: wrong passphrase"}
+            import pathlib
+            vault_path = pathlib.Path(v.get("path"))
+            doc = mod.load_raw(vault_path)
+            if key not in doc.get("entries", {}):
+                return {"ok": False, "stderr": f"væult: no entry '{key}'"}
+            payload = mod._qr_payload(key, doc["entries"][key])
+            try:
+                import qrcode
+            except ImportError:
+                return {"ok": False, "stderr": "væult: qrcode not installed (pip install qrcode pillow)"}
+            qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_M, border=2)
+            qr.add_data(payload)
+            try:
+                qr.make(fit=True)
+            except Exception as e:
+                return {"ok": False, "stderr": f"væult: secret too large for QR: {e}"}
+            if qr.version > 40:
+                return {"ok": False, "stderr": f"væult: needs QR v{qr.version} > v40 cap"}
+            img = qr.make_image(fill_color="black", back_color="white")
+            dest = pathlib.Path(out) if out else vault_path.with_suffix(".qr." + key + ".png")
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            img.save(dest)
+            return {"ok": True, "stdout": f"væult: sealed QR for '{key}' -> {dest}\n  version v{qr.version} · {len(payload)} bytes · SEALED (no plaintext)\n",
+                    "surface": {"kind": "væult", "action": "qr-export", "key": key, "path": str(dest)}}
+        except Exception as exc:
+            return {"ok": False, "stderr": f"væult: qr-export failed ({exc})"}
+
+    if action == "qr-import":
+        # væult://qr-import <IMAGE>
+        if not arg:
+            return {"ok": False, "stderr": "væult qr-import <IMAGE>"}
+        if not v.get("exists"):
+            return {"ok": False, "stderr": "væult: no vault found"}
+        if not v.get("unlocked"):
+            return {"ok": False, "stderr": "væult: vault is locked (set VAEULT_PASSPHRASE)"}
+        try:
+            from secret_source import _vaeult_unlocked
+            mod, vault_key = _vaeult_unlocked()
+            if mod is None:
+                return {"ok": False, "stderr": "væult: wrong passphrase"}
+            import pathlib
+            img_path = pathlib.Path(arg)
+            if not img_path.exists():
+                return {"ok": False, "stderr": f"væult: no image at {img_path}"}
+            try:
+                from pyzbar.pyzbar import decode as _zbar
+                from PIL import Image
+            except ImportError:
+                return {"ok": False, "stderr": "væult: need pyzbar + pillow (pip install pyzbar pillow)"}
+            found = _zbar(Image.open(img_path))
+            if not found:
+                return {"ok": False, "stderr": "væult: no QR detected"}
+            data = found[0].data.decode("utf-8", errors="replace")
+            if not data.startswith(mod._QR_PREFIX):
+                return {"ok": False, "stderr": "væult: not a væult QR payload"}
+            import json as _json
+            payload = _json.loads(data[len(mod._QR_PREFIX):])
+            name, blob = payload["name"], payload["blob"]
+            vault_path = pathlib.Path(v.get("path"))
+            doc = mod.load_raw(vault_path)
+            try:
+                value = mod.open_entry(vault_key, name, blob)
+            except Exception:
+                return {"ok": False, "stderr": f"væult: QR '{name}' does NOT open under this vault's passphrase"}
+            doc["entries"][name] = blob
+            doc["updated"] = __import__("time").strftime("%Y-%m-%dT%H:%M:%S%z")
+            mod.save_raw(vault_path, doc)
+            return {"ok": True, "stdout": f"væult: imported '{name}' from QR ({len(value)} chars, verified under this key)\n",
+                    "surface": {"kind": "væult", "action": "qr-import", "key": name}}
+        except Exception as exc:
+            return {"ok": False, "stderr": f"væult: qr-import failed ({exc})"}
+
+    if action == "email-import":
+        # væult://email-import — check inbox for [væult] emails and import
+        if not v.get("exists"):
+            return {"ok": False, "stderr": "væult: no vault found"}
+        if not v.get("unlocked"):
+            return {"ok": False, "stderr": "væult: vault is locked (set VAEULT_PASSPHRASE)"}
+        try:
+            import importlib.util
+            _email_mod_path = os.path.join(_AGENTS, "væult_email.py")
+            spec = importlib.util.spec_from_file_location("_vaeult_email", _email_mod_path)
+            email_mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(email_mod)
+            results = email_mod.check_inbox()
+            if not results:
+                return {"ok": True, "stdout": "væult: no new [væult] emails\n",
+                        "surface": {"kind": "væult", "action": "email-import", "imported": 0}}
+            lines = [f"væult: imported {len(results)} secret(s) from email:"]
+            for r in results:
+                lines.append(f"  ✓ {r['key']}")
+            return {"ok": True, "stdout": "\n".join(lines) + "\n",
+                    "surface": {"kind": "væult", "action": "email-import", "imported": len(results)}}
+        except Exception as exc:
+            return {"ok": False, "stderr": f"væult: email-import failed ({exc})"}
+
+    if action == "path":
+        return {"ok": True, "stdout": f"væult path: {v.get('path')}\n",
+                "surface": {"kind": "væult", "path": v.get("path")}}
+
+    return {"ok": False, "stderr": f"væult: unknown action '{action}' (try: status, list, get, new, qr-export, qr-import, email-import, unlock, path)"}
+
+
 _DISPATCHER.register("+?://secrets", _secrets_dispatch)
 _DISPATCHER.register("+æ://secrets", _secrets_dispatch)
+_DISPATCHER.register("væult://", _vaeult_dispatch)
 
 
 def _gauntlet_status() -> dict:

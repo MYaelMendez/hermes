@@ -652,3 +652,62 @@ def test_six_scheme_verbs_are_distinct() -> None:
     assert "revision" in _dispatch("three.js://")
     assert "version" in _dispatch("hyperframes://")
     assert "bounds" in _dispatch("supervisionvidaeo://")
+
+
+def test_vscode_bridge_surface() -> None:
+    """vscode:// exposes the VSCODER://BRIDGE — VS Code as the agentic terminal.
+
+    Hermetic: reads the bridge source files only (no VS Code, no WebSocket).
+    """
+    assert _is_scheme_cmd("vscode://bridge") is True
+
+    index = _dispatch("vscode://")
+    assert index["ok"] is True
+    assert index["scheme"] == "vscode://"
+    assert "VSCODER://BRIDGE" in index["stdout"]
+    assert set(index["actions"]) == {"bridge", "state", "resolver", "plan", "capabilities", "events"}
+
+    bridge = _dispatch("vscode://bridge")
+    assert bridge["ok"] is True
+    assert "JSON-RPC" in bridge["stdout"]
+    assert "localhost" in bridge["stdout"]
+    assert "64 KB" in bridge["stdout"]
+
+    state = _dispatch("vscode://state")
+    assert state["ok"] is True
+    assert "VSCODER_IDE_STATE_V1" in state["stdout"]
+    assert "IDEStateObserver" in state["stdout"]
+
+    resolver = _dispatch("vscode://resolver")
+    assert resolver["ok"] is True
+    assert "CommandResolver" in resolver["stdout"]
+    assert "LOCAL" in resolver["stdout"] or "DURABLE" in resolver["stdout"] or "EXTERNAL" in resolver["stdout"]
+
+    plan = _dispatch("vscode://plan")
+    assert plan["ok"] is True
+    assert "PlanValidator" in plan["stdout"]
+    assert "409" in plan["stdout"]
+
+    capabilities = _dispatch("vscode://capabilities")
+    assert capabilities["ok"] is True
+    assert capabilities["count"] >= 1
+    assert len(capabilities["namespaces"]) >= 1
+
+    events = _dispatch("vscode://events")
+    assert events["ok"] is True
+    assert "EventStream" in events["stdout"]
+    assert "sanitize" in events["stdout"]
+
+
+def test_vscode_is_distinct_from_other_schemes() -> None:
+    """vscode:// is the IDE/terminal surface — not a render or brand surface."""
+    vscode = _dispatch("vscode://")
+    video = _dispatch("video://")
+    vidaeo = _dispatch("vidæo://")
+    assert vscode["scheme"] == "vscode://"
+    assert video["scheme"] == "video://"
+    assert vidaeo["scheme"] == "vidæo://"
+    # vscode carries bridge modules; video carries a harness; vidaeo carries brands
+    assert "modules" in vscode
+    assert "harness" in video
+    assert "brands" in vidaeo

@@ -422,6 +422,15 @@ THE CONTRACT (produce-and-verify):
   supervisionvidaeo://verify &lt;mp4&gt;  run the gate on an existing video
   supervisionvidaeo://check     is the package usable?
 
+THE IDE (VSCODER://BRIDGE):
+  vscode://                     bridge index (modules · capabilities · actions)
+  vscode://bridge               IPC + auth + JSON-RPC methods
+  vscode://state                IDEStateObserver · VSCODER_IDE_STATE_V1
+  vscode://resolver             CommandResolver · LOCAL/DURABLE/EXTERNAL
+  vscode://plan                 PlanValidator · 409 PLAN_STATE_CONFLICT
+  vscode://capabilities         11 typed namespaces
+  vscode://events               EventStream · delta chain · sanitize
+
 ASCII ALIAS:
   a://&lt;route&gt;  ≡  æ://&lt;route&gt;   the typable entry (æ not on every keyboard)</pre>
         <div class="cmd-row">
