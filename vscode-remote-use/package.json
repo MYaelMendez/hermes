@@ -124,6 +124,10 @@
       {
         "command": "remoteUse.brain",
         "title": "Remote Use: Local Brain (ollama)"
+      },
+      {
+        "command": "remoteUse.fleetWaves",
+        "title": "Remote Use: Fleet Waves C²"
       }
     ],
     "mcp": {

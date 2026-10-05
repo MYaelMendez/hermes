@@ -1331,6 +1331,33 @@ export function activate(context: vscode.ExtensionContext) {
     await vscode.commands.executeCommand('remoteUse.surfaces');
   });
 
+  const fleetWavesCmd = vscode.commands.registerCommand('remoteUse.fleetWaves', async () => {
+    const repo = getHermesRepoPath();
+    const templatePath = `${repo}/vscode-remote-use/templates/fleet-waves.html`;
+    let html: string;
+    try {
+      html = require('fs').readFileSync(templatePath, 'utf8');
+    } catch {
+      vscode.window.showWarningMessage(`Remote Use: fleet-waves template not found at ${templatePath}`);
+      return;
+    }
+    const panel = vscode.window.createWebviewPanel(
+      'remoteUseFleetWaves',
+      'Remote Use: Fleet Waves C²',
+      vscode.ViewColumn.One,
+      {
+        enableScripts: true,
+        retainContextWhenHidden: true,
+        localResourceRoots: [vscode.Uri.file(`${repo}/vscode-remote-use/templates`)],
+      }
+    );
+    /* inject the local Three.js via asWebviewUri so the module import resolves inside the webview */
+    const threePath = vscode.Uri.file(`${repo}/vscode-remote-use/templates/three.module.js`);
+    const threeUri = panel.webview.asWebviewUri(threePath).toString();
+    html = html.replace(/__THREE_URI__/g, threeUri);
+    panel.webview.html = html;
+  });
+
   const nvidiaCmd = vscode.commands.registerCommand('remoteUse.nvidia', async () => {
     const repo = getHermesRepoPath();
     const hub = `${repo}/templates/surfaces/nvidia-tiles.html`;
@@ -1486,6 +1513,7 @@ export function activate(context: vscode.ExtensionContext) {
     gpuAgentCmd,
     commandPromptCmd,
     homeOSCmd,
+    fleetWavesCmd,
     brainCmd
   );
 

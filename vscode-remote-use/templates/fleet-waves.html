@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1440, height=810">
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' ws:;">
+    <title>Fleet Waves · æ:// C²</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; overflow: hidden;
+        background: #050505; color: #D4AF37;
+        font-family: 'JetBrains Mono', 'Consolas', monospace; height: 100%; }
+      #stage { position: absolute; inset: 0; }
+      .scanlines { position: absolute; inset: 0; pointer-events: none; z-index: 100;
+        background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.15) 3px, rgba(0,0,0,0.15) 4px); }
+      .overlay { position: absolute; top: 16px; left: 16px; right: 16px; display: flex;
+        justify-content: space-between; align-items: center; z-index: 10; }
+      .title { font-size: 22px; color: #D4AF37; text-shadow: 0 0 20px rgba(212,175,55,0.4); letter-spacing: -0.02em; }
+      .tag { font-size: 12px; color: rgba(212,175,55,0.5); letter-spacing: 0.15em; }
+      .footer { position: absolute; bottom: 16px; left: 16px; right: 16px;
+        display: flex; justify-content: space-between; font-size: 12px; color: rgba(212,175,55,0.4); z-index: 10; }
+      .ticker { font-size: 11px; color: rgba(212,175,55,0.7); letter-spacing: 0.1em; }
+      .ticker .up { color: #00ff9d; }
+      .ticker .dn { color: #ff4d5f; }
+      #status { position: absolute; top: 48px; left: 16px; z-index: 10;
+        font-size: 11px; color: rgba(212,175,55,0.6); letter-spacing: 0.12em; }
+      .telemetry { position: absolute; top: 48px; right: 16px; z-index: 10;
+        font-size: 10px; color: rgba(212,175,55,0.5); letter-spacing: 0.1em; text-align: right; line-height: 1.6; }
+      .telemetry b { color: #00ff9d; }
+    </style>
+</head>
+<body>
+    <div id="stage"></div>
+    <div class="scanlines"></div>
+    <div id="status">GPU://WEBGPU · Fleet Waves C²</div>
+    <div id="telemetry">
+        <div><b>FLEET:</b> 3 bot swarms · 10,000 agents</div>
+        <div><b>TEKNİUM:</b> RTX 3050 · 6GB</div>
+        <div><b>REFACTOR:</b> 1,063,826 → 698,363 · 34.4%</div>
+        <div><b>MESH:</b> pc://mesh/victus/local</div>
+    </div>
+    <div class="overlay">
+        <span class="title">Fleet Waves — Agentic Electronic Engineering</span>
+        <span class="tag">æ://fleets · WebGPU + WebMCP</span>
+    </div>
+    <div class="footer">
+        <span class="ticker" id="ticker"></span>
+        <span>#hermiphicationisinevitable</span>
+    </div>
+
+<script type="module">
+import * as THREE from '__THREE_URI__';
+
+/* ════════════════════════════════════════════════════
+   Fleet Waves — æ:// fleet treatment inside VS Code C²
+   Three.js (WebGPU renderer when available, fallback WebGL)
+   ════════════════════════════════════════════════════ */
+const FLEETS = [
+  // golden manager swarm — 1 fleet at the center
+  { name: 'hermes-agent', color: 0xD4AF37, count: 5000, radius: 8, speed: 0.3 },
+  // cyan reasoner swarm — 2nd orbit
+  { name: 'vps_node',     color: 0x00eaff, count: 3000, radius: 12, speed: 0.15 },
+  // emerald worker swarm — 3rd orbit
+  { name: 'teknium',      color: 0x00ff9d, count: 2000, radius: 10, speed: 0.5 }
+];
+const MARKETS = [
+  { s:'^GSPC', n:'S&P 500',     pct:+0.73 },
+  { s:'^IXIC', n:'Nasdaq',       pct:+1.19 },
+  { s:'NVDA',  n:'NVIDIA',       pct:+1.34 },
+  { s:'BTC-USD',n:'Bitcoin',     pct:+0.29 },
+  { s:'^VIX',  n:'VIX',          pct:-6.59 },
+  { s:'GC=',   n:'Gold',         pct:-0.95 },
+  { s:'NG=',   n:'Nat Gas',      pct:+2.29 },
+  { s:'^TNX',  n:'US 10Y',       pct:+0.76 },
+];
+
+const RING_RADIUS = 11;
+let renderer, scene, camera, fleetPoints = [], marketNodes = [];
+const tickerEl = document.getElementById('ticker');
+tickerEl.innerHTML = MARKETS.map(m =>
+  `<span class="${m.pct > 0 ? 'up' : 'dn'}">${m.s} ${m.pct > 0 ? '+' : ''}${m.pct.toFixed(2)}%</span>`
+).join(' · ');
+
+function mulberry32(a) {
+  return function() {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+/* Shader-based particle system for waves of fleets */
+function createFleetMaterial(hex) {
+  return new THREE.ShaderMaterial({
+    vertexShader: `
+      uniform float u_time;
+      uniform float u_phase;
+      uniform float u_radius;
+      attribute float fleetId;
+      varying float vFleet;
+      varying float vZ;
+      void main() {
+        vFleet = fleetId;
+        vZ = position.z;
+        float wave = sin(u_time * (0.3 + u_phase * 0.1) + fleetId * 6.28) * 0.4;
+        vec3 pos = position;
+        pos.y += wave;
+        pos.x *= 1.0 + sin(u_time * 0.5 + u_phase) * 0.03;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+        gl_PointSize = 1.2 + wave * 2.0 + (1.0 - abs(vZ) / u_radius) * 3.0;
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 u_color;
+      uniform float u_time;
+      uniform float u_phase;
+      varying float vFleet;
+      varying float vZ;
+      void main() {
+        float fade = 1.0 - abs(vZ) / 12.0;
+        float pulse = sin(gl_PointCoord.x * 3.14 * 2.0 + u_time * 3.0 + u_phase) * 0.5 + 0.5;
+        gl_FragColor = vec4(u_color, 0.7 * fade * pulse);
+      }
+    `,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    uniforms: {
+      u_time: { value: 0 },
+      u_phase: { value: 0 },
+      u_radius: { value: RING_RADIUS },
+      u_color: { value: new THREE.Color(hex) }
+    }
+  });
+}
+
+function buildFleets() {
+  FLEETS.forEach((fleet, fi) => {
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(fleet.count * 3);
+    const fleetIds = new Float32Array(fleet.count);
+    const r = mulberry32(1000 + fi);
+    for (let i = 0; i < fleet.count; i++) {
+      const a = r() * Math.PI * 2;
+      const rad = fleet.radius + (r() - 0.5) * 4;
+      const y = (r() - 0.5) * fleet.radius * 1.4;
+      pos[i * 3]     = Math.cos(a) * rad;
+      pos[i * 3 + 1] = y;
+      pos[i * 3 + 2] = Math.sin(a) * rad;
+      fleetIds[i] = fi;
+    }
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('fleetId', new THREE.BufferAttribute(fleetIds, 1));
+    const mat = createFleetMaterial(fleet.color);
+    mat.uniforms.u_phase.value = fi * 0.6;
+    const points = new THREE.Points(geo, mat);
+    scene.add(points);
+    fleetPoints.push({ mesh: points, material: mat });
+  });
+}
+
+function buildMarketNodes() {
+  MARKETS.forEach((mkt, idx) => {
+    const a = (idx / MARKETS.length) * Math.PI * 2;
+    const g = new THREE.Group();
+    const x = Math.cos(a) * RING_RADIUS;
+    const z = Math.sin(a) * RING_RADIUS;
+    g.position.set(x, Math.sin(idx * 0.35) * 1.0, z);
+    const col = new THREE.Color(mkt.pct > 0 ? 0x00ff9d : 0xff4d5f);
+    const core = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(0.3, 1),
+      new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: 1.4, metalness: 0.3, roughness: 0.25 })
+    );
+    g.add(core);
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(0.55, 0.018, 8, 48),
+      new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.7 })
+    );
+    ring.rotation.x = Math.PI / 2;
+    g.add(ring);
+    scene.add(g);
+    marketNodes.push({ group: g, core, ring });
+  });
+}
+
+async function init() {
+  try {
+    renderer = new THREE.WebGPURenderer({ antialias: true });
+  } catch (e) {
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+  }
+  renderer.setSize(1440, 810);
+  renderer.setClearColor(0x050505);
+  document.getElementById('stage').appendChild(renderer.domCanvas);
+  if (renderer.init) await renderer.init();
+
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(52, 1440 / 810, 0.1, 400);
+  camera.position.set(0, 14, 32);
+
+  scene.add(new THREE.AmbientLight(0x101418, 2.0));
+  const key = new THREE.DirectionalLight(0xD4AF37, 2.0);
+  key.position.set(10, 16, 12);
+  scene.add(key);
+  const rim = new THREE.PointLight(0x00eaff, 30, 80);
+  rim.position.set(-14, 6, -12);
+  scene.add(rim);
+
+  buildFleets();
+  buildMarketNodes();
+  tick();
+  document.getElementById('status').textContent = 'GPU://' + (renderer.isWebGL2 ? 'WebGL2' : 'WebGPU') + ' · LIVE';
+}
+
+function tick() {
+  if (renderer && scene && camera) {
+    const t = performance.now() * 0.0004;
+    fleetPoints.forEach(fp => {
+      fp.material.uniforms.u_time.value = t + fp.material.uniforms.u_phase.value;
+    });
+    marketNodes.forEach((n, i) => {
+      n.group.rotation.y = t * 0.4 + i * 0.3;
+      n.group.rotation.x = t * 0.2;
+      n.ring.rotation.z = t * 0.25 + i;
+      n.core.material.emissiveIntensity = 1.4 + Math.sin(t * 2 + i) * 0.3;
+    });
+    renderer.render(scene, camera);
+  }
+  requestAnimationFrame(tick);
+}
+
+init().catch(err => {
+  document.getElementById('status').textContent = 'GPU://ERROR ' + (err.message || err);
+});
+</script>
+</body>
+</html>
