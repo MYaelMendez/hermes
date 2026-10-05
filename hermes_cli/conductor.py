@@ -267,6 +267,123 @@ def _pc_dispatch(raw: str) -> dict:
     }
 
 
+def _pc_inference_dispatch(raw: str) -> dict:
+    """pc://inference - the PC://INFERENCE portable inference substrate.
+
+    llama.cpp as the machine layer executing GGUF cognitive artifacts across
+    heterogeneous electronics. Reports the REAL local substrate and can run it:
+
+        pc://inference                 -> report (model, runtime, GPU, VRAM)
+        pc://inference run <prompt>    -> execute llama-cli -ngl 99, real tok/s
+        pc://inference bench           -> A/B GPU (-ngl 99) vs CPU (-ngl 0)
+
+    Local cognition != external authority: this surface reasons locally; any
+    external consequence stays separately gated by PC://POLICY.
+    """
+    import os
+    import subprocess
+
+    rest = raw.split("pc://inference", 1)[1].strip() if "pc://inference" in raw else ""
+    parts = rest.split(" ", 1)
+    action = parts[0].strip().lower() if parts and parts[0].strip() else "report"
+    arg = parts[1].strip() if len(parts) > 1 else ""
+
+    model = os.environ.get(
+        "PC_INFERENCE_MODEL",
+        r"C:/Users/yaelm/AppData/Local/hermes/tools/qwen2.5-coder-7b-q4_k_m.gguf",
+    )
+    llama = os.environ.get(
+        "PC_INFERENCE_LLAMA",
+        r"C:/Users/yaelm/AppData/Local/Microsoft/WinGet/Packages/"
+        r"ggml.llamacpp_Microsoft.Winget.Source_8wekyb3d8bbwe/llama-cli.exe",
+    )
+
+    def _gpu() -> str:
+        try:
+            r = subprocess.run(
+                ["nvidia-smi", "--query-gpu=name,memory.total,compute_cap",
+                 "--format=csv,noheader"],
+                capture_output=True, text=True, shell=False, timeout=8,
+            )
+            return r.stdout.strip() if r.returncode == 0 else "nvidia-smi unavailable"
+        except Exception as e:  # noqa: BLE001
+            return f"nvidia-smi error: {e}"
+
+    def _gen(prompt: str, ngl: int, n: int = 150) -> str:
+        if not os.path.exists(llama):
+            return f"llama-cli missing: {llama}"
+        if not os.path.exists(model):
+            return f"model missing: {model}"
+        try:
+            r = subprocess.run(
+                [llama, "-m", model, "-p", prompt, "-n", str(n),
+                 "--temp", "0.2", "--ctx-size", "8192",
+                 "-ngl", str(ngl), "--color", "off", "--single-turn"],
+                capture_output=True, text=True, shell=False, timeout=600,
+            )
+            out = r.stdout or ""
+            footer = ""
+            for line in out.splitlines():
+                if "t/s" in line and "Prompt:" in line:
+                    footer = line.strip()
+            return footer or (out.strip()[-300:] if out.strip() else (r.stderr or "")[-300:])
+        except subprocess.TimeoutExpired:
+            return "inference timed out"
+        except Exception as e:  # noqa: BLE001
+            return f"inference error: {e}"
+
+    surface = {
+        "kind": "pc_inference",
+        "address": raw,
+        "node": "pc://mesh/victus/local",
+        "control": "+?://cc",
+        "runtime": "llama.cpp",
+        "model": os.path.basename(model),
+        "model_present": os.path.exists(model),
+        "llama_present": os.path.exists(llama),
+        "native": os.path.exists(llama) and os.path.exists(model),
+        "local_only": True,
+    }
+
+    if action == "report":
+        return {
+            "ok": True, "rc": 0,
+            "stdout": (f"pc://inference -> {surface['model']}\n"
+                       f"  runtime : llama.cpp ({'ready' if surface['llama_present'] else 'MISSING'})\n"
+                       f"  gpu     : {_gpu()}\n"
+                       f"  substrate: Model -> GGUF -> llama.cpp -> CPU/GPU\n"),
+            "stderr": "",
+            "surface": surface,
+        }
+
+    if action == "run":
+        prompt = arg or "Write a Three.js rotating gold cube:"
+        footer = _gen(prompt, 99)
+        return {
+            "ok": "t/s" in footer, "rc": 0 if "t/s" in footer else 1,
+            "stdout": f"pc://inference run -ngl 99 -> {footer}\n",
+            "stderr": "" if "t/s" in footer else footer,
+            "surface": {**surface, "action": "run", "ngl": 99, "footer": footer},
+        }
+
+    if action == "bench":
+        gpu = _gen("Write a Three.js rotating cube:", 99)
+        cpu = _gen("Write a Three.js rotating cube:", 0)
+        return {
+            "ok": "t/s" in gpu and "t/s" in cpu, "rc": 0,
+            "stdout": (f"pc://inference bench\n  -ngl 99 : {gpu}\n"
+                       f"  -ngl  0 : {cpu}\n  (a 4-40x gap proves offload; equal = CPU fallback)\n"),
+            "stderr": "",
+            "surface": {**surface, "action": "bench", "gpu": gpu, "cpu": cpu},
+        }
+
+    return {
+        "ok": False, "rc": 2, "stdout": "",
+        "stderr": f"unknown pc://inference action: {action} (use report|run|bench)",
+        "surface": surface,
+    }
+
+
 def _qrcode_dispatch(raw: str) -> dict:
     html = ""
     action = None
@@ -2017,6 +2134,230 @@ def _keeper_dispatch(raw: str) -> dict:
                    f"  Every line above was measured at print time. A check that\n"
                    f"  was not run says so; none is shown as passing untested.\n")
 
+    if rest in ("publish", "post"):
+        # Publish a MEASURED fact from the ledger as an ae.social record.
+        #
+        # The ledger is the raw material; this is the filter. Only entries that
+        # carry evidence cross to the network — an entry that cannot point at
+        # what proved it is not publishable. The custody boundary holds: nothing
+        # from C:\<ae>\secrets is ever read here.
+        import urllib.request as _ur7
+        import json as _js7
+
+        BRAIN = "http://129.212.180.252:3000/xrpc/ae.vps.record"
+        PRINCIPAL = "did:web:myaelmendez.github.io"
+
+        # 1. load the ledger
+        facts = []
+        try:
+            import importlib.util as _ilu7
+            _sp7 = _ilu7.spec_from_file_location("keeper_store", _store)
+            _ks7 = _ilu7.module_from_spec(_sp7); _sp7.loader.exec_module(_ks7)
+            facts = _ks7.recall("", limit=500).get("matches", [])
+        except Exception as e:
+            return {"ok": False, "rc": 1, "stdout": "",
+                    "stderr": f"keeper://publish — ledger unavailable: {e}"}
+
+        # 2. filter to what is publishable: needs evidence, and must not carry
+        #    anything secret-shaped. Same discipline as the audit.
+        import re as _re7
+        SECRET_SHAPES = _re7.compile(
+            r"AKIA[0-9A-Z]{16}|sk-[A-Za-z0-9]{24,}|ghp_[A-Za-z0-9]{30,}"
+            r"|xox[baprs]-[A-Za-z0-9\-]{10,}|-----BEGIN [A-Z ]*PRIVATE KEY-----"
+            r"|dop_v1_[a-f0-9]{60,}|password\s*[:=]|token\s*[:=]\s*[A-Za-z0-9]{16,}",
+            _re7.I)
+
+        publishable, held = [], []
+        for rec in facts:
+            src = str(rec.get("source", ""))
+            text = str(rec.get("text", ""))
+            has_ev = "::" in src and len(src.split("::", 1)[1].strip()) > 8
+            if SECRET_SHAPES.search(text) or SECRET_SHAPES.search(src):
+                held.append((rec, "secret-shaped content"))
+            elif not has_ev:
+                held.append((rec, "no evidence"))
+            else:
+                publishable.append(rec)
+
+        if not publishable:
+            return _ok({"published": 0, "held": len(held)},
+                       f"keeper://publish — nothing publishable\n"
+                       f"  {len(facts)} in ledger · {len(held)} held\n"
+                       f"  a post needs evidence; an entry without it stays local.\n")
+
+        # 3. publish each as ae.social#post
+        def _post7(nsid, value):
+            body = _js7.dumps({"nsid": nsid, "value": value}).encode()
+            req = _ur7.Request(BRAIN, data=body,
+                               headers={"Content-Type": "application/json"},
+                               method="POST")
+            try:
+                with _ur7.urlopen(req, timeout=25) as r:
+                    out = _js7.loads(r.read() or b"{}")
+                return True, out.get("sig", "")[:16]
+            except Exception as e:
+                return False, f"{type(e).__name__}: {e}"[:100]
+
+        published = []
+        for rec in publishable:
+            src = str(rec.get("source", ""))
+            evidence = src.split("::", 1)[1].strip() if "::" in src else ""
+            okp, sig = _post7("ae.social#post", {
+                "text": str(rec.get("text", ""))[:3000],
+                "kind": str(rec.get("kind", "fact")),
+                "evidence": evidence[:500],
+                "agent": "keeper",
+                "principal": PRINCIPAL,
+                "tags": [str(t)[:48] for t in (rec.get("tags") or [])][:12],
+                "measured": True,
+                "createdAt": rec.get("iso") or "",
+            })
+            published.append((okp, sig, str(rec.get("text", ""))[:70]))
+
+        good = sum(1 for o, _, _ in published if o)
+        return _ok({"published": good, "held": len(held),
+                    "records": [{"ok": o, "sig": s, "text": t} for o, s, t in published]},
+                   f"keeper://publish — receipts network\n"
+                   f"  published: {good}/{len(publishable)}   held: {len(held)}\n"
+                   f"  principal: {PRINCIPAL}\n"
+                   f"  custody:   secrets never read here\n\n"
+                   + "\n".join(f"  [{'ok' if o else '!!'}] {s:16} {t}"
+                               for o, s, t in published[:8])
+                   + (f"\n  held back: " + "; ".join(f"{w}" for _, w in held[:4])
+                      if held else "")
+                   + "\n")
+
+    if rest == "code_mode" or rest.startswith("code_mode "):
+        # æ://code_mode — the compact DSL for the sovereign mesh.
+        #
+        # Inspired by Cloudflare Code Mode: instead of calling tools individually,
+        # the agent writes a compact program against a typed API. The program
+        # runs in a sandbox (Python) with explicit bindings (the keeper:// verbs).
+        #
+        # Syntax:
+        #   a          → keeper://audit
+        #   p          → keeper://publish
+        #   r          → keeper://remember
+        #   R          → keeper://recall
+        #   l          → keeper://ledger
+        #   h          → keeper://handoff
+        #   a|p|r      → pipe: audit → publish → remember
+        #   r:broken   → recall filtered by "broken"
+        #   a!         → audit with strict mode (fail on any warning)
+        #   ?          → list available commands
+        #
+        # The DSL is deliberately tiny. The mesh has 7 verbs. The DSL maps
+        # 1:1 to them. No abstraction, no magic — just a compact surface.
+
+        import urllib.request as _ur8
+        import json as _js8
+
+        # Parse the program
+        program = rest.strip() if rest else "?"
+
+        # Available commands
+        CMDS = {
+            "a": "audit",
+            "p": "publish",
+            "r": "remember",
+            "R": "recall",
+            "l": "ledger",
+            "h": "handoff",
+        }
+
+        # Help
+        if program == "?" or program == "help":
+            lines = ["æ://code_mode — compact DSL for the sovereign mesh", ""]
+            lines.append("  commands:")
+            for k, v in CMDS.items():
+                lines.append(f"    {k:2} → keeper://{v}")
+            lines.append("")
+            lines.append("  composition:")
+            lines.append("    a|p|r   → audit → publish → remember")
+            lines.append("    r:broken → recall filtered by 'broken'")
+            lines.append("    a!      → audit with strict mode")
+            lines.append("")
+            lines.append("  examples:")
+            lines.append("    æ://code_mode a       → run audit")
+            lines.append("    æ://code_mode a|p|r   → audit, publish results, remember")
+            lines.append("    æ://code_mode R:fix   → recall entries matching 'fix'")
+            return _ok({"commands": CMDS, "syntax": "a|p|r, r:filter, a!"},
+                       "\n".join(lines) + "\n")
+
+        # Parse pipe chain
+        parts = program.split("|")
+        results = []
+
+        for part in parts:
+            part = part.strip()
+            if not part:
+                continue
+
+            # Check for filter (r:broken)
+            filter_str = None
+            if ":" in part and part.split(":")[0] in CMDS:
+                cmd, filter_str = part.split(":", 1)
+            else:
+                cmd = part
+
+            # Check for strict mode (a!)
+            strict = False
+            if cmd.endswith("!"):
+                strict = True
+                cmd = cmd[:-1]
+
+            # Validate
+            if cmd not in CMDS:
+                return {"ok": False, "rc": 1, "stdout": "",
+                        "stderr": f"æ://code_mode — unknown command '{cmd}'\n"
+                                  f"  available: {', '.join(CMDS.keys())}\n"
+                                  f"  use '?' for help\n"}
+
+            # Execute
+            verb = CMDS[cmd]
+            if filter_str:
+                verb = f"{verb} {filter_str}"
+            if strict:
+                verb = f"{verb} --strict"
+
+            # Call the keeper:// dispatch
+            try:
+                result = _dispatch(f"keeper://{verb}")
+                results.append({
+                    "cmd": cmd,
+                    "verb": verb,
+                    "ok": result.get("ok", False),
+                    "stdout": result.get("stdout", ""),
+                    "stderr": result.get("stderr", ""),
+                })
+            except Exception as e:
+                results.append({
+                    "cmd": cmd,
+                    "verb": verb,
+                    "ok": False,
+                    "stdout": "",
+                    "stderr": f"{type(e).__name__}: {e}",
+                })
+
+        # Report
+        good = sum(1 for r in results if r["ok"])
+        lines = [f"æ://code_mode — {len(results)} command(s)", ""]
+        for r in lines:
+            pass  # placeholder
+        for r in results:
+            status = "ok" if r["ok"] else "!!"
+            lines.append(f"  [{status}] {r['cmd']} → keeper://{r['verb']}")
+            if r["stdout"]:
+                # Show first 3 lines of stdout
+                for l in r["stdout"].split("\n")[:3]:
+                    if l.strip():
+                        lines.append(f"       {l}")
+            if r["stderr"]:
+                lines.append(f"       error: {r['stderr'][:80]}")
+
+        return _ok({"executed": good, "total": len(results), "results": results},
+                   "\n".join(lines) + "\n")
+
     if rest == "handoff":
         return _ok({"carries": ["what is broken", "what was rescued and where",
                                 "what is verified vs merely claimed"]},
@@ -2037,6 +2378,7 @@ def _aecore_dispatch(raw: str) -> dict:
       æ://mesh                → list all bots + liveness
       æ://gpu/<op>            → local RTX 3050 compute
       æ://videolab/<cmd>      → video rendering + telemetry
+      vidæo://<brand>[/<act>] → brand production surface (video + audio)
       æ://vps/<node>          → backbone node status
       æ://cc                  → conductor surface (human)
       æ://teknium             → this sovereign host profile
@@ -2110,6 +2452,11 @@ def _aecore_dispatch(raw: str) -> dict:
     # --- æ://keeper — custodian surface ---
     if rest in ("keeper", "custodian"):
         return _keeper_dispatch("keeper://")
+    # --- æ://code_mode — compact DSL for the sovereign mesh ---
+    if rest == "code_mode" or rest.startswith("code_mode "):
+        # Strip "code_mode" prefix and pass the rest as the program
+        program = rest[len("code_mode"):].strip() if rest.startswith("code_mode ") else ""
+        return _keeper_dispatch(f"keeper://code_mode {program}")
     # --- æ://cc — conductor surface ---
     if rest == "cc" or rest == "conductor":
         return {"ok": True, "rc": 0, "stdout": "æ://cc — sovereign conductor surface\n",
@@ -2243,6 +2590,7 @@ class SchemeDispatcher:
 _DISPATCHER = SchemeDispatcher()
 _DISPATCHER.register("c://cc", _cctx_dispatch)
 _DISPATCHER.register("pc://run", _pc_run_dispatch)
+_DISPATCHER.register("pc://inference", _pc_inference_dispatch)
 _DISPATCHER.register("pc://", _pc_dispatch)
 _DISPATCHER.register("?://", _aectx_dispatch)
 _DISPATCHER.register("daollc://", _dao_dispatch)
@@ -2263,6 +2611,48 @@ _DISPATCHER.register("+bæsic://", _bæsic_dispatch)
 _DISPATCHER.register("Hæbbian://", _hæbbian_dispatch)
 _DISPATCHER.register("neuromitosis://", _hæbbian_dispatch)
 _DISPATCHER.register("keeper://", _keeper_dispatch)
+
+
+def _monaco_dispatch(raw: str) -> dict:
+    """monaco:// - Monaco editor skill router.
+
+    Routes monaco://<skill> URIs to the matching skill handler.
+    Falls back to skill file lookup if no built-in route matches.
+    """
+    rest = raw.split("monaco://", 1)[1].strip() if "monaco://" in raw else ""
+    skill = rest.split("?", 1)[0].split()[0] if rest else ""
+    params = rest.split("?", 1)[1] if "?" in rest else ""
+
+    _SKILL_ROUTES = {
+        "llama-cpp-gpu": "Local GGUF inference via RTX 3050",
+        "rtx-telemetry": "Live GPU metrics panel",
+        "deploy-surfaces": "Deploy HTML surface from editor",
+        "code-mode": "Run sandboxed code in editor",
+        "pc-inference": "PC://INFERENCE substrate",
+        "ae-as-skill": "æ:// computing stack guide",
+        "glocal-mesh": "Mesh topology + tier status",
+        "qr-vision": "QR detection + generation",
+        "cri-index": "Consumer Redline Index",
+        "mail-agent": "Agentic email triage + delivery",
+    }
+
+    if skill in _SKILL_ROUTES:
+        return {
+            "ok": True, "rc": 0,
+            "stdout": f"monaco://{skill} → {_SKILL_ROUTES[skill]}\n",
+            "stderr": "", "scheme": "monaco", "skill": skill, "params": params,
+            "surface": {"kind": "monaco_dispatch", "skill": skill, "params": params},
+        }
+
+    return {
+        "ok": False, "rc": 2,
+        "stdout": "",
+        "stderr": f"monaco:// unknown skill: {skill}. Routes: {', '.join(sorted(_SKILL_ROUTES))}",
+        "scheme": "monaco", "skill": skill,
+    }
+
+
+_DISPATCHER.register("monaco://", _monaco_dispatch)
 _DISPATCHER.register("?://glocal-agent", _glocal_agent_dispatch)
 _DISPATCHER.register("+?://identity", _identity_dispatch)
 _DISPATCHER.register("+?://media^ffmpeg", _media_dispatch)
@@ -2966,34 +3356,67 @@ def _secrets_dispatch(raw: str) -> dict:
         envp = os.environ.get("HERMES_SECRETS")
         if envp:
             lines.append(f"  [env] HERMES_SECRETS={envp} -> {'OK' if os.path.exists(envp) else 'absent'}")
+        # vault tier
+        try:
+            from secret_source import sources as _src_info
+            info = _src_info()
+            v = info.get("væult", {})
+            if v.get("exists"):
+                mark = "OK " if v.get("unlocked") else "LOCKED"
+                lines.append(f"  [{mark}] væult: {v.get('path')} ({len(v.get('entries', []))} entries)")
+            else:
+                lines.append(f"  [absent] væult: {v.get('path')}")
+        except Exception:
+            pass
         return {"ok": True, "stdout": "\n".join(lines) + "\n",
                 "surface": {"kind": "secrets", "local_only": True, "paths": DEFAULT_PATHS}}
 
     if action == "status":
+        lines = []
         if not src or not os.path.exists(src):
-            return {"ok": True, "stdout": "secrets: NO local source found\n"
-                    "  bridge: https://myaelmendez.github.io/secret-source-bridge.html\n"
-                    "  fix: in bridge click 'Push to local' -> save to C:\\?\\secrets\\secrets.json\n",
-                    "surface": {"kind": "secrets", "local_only": True, "present": False}}
+            lines.append("secrets: NO bridge file found")
+            lines.append("  bridge: https://myaelmendez.github.io/secret-source-bridge.html")
+            lines.append("  fix: in bridge click 'Push to local' -> save to C:\\?\\secrets\\secrets.json")
+        else:
+            try:
+                data = json.load(open(src, encoding="utf-8"))
+                n = len(data.get("secrets", []))
+                lines.append(f"secrets: {n} entry(ies) at {src}")
+            except Exception as exc:
+                lines.append(f"secrets: unreadable source ({exc})")
+        # vault tier
         try:
-            data = json.load(open(src, encoding="utf-8"))
-            n = len(data.get("secrets", []))
-        except Exception as exc:
-            return {"ok": False, "stderr": f"secrets: unreadable source ({exc})",
-                    "surface": {"kind": "secrets", "local_only": True, "path": src}}
-        return {"ok": True, "stdout": f"secrets: {n} entry(ies) at {src}\n",
-                "surface": {"kind": "secrets", "local_only": True, "present": True,
-                            "count": n, "path": src}}
+            from secret_source import sources as _src_info
+            info = _src_info()
+            v = info.get("væult", {})
+            if v.get("exists"):
+                state = "unlocked" if v.get("unlocked") else "LOCKED"
+                lines.append(f"  væult: {state} ({len(v.get('entries', []))} entries) at {v.get('path')}")
+            else:
+                lines.append(f"  væult: absent at {v.get('path')}")
+        except Exception:
+            pass
+        return {"ok": True, "stdout": "\n".join(lines) + "\n",
+                "surface": {"kind": "secrets", "local_only": True, "present": bool(src and os.path.exists(src))}}
 
     if action == "list":
-        if not src or not os.path.exists(src):
-            return {"ok": False, "stderr": "secrets: NO local source (Push to local first)"}
-        data = json.load(open(src, encoding="utf-8"))
         rows = []
-        for s in data.get("secrets", []):
-            v = str(s.get("value", ""))
-            mask = "*" * min(12, max(4, len(v))) if v else ""
-            rows.append(f"  {s.get('key')}  [{s.get('kind')}]  {mask}")
+        if src and os.path.exists(src):
+            data = json.load(open(src, encoding="utf-8"))
+            for s in data.get("secrets", []):
+                v = str(s.get("value", ""))
+                mask = "*" * min(12, max(4, len(v))) if v else ""
+                rows.append(f"  {s.get('key')}  [{s.get('kind')}]  {mask}")
+        # vault tier (masked)
+        try:
+            from secret_source import _vaeult_entries
+            for k, v in _vaeult_entries().items():
+                mask = "*" * min(12, max(4, len(v))) if v else ""
+                rows.append(f"  {k}  [væult]  {mask}")
+        except Exception:
+            pass
+        if not rows:
+            return {"ok": False, "stderr": "secrets: NO local source (Push to local first)"}
         body = "secrets (local, masked):\n" + "\n".join(rows) + "\n"
         return {"ok": True, "stdout": body,
                 "surface": {"kind": "secrets", "local_only": True, "count": len(rows)}}
@@ -3024,6 +3447,7 @@ def _secrets_dispatch(raw: str) -> dict:
 
 
 _DISPATCHER.register("+?://secrets", _secrets_dispatch)
+_DISPATCHER.register("+æ://secrets", _secrets_dispatch)
 
 
 def _gauntlet_status() -> dict:
@@ -3124,4 +3548,148 @@ _DISPATCHER.register("+?://qrcode", _qrcode_dispatch)
 _DISPATCHER.register("+?://mesh", _mesh_dispatch)
 _DISPATCHER.register("commandprompt://", _commandprompt_dispatch)
 _DISPATCHER.register("home://", _home_dispatch)
+# ── vidæo:// — the brand production surface ────────────────────────────────
+# vidæo://<brand>/<action>
+#
+# The brand IS the address. vidæo://aipodcast.me resolves the brand to its
+# published surface and its asset manifest; the action runs the production
+# pipeline against it.
+#
+#   vidæo://                        -> the scheme index (brands + actions)
+#   vidæo://status                  -> toolchain: ffmpeg, node, GPU, corpus
+#   vidæo://aipodcast.me            -> the brand: surface, manifest, asset counts
+#   vidæo://aipodcast.me/verify     -> supervise the brand's corpus videos
+#   vidæo://aipodcast.me/render <scene>  -> render a scene into the brand
+#
+# Graceful degradation: when the local toolchain is absent the brand surface
+# still resolves (it is published); only the render/verify actions report why
+# they cannot run. Same pattern as videolab:// and mcp://.
+
+_VIDAEO_BRANDS = {
+    "aipodcast.me": {
+        "dir": "aipodcast_me",
+        "surface": "https://myaelmendez.github.io/aipodcast_me/media.html",
+        "hq": "https://myaelmendez.github.io/aipodcast_me/",
+        "manifest": r"C:\æ\github-pages\aipodcast_me\media-manifest.json",
+        "role": "Media — video + audio production. The brand carries the assets.",
+    },
+    "neuromitosis.com": {
+        "dir": "neuromitosis",
+        "surface": "https://myaelmendez.github.io/neuromitosis",
+        "hq": "https://myaelmendez.github.io/neuromitosis",
+        "manifest": r"C:\æ\github-pages\brain.json",
+        "role": "Bond — the site brain. Human + Robot + DAO, wired via Hæbbian.",
+    },
+}
+
+
+def _vidaeo_dispatch(raw: str) -> dict:
+    """Route vidæo:// commands: the brand production surface."""
+    import json as _json
+    import os as _os
+    import subprocess as _sp
+
+    rest = raw.split("vidæo://", 1)[1].strip() if "vidæo://" in raw else ""
+    # vidæo://<brand>/<action> [arg]   |   vidæo://<action>
+    brand_key, action, arg = None, "status", ""
+    if rest:
+        head, _, tail = rest.partition("/")
+        if head in _VIDAEO_BRANDS:
+            brand_key = head
+            if tail:
+                a, _, b = tail.partition(" ")
+                action, arg = (a or "status"), b.strip()
+        else:
+            a, _, b = rest.partition(" ")
+            action, arg = (a or "status"), b.strip()
+
+    _HERE = _os.path.dirname(_os.path.abspath(__file__))
+    _ROOT = _os.path.normpath(_os.path.join(_HERE, "..", ".."))
+    _VIDAEO = _os.path.join(_ROOT, "vidæo", "vidæo.py")
+    _GPU_PY = r"C:\gpu\Scripts\python.exe"
+
+    # ── no brand: the scheme index ──
+    if brand_key is None and action in ("", "status", "index"):
+        brands = [{"brand": k, "surface": v["surface"], "role": v["role"]}
+                  for k, v in _VIDAEO_BRANDS.items()]
+        return {
+            "ok": True,
+            "scheme": "vidæo://",
+            "role": "brand production surface — the brand is the address",
+            "brands": brands,
+            "actions": ["status", "<brand>", "<brand>/verify", "<brand>/render <scene>"],
+            "toolchain": {
+                "vidæo_cli": _VIDAEO if _os.path.exists(_VIDAEO) else None,
+                "gpu_python": _GPU_PY if _os.path.exists(_GPU_PY) else None,
+            },
+            "stdout": (f"vidæo:// — {len(brands)} brands\n"
+                       + "".join(f"  vidæo://{b['brand']:18} {b['role'][:56]}\n" for b in brands)
+                       + "\n  actions: status · <brand> · <brand>/verify · <brand>/render <scene>\n"),
+        }
+
+    if brand_key is None:
+        return {"ok": False, "stderr": f"vidæo:// unknown action '{action}' — try vidæo://status or vidæo://aipodcast.me"}
+
+    brand = _VIDAEO_BRANDS[brand_key]
+    _BRAND_DIR = _os.path.join(_ROOT, "github-pages", brand["dir"])
+
+    # ── the brand surface: what it is, what it carries ──
+    if action in ("", "status"):
+        info = {"ok": True, "brand": brand_key, "role": brand["role"],
+                "surface": brand["surface"], "hq": brand["hq"]}
+        mp = brand["manifest"]
+        if _os.path.exists(mp):
+            try:
+                m = _json.loads(open(mp, encoding="utf-8").read())
+                info["manifest"] = {
+                    k: m.get(k) for k in
+                    ("video_count", "audio_count", "total_video_mb", "total_audio_mb",
+                     "total_surfaces", "total_categories", "all_pass", "episodes")
+                    if m.get(k) is not None
+                }
+            except Exception as e:
+                info["manifest_error"] = str(e)[:120]
+        info["dir"] = _BRAND_DIR if _os.path.exists(_BRAND_DIR) else None
+        lines = [f"vidæo://{brand_key}", f"  role     {brand['role']}",
+                 f"  surface  {brand['surface']}"]
+        if "manifest" in info:
+            for k, v in info["manifest"].items():
+                lines.append(f"  {k:9} {v}")
+        info["stdout"] = "\n".join(lines) + "\n"
+        return info
+
+    # ── verify: supervise the brand's corpus ──
+    if action == "verify":
+        if not _os.path.exists(_VIDAEO):
+            return {"ok": False, "stderr": f"vidæo://{brand_key}/verify — vidæo.py not found at {_VIDAEO}"}
+        if not _os.path.exists(_GPU_PY):
+            return {"ok": False, "stderr": f"vidæo://{brand_key}/verify — GPU python not found at {_GPU_PY}"}
+        try:
+            r = _sp.run([_GPU_PY, _VIDAEO, "corpus"], capture_output=True, text=True, timeout=300)
+            return {"ok": r.returncode == 0, "stdout": r.stdout.strip()[-1500:],
+                    "stderr": r.stderr.strip()[-400:],
+                    "surface": {"kind": "vidæo", "brand": brand_key, "action": "verify"}}
+        except Exception as exc:
+            return {"ok": False, "stderr": f"vidæo://{brand_key}/verify — {exc}"}
+
+    # ── render: run the AEE cycle into the brand ──
+    if action == "render":
+        if not _VIDAEO:
+            return {"ok": False, "stderr": "vidæo://render — vidæo.py not found"}
+        if not arg:
+            return {"ok": False, "stderr": f"vidæo://{brand_key}/render requires a scene spec path"}
+        try:
+            r = _sp.run([_GPU_PY, _VIDAEO, "cycle", arg, _os.path.join(_BRAND_DIR, "render.mp4")],
+                        capture_output=True, text=True, timeout=900, cwd=_os.path.join(_ROOT, "vidæo"))
+            return {"ok": r.returncode == 0, "stdout": r.stdout.strip()[-1500:],
+                    "stderr": r.stderr.strip()[-400:],
+                    "surface": {"kind": "vidæo", "brand": brand_key, "action": "render"}}
+        except Exception as exc:
+            return {"ok": False, "stderr": f"vidæo://{brand_key}/render — {exc}"}
+
+    return {"ok": False, "stderr": f"vidæo://{brand_key} unknown action '{action}'"}
+
+
+_DISPATCHER.register("vidæo://", _vidaeo_dispatch)
+
 _DISPATCHER.register("fs://", _fs_dispatch)
